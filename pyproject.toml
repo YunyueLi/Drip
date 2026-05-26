@@ -56,8 +56,8 @@ drip = "drip.cli:main"
 
 [project.urls]
 Homepage = "https://drip.dev"
-Repository = "https://github.com/drip-agent/drip"
-Issues = "https://github.com/drip-agent/drip/issues"
+Repository = "https://github.com/YunyueLi/Drip"
+Issues = "https://github.com/YunyueLi/Drip/issues"
 
 [build-system]
 requires = ["hatchling"]
