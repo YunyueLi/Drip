@@ -1,0 +1,59 @@
+name: Bug report
+description: Something broke during a Drip run.
+labels: ["bug"]
+body:
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      placeholder: I ran `drip launch ...` and it crashed at the audience step with…
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect to happen?
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Minimal reproduction
+      placeholder: |
+        - game spec (or attach yaml)
+        - exact CLI command
+        - DRIP_MODE value
+        - any redacted log output
+      render: bash
+    validations:
+      required: true
+
+  - type: input
+    id: drip-version
+    attributes:
+      label: Drip version
+      placeholder: 0.0.1
+    validations:
+      required: true
+
+  - type: input
+    id: python-version
+    attributes:
+      label: Python version
+      placeholder: 3.11.x
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options:
+        - macOS
+        - Linux
+        - Windows (WSL)
+        - Windows (native)
+    validations:
+      required: true

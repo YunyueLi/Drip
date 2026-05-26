@@ -1,0 +1,34 @@
+name: Feature request
+description: Suggest a new worker, adapter, or capability.
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem are you trying to solve?
+      placeholder: When I run UA for X, today I have to manually do Y because Drip doesn't…
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      placeholder: A new worker / a new adapter / a new flag on `drip launch`…
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Scope
+      options:
+        - label: New ad platform adapter
+        - label: New creative provider (image / video)
+        - label: New simulation backend
+        - label: New worker
+        - label: Eval / Drip-Bench case
+        - label: Docs / examples

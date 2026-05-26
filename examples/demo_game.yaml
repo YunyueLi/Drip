@@ -1,0 +1,24 @@
+# Sample game spec for `drip demo` and the README quick-start.
+#
+# This is a fictional anime-gacha title. Replace with your own game when you
+# install drip-agent locally — `drip launch --game ./your_game.yaml`.
+
+title: "Astral Drift"
+genre: "anime-gacha"
+art_style: "anime, soft cel-shading, painterly"
+target_audience: "anime gachas aged 18-34, JP / SEA / TW"
+
+key_characters:
+  - "Riku — a sky-pirate captain with a glowing compass"
+  - "Hina — a shrine maiden who befriends spirits"
+  - "Vesper — an idol singer cursed with cat ears"
+
+store_links:
+  ios: "https://example.com/astral-drift-ios"
+  android: "https://example.com/astral-drift-android"
+
+creative_brief: >
+  Mid-2026 summer event launch. Lean on cozy / slice-of-life angles for
+  Hina, dramatic skybound action for Riku, glamour-with-a-twist for Vesper.
+  Avoid generic isekai tropes. The drip-marketing reveal order should mirror
+  in-game banner order: Hina -> Vesper -> Riku.

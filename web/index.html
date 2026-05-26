@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Drip · autonomous UA agent for anime games</title>
+<meta name="description" content="One agent replaces a 5-person UA team. Open-source autonomous user-acquisition agent for anime / gacha mobile games.">
+<style>
+:root {
+  --bg: #fbfaf7;
+  --surface: #ffffff;
+  --ink: #1a1a1a;
+  --ink-2: #525252;
+  --ink-3: #8a8a8a;
+  --line: #e8e6e0;
+  --accent: #c97f4a;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "PingFang SC", sans-serif;
+  background: var(--bg); color: var(--ink); line-height: 1.7; font-size: 16px;
+  -webkit-font-smoothing: antialiased; letter-spacing: -0.005em;
+}
+.serif { font-family: "Iowan Old Style", Baskerville, "Source Han Serif SC", serif; }
+.mono { font-family: ui-monospace, "SF Mono", Menlo, monospace; }
+a { color: var(--ink); border-bottom: 1px solid var(--ink-3); text-decoration: none; transition: border-color .15s; }
+a:hover { border-bottom-color: var(--ink); }
+
+.wrap { max-width: 720px; margin: 0 auto; padding: 0 28px; }
+header { padding: 120px 0 24px; }
+nav { display: flex; justify-content: space-between; align-items: center; padding: 28px 0; font-size: 13px; color: var(--ink-3); }
+nav a { border: none; color: var(--ink-2); margin-left: 20px; }
+nav .brand { font-family: "Iowan Old Style", serif; font-size: 20px; color: var(--ink); letter-spacing: -0.02em; font-style: italic; }
+
+h1 { font-family: "Iowan Old Style", Baskerville, serif; font-size: 88px; line-height: 0.95; letter-spacing: -0.04em; font-weight: 400; margin: 60px 0 24px; }
+h1 em { font-style: italic; color: var(--accent); }
+.lede { font-size: 22px; line-height: 1.45; color: var(--ink-2); max-width: 560px; margin-bottom: 40px; }
+
+.pill {
+  display: inline-block; font-size: 11px; padding: 5px 12px; border: 1px solid var(--ink-3); border-radius: 100px;
+  color: var(--ink-2); letter-spacing: 0.1em; text-transform: uppercase; font-weight: 500; margin-bottom: 40px;
+}
+
+section { padding: 64px 0; border-top: 1px solid var(--line); }
+h2 { font-family: "Iowan Old Style", Baskerville, serif; font-size: 36px; font-weight: 400; letter-spacing: -0.02em; margin-bottom: 24px; }
+h2 em { color: var(--accent); font-style: italic; }
+p { margin-bottom: 18px; color: var(--ink); }
+
+pre {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 4px;
+  padding: 20px 24px; margin: 24px 0;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 13.5px; color: var(--ink); line-height: 1.6;
+  overflow-x: auto; white-space: pre;
+}
+
+.bullets { list-style: none; margin: 24px 0; }
+.bullets li { padding: 12px 0 12px 22px; position: relative; border-bottom: 1px solid var(--line); color: var(--ink); font-size: 15.5px; }
+.bullets li:last-child { border-bottom: none; }
+.bullets li::before { content: '—'; position: absolute; left: 0; color: var(--ink-3); }
+.bullets li strong { font-weight: 600; }
+
+.demo-out { background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: 24px; margin: 28px 0; font-family: ui-monospace, monospace; font-size: 13px; color: var(--ink-2); line-height: 1.7; white-space: pre; overflow-x: auto; }
+.demo-out .ok { color: var(--accent); }
+
+.status {
+  background: var(--surface); border-left: 2px solid var(--ink); padding: 20px 24px; margin: 32px 0;
+  border-radius: 0 4px 4px 0;
+}
+.status-label { font-family: ui-monospace, monospace; font-size: 10px; color: var(--ink-3); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 8px; }
+
+footer { padding: 80px 0; text-align: center; color: var(--ink-3); font-size: 13px; border-top: 1px solid var(--line); }
+footer .mono { color: var(--ink-3); font-size: 11px; letter-spacing: 0.05em; margin-top: 8px; display: block; }
+
+@media (max-width: 640px) {
+  h1 { font-size: 56px; }
+  .lede { font-size: 18px; }
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <nav>
+    <span class="brand">Drip</span>
+    <div>
+      <a href="https://github.com/drip-agent/drip">GitHub</a>
+      <a href="https://x.com/drip_agent">X</a>
+      <a href="#quickstart">Docs</a>
+    </div>
+  </nav>
+
+  <header>
+    <span class="pill">v0.0.1 · day 0</span>
+    <h1 class="serif">One agent replaces a <em>5-person UA team</em>.</h1>
+    <p class="lede">Open-source autonomous user-acquisition agent for anime / gacha mobile games. Generates creatives, simulates the audience, runs the campaigns, reports the ROAS.</p>
+    <p><a href="https://github.com/drip-agent/drip">→ Read the code on GitHub</a></p>
+  </header>
+
+  <section id="quickstart">
+    <h2 class="serif">Quickstart</h2>
+    <pre>uv pip install drip-agent
+cp .env.example .env  # set ANTHROPIC_API_KEY at minimum
+drip demo             # dry-run against the bundled spec
+drip launch \
+  --game ./examples/demo_game.yaml \
+  --budget 500 \
+  --regions jp,sg,tw</pre>
+
+    <h2 class="serif" style="margin-top: 64px;">What you see</h2>
+    <div class="demo-out">▸ creative
+  brainstormed 6 ad concepts
+  [1/6] cinematic intro of Hina with cherry blossom particles
+  [2/6] gameplay loop hero shot — Riku performing a signature skill
+  …
+  produced 6 candidate creatives
+
+▸ audience
+  simulated 5,000 synthetic gachas via OASIS
+    ctr≈1.62%  install≈0.11%  cinematic intro of Hina with cherry…
+    ctr≈1.54%  install≈0.10%  gameplay loop hero shot — Riku…
+    ctr≈1.41%  install≈0.09%  emotional reveal of Vesper
+
+▸ bidding
+  planned 18 ad groups across 3 regions × 2 platforms
+  <span class="ok">[shadow mode] not pushing to platforms</span>
+
+▸ reporter
+  plan: 18 groups · budget $500 · regions jp, sg, tw
+  top concept: cinematic intro of Hina with cherry blossom particles
+  predicted: ctr≈1.62%  install≈0.11%
+  next: wait 48h, then re-run with --mode copilot</div>
+  </section>
+
+  <section>
+    <h2 class="serif">Why <em>Drip</em></h2>
+    <ul class="bullets">
+      <li>Platform AI (Meta GEM, AppLovin AXON, TikTok Smart+) has won the bidding layer — <strong>the new battleground is cross-platform orchestration and the creative pipeline</strong>.</li>
+      <li>Sett raised $30M Series B as a closed-source SaaS. <strong>There is no credible open-source equivalent.</strong></li>
+      <li>Anime / gacha titles burn $5B+ a year on UA but still hand-craft every creative. <strong>This is the niche where one agent really does replace five people.</strong></li>
+    </ul>
+  </section>
+
+  <section>
+    <h2 class="serif">Stack</h2>
+    <ul class="bullets">
+      <li><strong>Orchestrator</strong> — Anthropic <span class="mono">claude-agent-sdk</span>, supervisor pattern over the worker pool.</li>
+      <li><strong>Image</strong> — OpenAI <span class="mono">gpt-image-2</span> for keyframes; multilingual text rendering matters for anime CTAs.</li>
+      <li><strong>Video</strong> — ByteDance <span class="mono">Seedance 2.0</span> via Volc Engine ARK at ~$0.14/s.</li>
+      <li><strong>Simulation</strong> — CAMEL-AI <span class="mono">OASIS</span> · up to 1M synthetic agents, Apache-2.0.</li>
+      <li><strong>Ads</strong> — Meta + TikTok via MCP (<span class="mono">pipeboard-co/meta-ads-mcp</span>, <span class="mono">amekala/ads-mcp</span>).</li>
+      <li><strong>Observability</strong> — self-hosted Langfuse.</li>
+    </ul>
+  </section>
+
+  <section>
+    <div class="status">
+      <div class="status-label">status</div>
+      <p style="margin: 0;"><strong>Day 0 — public scaffold up.</strong> Week 1 will ship the first end-to-end demo against a real Meta test account. Follow <a href="https://x.com/drip_agent">@drip_agent</a> for the week-by-week build log.</p>
+    </div>
+  </section>
+</div>
+
+<footer>
+  <div class="wrap">
+    <p>Drip · open-source autonomous UA agent</p>
+    <span class="mono">Apache-2.0 · made with claude-agent-sdk</span>
+  </div>
+</footer>
+
+</body>
+</html>
