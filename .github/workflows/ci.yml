@@ -20,18 +20,19 @@ jobs:
         uses: astral-sh/setup-uv@v3
         with:
           enable-cache: true
+          cache-dependency-glob: "**/pyproject.toml"
 
       - name: Set up Python 3.11
         run: uv python install 3.11
 
-      - name: Sync deps
-        run: uv sync --extra dev
+      - name: Install deps
+        run: uv pip install --system -e ".[dev]"
 
       - name: Ruff
-        run: uv run ruff check .
+        run: ruff check .
 
       - name: mypy
-        run: uv run mypy src
+        run: mypy src
 
   test:
     runs-on: ubuntu-latest
@@ -42,15 +43,16 @@ jobs:
         uses: astral-sh/setup-uv@v3
         with:
           enable-cache: true
+          cache-dependency-glob: "**/pyproject.toml"
 
       - name: Set up Python 3.11
         run: uv python install 3.11
 
-      - name: Sync deps
-        run: uv sync --extra dev
+      - name: Install deps
+        run: uv pip install --system -e ".[dev]"
 
       - name: Pytest
-        run: uv run pytest -v
+        run: pytest -v
 
   smoke-cli:
     runs-on: ubuntu-latest
@@ -61,6 +63,7 @@ jobs:
         uses: astral-sh/setup-uv@v3
         with:
           enable-cache: true
+          cache-dependency-glob: "**/pyproject.toml"
 
       - name: Set up Python 3.11
         run: uv python install 3.11
