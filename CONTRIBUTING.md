@@ -3,14 +3,14 @@
 Drip is in **early alpha** — the most useful contributions right now are:
 
 1. **Trying it** on a real anime / gacha game and filing what breaks.
-2. **Drip-Bench cases.** We need 20 hand-curated UA decision cases. See [#3](https://github.com/drip-agent/drip/issues/3).
+2. **Drip-Bench cases.** We need 20 hand-curated UA decision cases. See [#3](https://github.com/YunyueLi/Drip/issues/3).
 3. **Provider adapters.** Apple Search Ads, Pangle, 巨量引擎. Each is a tight ~150-line PR.
 4. **Worker improvements.** Especially `creative.py` (concept brainstorm) and `bidding.py` (allocation strategy).
 
 ## Dev setup
 
 ```bash
-git clone https://github.com/drip-agent/drip.git
+git clone https://github.com/YunyueLi/Drip.git
 cd drip
 uv venv -p 3.11
 source .venv/bin/activate

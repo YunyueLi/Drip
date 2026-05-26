@@ -10,7 +10,7 @@
 ## Install
 
 ```bash
-git clone https://github.com/drip-agent/drip.git
+git clone https://github.com/YunyueLi/Drip.git
 cd drip
 uv venv -p 3.11
 source .venv/bin/activate
