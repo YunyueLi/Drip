@@ -12,9 +12,12 @@ import os
 import uuid
 from dataclasses import dataclass
 from pathlib import Path
+from typing import TYPE_CHECKING, Any
 
 import httpx
-from volcenginesdkarkruntime import Ark
+
+if TYPE_CHECKING:
+    from volcenginesdkarkruntime import Ark
 
 ARTIFACT_DIR = Path("artifacts/videos")
 POLL_INITIAL_SECONDS = 8
@@ -47,14 +50,16 @@ class VideoAdapter:
         self.model = model or os.getenv("SEEDANCE_MODEL", "doubao-seedance-2-0-260128")
         self.resolution = resolution
         self.ratio = ratio
-        self._client: Ark | None = None
+        self._client: Any = None
 
     @classmethod
     def default(cls) -> "VideoAdapter":
         return cls()
 
-    def _ensure_client(self) -> Ark:
+    def _ensure_client(self) -> "Ark":
         if self._client is None:
+            from volcenginesdkarkruntime import Ark
+
             api_key = os.getenv("ARK_API_KEY")
             if not api_key:
                 raise RuntimeError("ARK_API_KEY is not set")

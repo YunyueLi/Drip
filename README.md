@@ -103,15 +103,18 @@ uv pip install -e ".[dev]"
 # 3. Configure
 cp .env.example .env  # set at minimum ANTHROPIC_API_KEY
 
-# 4. Dry-run (no API calls)
+# 4. Dry-run (zero API calls, zero provider SDKs)
 drip demo
 
-# 5. Live (still shadow mode — plans but doesn't push)
+# 5. Live run — install provider SDKs first, then go (still shadow mode by default)
+uv pip install -e ".[all]"   # openai (gpt-image-2), seedance, oasis…
 drip launch \
   --game ./examples/demo_game.yaml \
   --budget 500 \
   --regions jp,sg,tw
 ```
+
+> The core install is deliberately tiny. `drip demo` runs on it with no provider SDKs at all — provider packages (`.[all]`) are only needed for a live run.
 
 Need more? See [`docs/quickstart.md`](docs/quickstart.md).
 

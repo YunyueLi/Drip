@@ -3,6 +3,9 @@
 The real OpenAI Images endpoint as of 2026-05 is `gpt-image-2`. We default
 to `quality='high'` for hero keyframes and let callers downshift to
 `gpt-image-1-mini` for cheap variant batches.
+
+The `openai` SDK is imported lazily so `drip demo` (dry-run) works with no
+provider packages installed at all.
 """
 
 from __future__ import annotations
@@ -12,8 +15,10 @@ import os
 import uuid
 from dataclasses import dataclass
 from pathlib import Path
+from typing import TYPE_CHECKING
 
-from openai import AsyncOpenAI
+if TYPE_CHECKING:
+    from openai import AsyncOpenAI
 
 ARTIFACT_DIR = Path("artifacts/images")
 
@@ -36,22 +41,30 @@ class ImageAdapter:
         *,
         model: str = "gpt-image-2",
         quality: str = "high",
-        client: AsyncOpenAI | None = None,
+        client: "AsyncOpenAI | None" = None,
     ) -> None:
         self.model = model
         self.quality = quality
-        self.client = client or AsyncOpenAI()
+        self._client = client
 
     @classmethod
     def default(cls) -> "ImageAdapter":
         return cls()
+
+    def _ensure_client(self) -> "AsyncOpenAI":
+        if self._client is None:
+            from openai import AsyncOpenAI
+
+            self._client = AsyncOpenAI()
+        return self._client
 
     async def generate(self, prompt: str, *, size: str = "1024x1536") -> GeneratedImage:
         """Generate one image; persist to artifacts/ and return its local path."""
         if not os.getenv("OPENAI_API_KEY"):
             raise RuntimeError("OPENAI_API_KEY is not set")
 
-        resp = await self.client.images.generate(
+        client = self._ensure_client()
+        resp = await client.images.generate(
             model=self.model,
             prompt=prompt,
             size=size,
