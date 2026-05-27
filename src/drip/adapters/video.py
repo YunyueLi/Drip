@@ -58,7 +58,13 @@ class VideoAdapter:
 
     def _ensure_client(self) -> "Ark":
         if self._client is None:
-            from volcenginesdkarkruntime import Ark
+            try:
+                from volcenginesdkarkruntime import Ark
+            except ImportError as e:
+                raise RuntimeError(
+                    "Seedance video needs the Volc Engine ARK SDK. "
+                    "Install provider extras:  uv pip install -e '.[providers]'"
+                ) from e
 
             api_key = os.getenv("ARK_API_KEY")
             if not api_key:

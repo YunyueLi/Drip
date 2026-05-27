@@ -31,10 +31,10 @@ jobs:
           uv pip install -e ".[dev]"
 
       - name: Ruff
-        run: uv run ruff check .
+        run: .venv/bin/ruff check .
 
       - name: mypy
-        run: uv run mypy src
+        run: .venv/bin/mypy src
 
   test:
     runs-on: ubuntu-latest
@@ -56,7 +56,7 @@ jobs:
           uv pip install -e ".[dev]"
 
       - name: Pytest
-        run: uv run pytest -v
+        run: .venv/bin/pytest -v
 
   smoke-cli:
     runs-on: ubuntu-latest
@@ -78,7 +78,7 @@ jobs:
           uv pip install -e .
 
       - name: drip --help
-        run: uv run drip --help
+        run: .venv/bin/drip --help
 
       - name: drip demo (dry-run, no API keys, no provider SDKs)
-        run: uv run drip demo
+        run: .venv/bin/drip demo
