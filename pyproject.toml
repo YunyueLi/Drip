@@ -14,36 +14,33 @@ classifiers = [
   "License :: OSI Approved :: Apache Software License",
 ]
 
+# Core deps are intentionally minimal and all rock-solid on PyPI, so a fresh
+# install + `drip demo` (dry-run) works with zero heavy SDKs. Provider SDKs
+# live in extras and are imported lazily — see src/drip/adapters/.
 dependencies = [
-  # Orchestration
-  "claude-agent-sdk>=0.1.0",
   "anyio>=4.0",
-
-  # CLI / config
   "click>=8.1",
   "pyyaml>=6.0",
   "python-dotenv>=1.0",
   "rich>=13.0",
-
-  # HTTP / async
   "httpx>=0.27",
   "pydantic>=2.0",
-
-  # LLM / image / video providers
-  "openai>=1.50",                  # gpt-image-2
-  "volcenginesdkarkruntime>=1.0",  # Seedance 2.0 via Volc Engine ARK
-
-  # Simulation
-  "camel-oasis>=0.2.5",            # multi-agent social simulation
-
-  # Observability
-  "langfuse>=2.0",
-
-  # Data
-  "pandas>=2.0",
 ]
 
 [project.optional-dependencies]
+orchestrator = ["claude-agent-sdk>=0.1.0"]
+providers = ["openai>=1.50", "volcenginesdkarkruntime>=1.0"]
+sim = ["camel-oasis>=0.2.5"]
+obs = ["langfuse>=2.0"]
+data = ["pandas>=2.0"]
+all = [
+  "claude-agent-sdk>=0.1.0",
+  "openai>=1.50",
+  "volcenginesdkarkruntime>=1.0",
+  "camel-oasis>=0.2.5",
+  "langfuse>=2.0",
+  "pandas>=2.0",
+]
 dev = [
   "pytest>=8.0",
   "pytest-asyncio>=0.23",

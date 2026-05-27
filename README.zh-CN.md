@@ -103,15 +103,18 @@ uv pip install -e ".[dev]"
 # 3. 配置
 cp .env.example .env  # 最少配一个 ANTHROPIC_API_KEY 即可
 
-# 4. Dry-run(完全离线)
+# 4. Dry-run(完全离线,零 provider SDK)
 drip demo
 
-# 5. Live(默认 shadow 模式 —— 规划但不真投)
+# 5. Live —— 先装 provider SDK 再跑(默认仍是 shadow 模式)
+uv pip install -e ".[all]"   # openai (gpt-image-2)、seedance、oasis…
 drip launch \
   --game ./examples/demo_game.yaml \
   --budget 500 \
   --regions jp,sg,tw
 ```
+
+> 核心安装刻意做得极小。`drip demo` 在核心依赖上就能跑,完全不需要任何 provider SDK —— 只有真正 live run 才需要 `.[all]`。
 
 详细步骤见 [`docs/quickstart.md`](docs/quickstart.md)。
 

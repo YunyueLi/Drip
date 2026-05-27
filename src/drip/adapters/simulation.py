@@ -11,7 +11,6 @@ sampled from public game-community profiles.
 
 from __future__ import annotations
 
-import asyncio
 import hashlib
 from typing import Any
 
@@ -142,7 +141,3 @@ class SimulationAdapter:
             return {"likes": likes, "comments": comments}
         except Exception:
             return {"likes": 0, "comments": 0}
-
-
-# Quiet unused-import warning when OASIS is missing.
-_ = asyncio

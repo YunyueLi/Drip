@@ -39,6 +39,14 @@ calls.
 
 ## Real run (shadow mode)
 
+First install the provider SDKs (they're not in the core install):
+
+```bash
+uv pip install -e ".[all]"   # openai, volcenginesdkarkruntime, camel-oasis…
+```
+
+Then:
+
 ```bash
 drip launch \
   --game ./examples/demo_game.yaml \

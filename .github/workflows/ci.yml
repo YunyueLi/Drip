@@ -25,14 +25,16 @@ jobs:
       - name: Set up Python 3.11
         run: uv python install 3.11
 
-      - name: Install deps
-        run: uv pip install --system -e ".[dev]"
+      - name: Create venv & install (core + dev)
+        run: |
+          uv venv
+          uv pip install -e ".[dev]"
 
       - name: Ruff
-        run: ruff check .
+        run: uv run ruff check .
 
       - name: mypy
-        run: mypy src
+        run: uv run mypy src
 
   test:
     runs-on: ubuntu-latest
@@ -48,11 +50,13 @@ jobs:
       - name: Set up Python 3.11
         run: uv python install 3.11
 
-      - name: Install deps
-        run: uv pip install --system -e ".[dev]"
+      - name: Create venv & install (core + dev)
+        run: |
+          uv venv
+          uv pip install -e ".[dev]"
 
       - name: Pytest
-        run: pytest -v
+        run: uv run pytest -v
 
   smoke-cli:
     runs-on: ubuntu-latest
@@ -68,11 +72,13 @@ jobs:
       - name: Set up Python 3.11
         run: uv python install 3.11
 
-      - name: Install package
-        run: uv pip install --system -e .
+      - name: Create venv & install (core only)
+        run: |
+          uv venv
+          uv pip install -e .
 
       - name: drip --help
-        run: drip --help
+        run: uv run drip --help
 
-      - name: drip demo (dry-run, no API keys)
-        run: drip demo
+      - name: drip demo (dry-run, no API keys, no provider SDKs)
+        run: uv run drip demo
