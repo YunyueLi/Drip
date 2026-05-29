@@ -53,10 +53,10 @@ class VideoAdapter:
         self._client: Any = None
 
     @classmethod
-    def default(cls) -> "VideoAdapter":
+    def default(cls) -> VideoAdapter:
         return cls()
 
-    def _ensure_client(self) -> "Ark":
+    def _ensure_client(self) -> Ark:
         if self._client is None:
             try:
                 from volcenginesdkarkruntime import Ark

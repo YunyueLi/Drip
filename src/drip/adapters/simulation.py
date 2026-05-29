@@ -55,7 +55,7 @@ class SimulationAdapter:
         self.model_name = model_name
 
     @classmethod
-    def default(cls) -> "SimulationAdapter":
+    def default(cls) -> SimulationAdapter:
         return cls()
 
     async def predict_reaction(

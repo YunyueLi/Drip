@@ -60,7 +60,7 @@ def narrate(
         "Explain why this decision is correct."
     )
     try:
-        from drip.llm import LLMError, chat
+        from drip.llm import chat
         result = chat(
             model=model,
             system=_NARRATE_SYSTEM,
@@ -69,7 +69,7 @@ def narrate(
             temperature=0.0,
         )
         return result.text or _template_why(sv, decision)
-    except Exception:  # noqa: BLE001 — narration must never break the decision
+    except Exception:
         return _template_why(sv, decision)
 
 

@@ -135,7 +135,7 @@ class LLMAgent:
 
         try:
             data = result.json()
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             raise RuntimeError(
                 f"agent '{self.name}' returned non-JSON: {result.text[:200]}"
             ) from exc
@@ -152,7 +152,7 @@ class LLMAgent:
         )
 
 
-def DripAgent(model: str = "anthropic/claude-sonnet-4-6") -> LLMAgent:  # noqa: N802
+def DripAgent(model: str = "anthropic/claude-sonnet-4-6") -> LLMAgent:
     """Drip = base model + Drip's 8-signal methodology in the prompt."""
     return LLMAgent(model, system=DRIP_SYSTEM, name=f"drip:{model}")
 

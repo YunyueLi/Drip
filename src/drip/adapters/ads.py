@@ -40,7 +40,7 @@ class AdsAdapter:
         self.tiktok_token = os.getenv("TIKTOK_ACCESS_TOKEN")
 
     @classmethod
-    def default(cls) -> "AdsAdapter":
+    def default(cls) -> AdsAdapter:
         return cls()
 
     async def launch_many(self, plan: list[dict[str, Any]]) -> list[dict[str, Any]]:

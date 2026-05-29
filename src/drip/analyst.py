@@ -135,7 +135,7 @@ class Analyst:
                 max_tokens=300, temperature=0.0,
             )
             return result.text or self._template(report)
-        except Exception:  # noqa: BLE001 — reporting must never crash the run
+        except Exception:
             return self._template(report)
 
     def _template(self, report: AnalystReport) -> str:

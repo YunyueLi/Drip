@@ -94,10 +94,10 @@ class Allocator:
         values = self._value_weights(metrics)
 
         # 4. normalise desired*value to the fixed total
-        weights = [d * v for d, v in zip(desired, values)]
+        weights = [d * v for d, v in zip(desired, values, strict=False)]
         wsum = sum(weights)
         plan = AllocationPlan(total_budget=total_budget)
-        for (m, r), w in zip(verdicts, weights):
+        for (m, r), w in zip(verdicts, weights, strict=False):
             new_budget = total_budget * (w / wsum) if wsum > 0 else 0.0
             plan.allocations.append(Allocation(
                 metrics=m, result=r,

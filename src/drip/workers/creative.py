@@ -26,7 +26,7 @@ class CreativeWorker(Worker):
         self.image = ImageAdapter.default()
         self.video = VideoAdapter.default()
 
-    async def run(self, ctx: "RunContext") -> WorkerResult:
+    async def run(self, ctx: RunContext) -> WorkerResult:
         lines: list[str] = []
         creatives: list[dict[str, str]] = []
 
@@ -55,7 +55,7 @@ class CreativeWorker(Worker):
         lines.append(f"produced {len(creatives)} candidate creatives")
         return WorkerResult(lines=lines, data={"creatives": creatives})
 
-    def _brainstorm_concepts(self, ctx: "RunContext") -> list[str]:
+    def _brainstorm_concepts(self, ctx: RunContext) -> list[str]:
         """Generic concept seeds for the v0 demo.
 
         Deterministic and vertical-neutral. Knowledge Packs (v0.1) override

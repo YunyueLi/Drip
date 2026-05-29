@@ -107,7 +107,7 @@ class LLMJudge:
             payload = result.json()
         except LLMError as exc:
             raise RuntimeError(f"judge '{self.name}' failed: {exc}") from exc
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             raise RuntimeError(f"judge '{self.name}' returned non-JSON") from exc
 
         checks_raw = payload.get("checks", []) if isinstance(payload, dict) else []

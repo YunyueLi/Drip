@@ -13,12 +13,12 @@ from drip.llm.client import ChatResult, LLMError, MissingKeyError, chat
 from drip.llm.providers import PROVIDERS, Provider, list_providers, resolve
 
 __all__ = [
-    "chat",
+    "PROVIDERS",
     "ChatResult",
     "LLMError",
     "MissingKeyError",
     "Provider",
-    "PROVIDERS",
-    "resolve",
+    "chat",
     "list_providers",
+    "resolve",
 ]
