@@ -8,7 +8,7 @@ scoreboard.
 from __future__ import annotations
 
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 from rich.console import Console
@@ -149,7 +149,7 @@ def run_bench(
 
     _print_header(agent.name, judge.name, len(cases))
 
-    started = datetime.now(timezone.utc)
+    started = datetime.now(UTC)
     responses: list[AgentResponse] = []
     scores: list[CaseScore] = []
     for case in cases:
@@ -167,7 +167,7 @@ def run_bench(
             f"{sc.total:.1f}/100"
         )
 
-    finished = datetime.now(timezone.utc)
+    finished = datetime.now(UTC)
     _print_scoreboard(cases, scores)
 
     if write_bundle:

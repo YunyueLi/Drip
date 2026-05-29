@@ -28,7 +28,7 @@ class AudienceWorker(Worker):
     def __init__(self) -> None:
         self.sim = SimulationAdapter.default()
 
-    async def run(self, ctx: "RunContext") -> WorkerResult:
+    async def run(self, ctx: RunContext) -> WorkerResult:
         lines: list[str] = []
 
         creatives = ctx.artifacts.get("creatives", [])

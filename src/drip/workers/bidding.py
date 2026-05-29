@@ -18,7 +18,7 @@ class BiddingWorker(Worker):
     def __init__(self) -> None:
         self.ads = AdsAdapter.default()
 
-    async def run(self, ctx: "RunContext") -> WorkerResult:
+    async def run(self, ctx: RunContext) -> WorkerResult:
         lines: list[str] = []
         top = ctx.artifacts.get("top_creatives") or ctx.artifacts.get("creatives", [])
 
@@ -42,7 +42,7 @@ class BiddingWorker(Worker):
         return WorkerResult(lines=lines, data={"plan": plan})
 
     def _plan_allocation(
-        self, ctx: "RunContext", creatives: list[dict]
+        self, ctx: RunContext, creatives: list[dict]
     ) -> list[dict]:
         per_group = ctx.budget_usd / max(len(creatives) * len(ctx.regions) * 2, 1)
         plan = []

@@ -14,7 +14,7 @@ class ReporterWorker(Worker):
     name = "reporter"
     model = "claude-haiku-4-5"
 
-    async def run(self, ctx: "RunContext") -> WorkerResult:
+    async def run(self, ctx: RunContext) -> WorkerResult:
         lines: list[str] = []
         plan = ctx.artifacts.get("bidding_plan", [])
         top = ctx.artifacts.get("top_creatives") or ctx.artifacts.get("creatives", [])

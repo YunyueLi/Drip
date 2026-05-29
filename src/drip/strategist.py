@@ -90,7 +90,7 @@ class Strategist:
                 )
                 if result.text:
                     return result.text
-            except Exception:  # noqa: BLE001 — brief must never crash planning
+            except Exception:
                 pass
         # Template fallback
         if direction == "scale_winner":

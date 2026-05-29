@@ -233,7 +233,7 @@ def llm() -> None:
 # Backwards-compat alias for the previous ``drip eval`` command.
 @main.command(hidden=True)
 @click.option("--agent", "agent_name", default="dummy")
-def eval(agent_name: str) -> None:  # noqa: A001 — shadowing builtin is fine for a CLI verb
+def eval(agent_name: str) -> None:
     """Deprecated — use `drip bench run --agent <name>`."""
     console.print("[yellow]`drip eval` is deprecated; use `drip bench run`.[/yellow]")
     from drip.eval import run_bench

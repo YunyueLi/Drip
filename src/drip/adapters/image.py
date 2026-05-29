@@ -41,17 +41,17 @@ class ImageAdapter:
         *,
         model: str = "gpt-image-2",
         quality: str = "high",
-        client: "AsyncOpenAI | None" = None,
+        client: AsyncOpenAI | None = None,
     ) -> None:
         self.model = model
         self.quality = quality
         self._client = client
 
     @classmethod
-    def default(cls) -> "ImageAdapter":
+    def default(cls) -> ImageAdapter:
         return cls()
 
-    def _ensure_client(self) -> "AsyncOpenAI":
+    def _ensure_client(self) -> AsyncOpenAI:
         if self._client is None:
             from openai import AsyncOpenAI
 
