@@ -29,14 +29,14 @@ dependencies = [
 
 [project.optional-dependencies]
 orchestrator = ["claude-agent-sdk>=0.1.0"]
-providers = ["openai>=1.50", "volcengine-python-sdk"  # PyPI name; import name is `volcenginesdkarkruntime`]
+providers = ["openai>=1.50", "volcengine-python-sdk"]  # volcengine-python-sdk → import volcenginesdkarkruntime
 sim = ["camel-oasis>=0.2.5"]
 obs = ["langfuse>=2.0"]
 data = ["pandas>=2.0"]
 all = [
   "claude-agent-sdk>=0.1.0",
   "openai>=1.50",
-  "volcengine-python-sdk"  # PyPI name; import name is `volcenginesdkarkruntime`,
+  "volcengine-python-sdk",  # import name: volcenginesdkarkruntime
   "camel-oasis>=0.2.5",
   "langfuse>=2.0",
   "pandas>=2.0",

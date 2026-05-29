@@ -356,6 +356,15 @@ select.inp{cursor:pointer}
 .am-item .ai{width:16px;text-align:center;color:var(--text-3);font-size:13px;flex-shrink:0}
 .am-item.danger{color:var(--red)}.am-item.danger .ai{color:var(--red)}
 .am-out{padding:6px 6px 8px}.am-out .si-h{font-size:12px;color:var(--text-2);padding:8px 9px 11px;line-height:1.55}
+/* toast + universal press feedback */
+.toasts{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);display:flex;flex-direction:column;gap:8px;z-index:200;align-items:center;pointer-events:none}
+.toast{background:#1d1f23;color:#fff;font-size:12.5px;font-weight:500;padding:9px 15px;border-radius:9px;box-shadow:0 10px 30px rgba(0,0,0,.24);display:flex;align-items:center;gap:8px;opacity:0;transform:translateY(8px);transition:opacity .2s,transform .2s;max-width:460px}
+.toast.show{opacity:1;transform:translateY(0)}
+.toast .tk{color:#34d399;font-weight:700}
+.btn,.mini,.cbtn,.lang-btn,.panel-toggle,.send,.am-item,.seg button,.tabs button,.scene,.card,.vcard,.dqrow{transition:transform .08s ease,background .12s,border-color .12s,box-shadow .12s,opacity .12s}
+.btn:active,.mini:active,.cbtn:active,.lang-btn:active,.panel-toggle:active,.send:active,.am-item:active,.seg button:active,.tabs button:active,.scene:active,.vcard:active,.dqrow:active{transform:scale(.975)}
+.send:active{transform:scale(.92)}
+button{cursor:pointer}
 </style>
 </head>
 <body>
@@ -913,10 +922,7 @@ document.querySelectorAll(".card .mini.approve").forEach(b => {
     const card = b.closest(".card"); if (card) card.style.opacity = ".6";
   });
 });
-// secondary card buttons → light ack
-document.querySelectorAll(".card .mini:not(.approve)").forEach(b => {
-  b.addEventListener("click", e => { e.stopPropagation(); b.style.background = "var(--surface-2)"; });
-});
+// (secondary minis + all otherwise-dead buttons are handled by the toast layer below)
 // editor: bulk apply fills rows
 const bulkBtn = document.querySelector(".editor .bulk .btn");
 if (bulkBtn) bulkBtn.addEventListener("click", () => {
@@ -927,6 +933,7 @@ if (bulkBtn) bulkBtn.addEventListener("click", () => {
     if (bud && c[0] && !c[0].disabled) c[0].value = bud;
     if (roas && c[1] && !c[1].disabled) c[1].value = roas;
   });
+  showToast("已应用到全部可投放行");
 });
 // publish screen: confirm → advance progress + return to console
 const pubGo = document.querySelector("#view-publish .scrn-foot .btn.primary");
@@ -943,6 +950,39 @@ if (replayBtn) replayBtn.addEventListener("click", () => {
   replayBtn.textContent = "✓ 已重放 · 输出一致";
   setTimeout(() => { replayBtn.textContent = "重放这次决策 →"; }, 1800);
 });
+// --- toast layer: every otherwise-dead button confirms it did something ---
+const _toasts = document.createElement("div"); _toasts.className = "toasts"; document.body.appendChild(_toasts);
+function showToast(msg){ if (!msg) return; const t = document.createElement("div"); t.className = "toast"; t.innerHTML = '<span class="tk">✓</span><span>' + msg + '</span>'; _toasts.appendChild(t); requestAnimationFrame(() => t.classList.add("show")); setTimeout(() => { t.classList.remove("show"); setTimeout(() => t.remove(), 220); }, 2300); }
+function toastFor(b){
+  const t = (b.textContent || "").replace(/\s+/g, " ").replace(/→/g, "").trim();
+  if (/(修改|Modify|Modifier|Bearbeiten|Editar)/.test(t)) return "改预算 / ROAS 请到下方「应用改动」表";
+  if (/(全部忽略|忽略全部|Dismiss all)/.test(t)) return "已忽略全部建议";
+  if (/(忽略|Dismiss)/.test(t)) return "已忽略这条建议";
+  if (/(继续跑|Keep running)/.test(t)) return "保持不变 · 下个周期再看";
+  if (/(取消|Cancel|Annuler|Abbrechen|Cancelar)/.test(t)) return "已取消改动";
+  if (/(生成变体|generate|variantes|Varianten)/i.test(t)) return "已用选中素材生成 3 个变体 · 见素材库";
+  if (/(转成|草稿|draft|brouillon|Entwurf|borrador)/i.test(t)) return "已转成 6 条 campaign 草稿 → 决策队列";
+  if (/(查看用例|view cases|用例)/i.test(t)) return "10 个用例详情见 benchmarks/ 目录";
+  if (/(跑我的|my agent|mon agent|mi agente)/i.test(t)) return "drip bench run --agent drip:你的模型";
+  if (/AI Creatives/.test(t)) return "AI 创意已开启 · 随素材一起生成";
+  if (/(claude|sonnet|gpt|gemini|deepseek)/i.test(t)) return "在设置里切换 12 家模型 + OpenRouter 兜底";
+  if (b.classList.contains("cbtn")) return "拖入素材或 CSV 数据";
+  return null;
+}
+document.addEventListener("click", e => {
+  if (e.target.closest("select")) return;
+  const b = e.target.closest("button"); if (!b) return;
+  if (b.hasAttribute("data-view") || b.classList.contains("approve") || b.classList.contains("ri") || b.classList.contains("av")
+      || b.closest("[data-seg]") || b.closest("#langSel") || b.closest(".acct-menu") || b.hasAttribute("data-sw")
+      || ["newBtn","welSend","signOut","signIn","rrToggle","langBtn"].indexOf(b.id) > -1
+      || b === pubGo || b === replayBtn || b === bulkBtn || b.classList.contains("send")) return;
+  const msg = toastFor(b); if (msg) showToast(msg);
+});
+document.querySelectorAll(".composer .send").forEach(s => s.addEventListener("click", () => {
+  const ta = s.closest(".composer").querySelector("textarea");
+  if (ta && ta.value.trim()) { showToast("已发送 · Drip 正在处理…"); ta.value = ""; }
+  else showToast("输入点什么，或在上面选个场景开始");
+}));
 // rail + lang active toggles
 document.querySelectorAll(".rail .ri").forEach(r => r.addEventListener("click", () => {
   if (r.id === "newBtn") return;
