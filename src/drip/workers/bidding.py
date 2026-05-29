@@ -42,8 +42,8 @@ class BiddingWorker(Worker):
         return WorkerResult(lines=lines, data={"plan": plan})
 
     def _plan_allocation(
-        self, ctx: RunContext, creatives: list[dict]
-    ) -> list[dict]:
+        self, ctx: RunContext, creatives: list[dict[str, object]]
+    ) -> list[dict[str, object]]:
         per_group = ctx.budget_usd / max(len(creatives) * len(ctx.regions) * 2, 1)
         plan = []
         for creative in creatives:

@@ -126,7 +126,7 @@ class TikTokInsights:
             "start_date": since,
             "end_date": until,
         }
-        headers = {"Access-Token": self.token}
+        headers = {"Access-Token": self.token or ""}
         with httpx.Client(timeout=60) as client:
             resp = client.get(url, params=params, headers=headers)
             resp.raise_for_status()

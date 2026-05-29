@@ -12,6 +12,7 @@ from __future__ import annotations
 import json
 import re
 from dataclasses import dataclass, field
+from typing import Any
 
 import httpx
 
@@ -38,7 +39,7 @@ class ChatResult:
     usage: dict[str, int] = field(default_factory=dict)
     raw: dict[str, object] = field(default_factory=dict)
 
-    def json(self) -> dict[str, object]:
+    def json(self) -> Any:
         """Parse the response text as JSON, tolerating ```json fences."""
         return _loads_lenient(self.text)
 
@@ -176,7 +177,7 @@ def _chat_openai(
 def _post(
     provider: Provider, path: str, body: dict[str, object],
     headers: dict[str, str], timeout: float,
-) -> dict[str, object]:
+) -> Any:
     url = provider.resolved_base_url().rstrip("/") + path
     try:
         with httpx.Client(timeout=timeout) as client:
@@ -190,7 +191,7 @@ def _post(
     return resp.json()
 
 
-def _loads_lenient(text: str) -> dict[str, object]:
+def _loads_lenient(text: str) -> Any:
     s = text.strip()
     if s.startswith("```"):
         s = re.sub(r"^```(?:json)?", "", s).rstrip("`").strip()

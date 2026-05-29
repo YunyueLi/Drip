@@ -83,7 +83,7 @@ class VideoAdapter:
         video_url = await self._poll(task_id)
         local_path = await self._download(video_url)
         return GeneratedVideo(
-            local_path=local_path, prompt=prompt, model=self.model, duration_s=duration_seconds,
+            local_path=local_path, prompt=prompt, model=self.model or "", duration_s=duration_seconds,
         )
 
     def _submit(self, prompt: str, seed_image: str | None, duration: int) -> str:
@@ -103,7 +103,7 @@ class VideoAdapter:
             duration=duration,
             watermark=False,
         )
-        return resp.id
+        return str(resp.id)
 
     async def _poll(self, task_id: str) -> str:
         wait = POLL_INITIAL_SECONDS
@@ -114,7 +114,7 @@ class VideoAdapter:
             r = await asyncio.to_thread(client.content_generation.tasks.get, task_id=task_id)
             status = r.status
             if status == "succeeded":
-                return r.content.video_url
+                return str(r.content.video_url)
             if status in ("failed", "expired", "cancelled"):
                 raise RuntimeError(f"seedance task {task_id} -> {status}")
             await asyncio.sleep(wait)

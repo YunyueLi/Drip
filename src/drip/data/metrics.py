@@ -12,6 +12,10 @@ Pure stdlib — no pydantic, no provider deps — so it runs anywhere.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from drip.engine.signals import CampaignMetrics
 
 
 @dataclass
@@ -78,7 +82,7 @@ class AdMetrics:
         budget_cap: float,
         cvr_baseline: float | None = None,
         ctr_baseline: float | None = None,
-    ) -> object:
+    ) -> CampaignMetrics:
         """Build a ``drip.engine.CampaignMetrics`` from this observation plus
         the targets/baselines the caller supplies. Returns the engine's
         CampaignMetrics (imported lazily to avoid a hard dependency)."""
