@@ -1,0 +1,60 @@
+id: 1
+category: scale_decision
+title: "Signals green, but sample size on the edge"
+difficulty: medium
+
+context: |
+  You manage a Meta US prospecting campaign for a mid-size DTC brand.
+  Past 72 hours:
+
+    daily spend           $200   (budget cap $240, 18% headroom)
+    CPP                   $18    (target $25, 28% below target)
+    ROAS                  3.8x   (target 3.0x, exceeding)
+    CTR                   1.4%   (3-day stable)
+    Frequency             1.8    (cap 2.5, safe)
+    Daily conversions     11     (min sample = 10, barely above)
+    Creative              same hero image for 4 days, no fatigue signal yet
+
+  Account history:
+    4 weeks ago this campaign was scaled +50% on a similar week. CPP
+    regressed 22% within 72h and the change was rolled back. The
+    operator (you) noted "thin sample warning ignored" in the
+    post-mortem.
+
+question: "What is your decision for the next 24 hours?"
+choices:
+  A: "SCALE budget +20% (to $240/day, within current cap)"
+  B: "SCALE budget +50% (raise cap to $300/day)"
+  C: "HOLD at current $200/day for another 48h to thicken sample"
+  D: "PAUSE — wait for clearer signal"
+
+ground_truth:
+  action: A
+  numeric_delta: 0.20
+  reasoning: |
+    All 8 monitored signals are green, so a scale is defensible — but
+    daily conversions (11) are barely above minimum sample size (10),
+    which means the green signals are statistically thin. The account's
+    own history shows that aggressive scaling on thin samples regresses
+    CPP. The right move is the smallest scale step that still moves the
+    needle: +20% keeps the campaign in the same risk regime, uses the
+    18% headroom already in budget cap (no platform re-approval), and
+    sets up a follow-up check at 48h once the sample thickens.
+
+  reasoning_must_mention:
+    - "daily conversions barely above minimum sample size / signal is statistically thin"
+    - "the account's own history shows aggressive scaling regressed CPP"
+    - "prefer the smallest meaningful scale step over an aggressive one"
+
+scoring:
+  action_match_max: 40
+  direction_match_max: 20
+  reasoning_max: 40
+  partial_credit:
+    A: 40    # exact match
+    B: 20    # right direction, wrong magnitude (history says this fails)
+    C: 15    # safe but loses the upside the data supports
+    D: 0     # wrong — signals do not support pausing
+
+source: "synthetic — informed by AppsFlyer 2025 cross-vertical benchmarks and common DTC operator postmortems"
+tags: ["meta", "prospecting", "scale", "sample-size", "history-aware"]

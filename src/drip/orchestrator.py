@@ -36,12 +36,18 @@ class RunMode(str, Enum):
 
 
 class GameSpec(BaseModel):
-    """User-supplied description of the game to be promoted."""
+    """User-supplied description of the campaign subject.
+
+    The defaults below are intentionally generic so the spec applies
+    across mobile games, DTC products, or B2B apps. Verticals (anime /
+    gacha, DTC, tools-app) ship as Knowledge Packs that override these
+    defaults via prompt + signal injection — see ``packs/`` (v0.1).
+    """
 
     title: str
-    genre: str = "anime-gacha"
-    art_style: str = "anime"
-    target_audience: str = "anime gachas aged 18-34"
+    genre: str = "mobile-game"
+    art_style: str = "default"
+    target_audience: str = "general adult mobile audience"
     key_characters: list[str] = Field(default_factory=list)
     store_links: dict[str, str] = Field(default_factory=dict)  # {ios:..., android:...}
     creative_brief: str = ""
@@ -108,7 +114,7 @@ class DripOrchestrator:
 
 
 async def _demo() -> None:  # pragma: no cover — for `python -m drip.orchestrator`
-    game = GameSpec(title="Sample Anime Quest", creative_brief="cozy gacha, summer event")
+    game = GameSpec(title="Sample Mobile Game", creative_brief="generic launch demo")
     await DripOrchestrator(mode=RunMode.SHADOW, dry_run=True).run(
         game=game, budget=500, regions=["jp", "sg", "tw"]
     )

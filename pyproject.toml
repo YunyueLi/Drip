@@ -1,12 +1,12 @@
 [project]
 name = "drip-agent"
-version = "0.0.1"
-description = "Autonomous user-acquisition agent for anime / gacha mobile games."
+version = "0.0.2"
+description = "Open-source reference implementation of an AI user-acquisition agent, with a reproducible decision benchmark."
 readme = "README.md"
 license = { text = "Apache-2.0" }
 requires-python = ">=3.11,<3.12"  # locked by OASIS upper bound
 authors = [{ name = "Drip Contributors" }]
-keywords = ["agent", "marketing", "user-acquisition", "anime", "gacha", "claude"]
+keywords = ["agent", "marketing", "user-acquisition", "benchmark", "claude", "open-source"]
 classifiers = [
   "Development Status :: 3 - Alpha",
   "Programming Language :: Python :: 3.11",

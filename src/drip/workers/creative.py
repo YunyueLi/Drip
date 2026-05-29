@@ -56,18 +56,20 @@ class CreativeWorker(Worker):
         return WorkerResult(lines=lines, data={"creatives": creatives})
 
     def _brainstorm_concepts(self, ctx: "RunContext") -> list[str]:
-        """Stub — v0.2 hands this to a Claude sub-agent with the game brief.
+        """Generic concept seeds for the v0 demo.
 
-        We use a deterministic seeding strategy for the v0 demo so the pipeline
-        is reproducible without burning API credits.
+        Deterministic and vertical-neutral. Knowledge Packs (v0.1) override
+        this list with vertical-specific concept seeds — e.g. anime / gacha
+        adds banner-pull POV, slice-of-life vignettes, and signature-skill
+        hero shots. v0.2 replaces the static list with a Claude sub-agent.
         """
         chars = ", ".join(ctx.game.key_characters) or "the protagonist"
         themes = [
             f"cinematic intro of {chars} in {ctx.game.art_style} style, dramatic lighting",
-            f"gameplay loop hero shot — {chars} performing a signature skill",
-            f"emotional reveal of {chars} with cherry blossom particles",
-            f"sci-fi neon arena, {chars} mid-combat, hand-drawn anime",
-            f"slice-of-life vignette of {chars}, summer festival",
-            f"first-person POV pulling a new banner, {chars} appears in 5★ glow",
+            f"gameplay loop hero shot — {chars} performing a signature action",
+            f"emotional reveal of {chars}, atmospheric particles",
+            f"core-loop showcase — fast-cut highlights of {chars} in action",
+            f"slice-of-life vignette of {chars}, ambient scene",
+            f"first-person POV of a key game moment — {chars} appears in a payoff beat",
         ]
         return themes[:CONCEPTS_PER_RUN]

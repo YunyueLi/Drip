@@ -1,0 +1,84 @@
+id: 6
+category: cohort_quality
+title: "D1 retention spike — real lift or noise"
+difficulty: medium
+
+context: |
+  You manage a TikTok JP campaign for a casual mobile game.
+  After 3 weeks of stable performance, last week's installs show a
+  surprising lift in D1 retention.
+
+  Last 4 weeks, D1 retention by install cohort:
+
+    Week 1:  34%   (n = 4,200 installs)
+    Week 2:  35%   (n = 4,800 installs)
+    Week 3:  35%   (n = 4,500 installs)
+    Week 4:  42%   (n =   980 installs)   ← last week, spike
+
+  Other metrics for week 4:
+
+    Daily installs    140/day (target 600, mostly under-delivering)
+    CPI               ¥0.16 (target ¥0.12, over)
+    CTR               1.1% (was 1.5% prior weeks)
+    Creative          a new variant we shipped on day 1 of week 4,
+                      running alongside the previous 3 spots
+
+  Operator context:
+    - The new creative is "premium-feeling" art, slower-paced, focused
+      on world-building. The previous spots were action-heavy.
+    - User research told us the core audience over-indexes on premium
+      art, but they convert slower.
+    - Marketing wants to declare victory and roll the new creative to
+      all markets immediately.
+
+question: "Is the D1 spike real, and what is your recommendation?"
+choices:
+  A: "Confirmed lift — roll the new creative to all markets immediately"
+  B: "Likely noise — keep collecting data, hold rollout for 2 more weeks"
+  C: "Likely real but selection effect — keep the new creative, expand JP volume first, then evaluate global rollout"
+  D: "Likely a tracking bug — pause the new creative until QA confirms attribution"
+
+ground_truth:
+  action: C
+  numeric_delta: null
+  reasoning: |
+    The D1 number (42% vs 35% baseline) is large but the sample (980)
+    is much smaller than prior weeks (4,200-4,800). At that sample
+    size the 95% confidence interval easily spans the baseline — so
+    the lift is statistically plausible but not confirmed.
+
+    However the *story* is consistent: a premium-art creative attracts
+    users who over-index on premium content (your own research said
+    so), and those users also retain better. Lower CTR + higher CPI +
+    higher D1 is the *expected* fingerprint of a more selective
+    creative (it pulls fewer, better users). That is not noise — that
+    is a selection effect, and selection effects are real.
+
+    Rolling globally now (A) is premature: the sample is thin AND the
+    creative's economics (CPI up, volume down) need to be checked
+    against LTV before scaling, which means we need more time. Holding
+    everything (B) wastes the signal we have. Pausing for QA (D) is a
+    misdiagnosis — there is no tracking-bug fingerprint here, just a
+    different audience.
+
+    The right move is: expand JP first to thicken the sample (gives a
+    real confidence interval within a week), confirm LTV beats the
+    higher CPI, then decide on global rollout.
+
+  reasoning_must_mention:
+    - "sample size for the spike week is much smaller so the lift is not statistically confirmed"
+    - "lower CTR + higher CPI + higher D1 is the fingerprint of a selection effect from a more selective creative"
+    - "expand the experiment in one market first to confirm LTV justifies the higher CPI before global rollout"
+
+scoring:
+  action_match_max: 40
+  direction_match_max: 20
+  reasoning_max: 40
+  partial_credit:
+    A: 10    # right that the creative likely works, wrong on roll-out discipline
+    B: 15    # safe but throws away the signal
+    C: 40    # correct
+    D: 0     # misdiagnosis
+
+source: "synthetic — patterned on creative selection-effect postmortems in casual mobile games"
+tags: ["tiktok", "cohort-analysis", "d1-retention", "selection-effect", "sample-size"]

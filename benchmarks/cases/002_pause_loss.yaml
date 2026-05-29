@@ -1,0 +1,69 @@
+id: 2
+category: pause_decision
+title: "Slow bleed — when to actually pull the plug"
+difficulty: medium
+
+context: |
+  You manage a TikTok JP campaign for an anime gacha game, currently in
+  week 2 of launch.
+
+  Past 7 days:
+
+    daily spend          ¥18,000   (cap ¥20,000)
+    CPI                  ¥0.18     (target ¥0.12, 50% over)
+    D1 retention         28%       (baseline 35%)
+    D7 ROAS              14%       (target 30%)
+    CTR                  0.9%      (declining from 1.4% on day 1)
+    Frequency            2.4       (cap 2.5, almost saturated)
+    Install volume       1,000/day (target 1,500)
+    Creative             3 spots running, oldest is 9 days, no rotation
+
+  Operator constraints:
+    - Total campaign budget remaining: ¥120,000
+    - Game's first major banner refresh is in 6 days; new creatives
+      from that banner are not ready yet
+    - Marketing director already approved a "give it 2 weeks" buffer
+      and we are at day 14
+
+question: "What is your decision?"
+choices:
+  A: "PAUSE the entire campaign immediately"
+  B: "PAUSE the 9-day-old creative only, hold budget on the other two"
+  C: "REDUCE budget to ¥10,000/day and wait for the banner refresh"
+  D: "HOLD — the director said 2 weeks, give it the full window"
+
+ground_truth:
+  action: B
+  numeric_delta: null
+  reasoning: |
+    Pausing the whole campaign (A) throws away the two newer creatives
+    which have not been independently evaluated and the account-level
+    learning that is being accumulated. Holding (D) treats the
+    director's window as a target rather than a ceiling — the metrics
+    are well past pause-thresholds and additional spend is buying
+    progressively worse cohorts. Reducing (C) is half-measures: it
+    keeps the saturated creative live (Frequency 2.4 → 2.5+ within 24h)
+    and burns budget that should be reserved for the banner refresh.
+
+    The correct move is surgical: pause the 9-day-old creative
+    (frequency-saturated, CTR collapsed), keep the two newer ones on
+    current budget so we get clean per-creative data before the banner
+    refresh hits.
+
+  reasoning_must_mention:
+    - "the 9-day-old creative is at or near frequency saturation"
+    - "the other two creatives need independent evaluation before pausing them too"
+    - "the banner refresh in 6 days makes preserving remaining budget important"
+
+scoring:
+  action_match_max: 40
+  direction_match_max: 20
+  reasoning_max: 40
+  partial_credit:
+    A: 25    # right that something must pause, wrong to throw out the new creatives
+    B: 40    # surgical and correct
+    C: 15    # mixed — saves budget but keeps saturated creative live
+    D: 0     # ignores objective pause-signal thresholds
+
+source: "synthetic — informed by anime gacha launch postmortems (HoYo / Kuro / Yostar pattern)"
+tags: ["tiktok", "anime-gacha", "pause", "creative-fatigue", "banner-event"]
