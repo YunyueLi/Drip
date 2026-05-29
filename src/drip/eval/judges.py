@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import os
 import re
-from typing import Protocol
+from typing import Literal, Protocol
 
 from drip.eval.schema import ReasoningCheck
 from drip.llm import LLMError, chat
@@ -55,7 +55,9 @@ class HeuristicJudge:
                                           notes="empty keyword set"))
                 continue
             hit = sum(1 for k in keywords if k in r_words) / len(keywords)
-            coverage = "full" if hit >= 0.6 else "partial" if hit >= 0.3 else "none"
+            coverage: Literal["full", "partial", "none"] = (
+                "full" if hit >= 0.6 else "partial" if hit >= 0.3 else "none"
+            )
             out.append(ReasoningCheck(mention=mention, coverage=coverage,
                                       notes=f"keyword hit rate {hit:.0%}"))
         return out

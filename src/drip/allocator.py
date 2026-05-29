@@ -105,7 +105,7 @@ class Allocator:
             ))
         return plan
 
-    def execute(self, plan: AllocationPlan, *, executor_name: str = "shadow") -> list[dict]:
+    def execute(self, plan: AllocationPlan, *, executor_name: str = "shadow") -> list[dict[str, object]]:
         """Hand each non-zero budget to the bidding slot. Lazy-imports the
         slot so the dependency only loads when you actually dispatch."""
         from drip.adapters.bidding import (
@@ -115,7 +115,7 @@ class Allocator:
         )
 
         executor = build_bid_executor(executor_name)
-        results: list[dict] = []
+        results: list[dict[str, object]] = []
         for a in plan.allocations:
             if a.new_budget <= 0:
                 continue

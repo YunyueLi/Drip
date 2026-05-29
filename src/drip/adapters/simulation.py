@@ -18,10 +18,10 @@ from typing import Any
 # OASIS imports — these are only required at runtime; we import lazily so
 # unit tests / dry-runs don't need camel-oasis installed.
 try:
-    import oasis  # type: ignore
-    from camel.models import ModelFactory  # type: ignore
-    from camel.types import ModelPlatformType, ModelType  # type: ignore
-    from oasis import (  # type: ignore
+    import oasis
+    from camel.models import ModelFactory
+    from camel.types import ModelPlatformType, ModelType
+    from oasis import (
         ActionType,
         LLMAction,
         generate_reddit_agent_graph,
