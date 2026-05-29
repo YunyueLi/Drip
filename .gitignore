@@ -46,3 +46,4 @@ artifacts/
 *.png
 !web/*.png
 !docs/*.png
+!assets/screens/*.png
