@@ -1,6 +1,6 @@
 # Quickstart
 
-5 minutes from a fresh clone of **Drip** to a dry-run.
+5 minutes from a fresh clone of **Drip** to a benchmark run.
 
 ## Prereqs
 
@@ -11,7 +11,7 @@
 
 ```bash
 git clone https://github.com/YunyueLi/Drip.git
-cd drip
+cd Drip
 uv venv -p 3.11
 source .venv/bin/activate
 uv pip install -e ".[dev]"
@@ -21,25 +21,48 @@ uv pip install -e ".[dev]"
 
 ```bash
 cp .env.example .env
-# At minimum, set ANTHROPIC_API_KEY. The other keys can stay blank for
-# shadow / dry-run mode.
+# `ANTHROPIC_API_KEY` is the only key needed for the bench to run with
+# a real LLM agent + judge. Without it, Drip-Bench falls back to a
+# heuristic judge and a dummy agent — you can still see the harness work.
 ```
 
-## Sanity check
+## Three things to try, in order
+
+### 1. Drip-Bench (the headline feature)
 
 ```bash
-# Validates the CLI is wired and the demo game spec parses.
+# What's in the suite?
+drip bench list
+
+# Look at one case in detail (context, choices, ground truth, must-mentions)
+drip bench show 1
+
+# Run the dummy baseline — zero API calls, sanity check that everything wired
+drip bench run --agent dummy --no-bundle
+
+# Run raw Claude over the whole suite
+export ANTHROPIC_API_KEY=sk-ant-...
+drip bench run --agent claude
+
+# Drill into one case
+drip bench run --case 5 --agent claude
+```
+
+After each run, look at `benchmarks/runs/<timestamp>__<agent>/` — that bundle is fully reproducible and ready to PR.
+
+### 2. The end-to-end agent pipeline
+
+```bash
+# Validate the CLI wiring and demo campaign spec
 drip --help
 drip demo
 ```
 
-You should see the orchestrator walk through creative → audience → bidding →
-reporter against the bundled `examples/demo_game.yaml`, with no external API
-calls.
+This walks the orchestrator through creative → audience → bidding → reporter against the bundled `examples/demo_game.yaml`, with no external API calls.
 
-## Real run (shadow mode)
+### 3. A real run (shadow mode)
 
-First install the provider SDKs (they're not in the core install):
+Install the provider SDKs (they're not in the core install):
 
 ```bash
 uv pip install -e ".[all]"   # openai, volcenginesdkarkruntime, camel-oasis…
@@ -54,23 +77,20 @@ drip launch \
   --regions jp,sg,tw
 ```
 
-Even in shadow mode, this hits the image, video, and (if installed) OASIS
-adapters — so you'll burn a small amount of OpenAI / ARK credits.
+Even in shadow mode, this hits the image, video, and (if installed) OASIS adapters — so you'll burn a small amount of OpenAI / ARK credits.
 
 ## Copilot / autonomous
 
 Set `DRIP_MODE=copilot` or `DRIP_MODE=autonomous` in `.env`. Then:
 
-- Copilot: every platform write is staged and waits for Slack approval.
-- Autonomous: writes go through up to `DRIP_BUDGET_CAP`.
+- **Copilot** — every platform write is staged and waits for Slack approval.
+- **Autonomous** — writes go through up to `DRIP_BUDGET_CAP`.
 
-You will also need `META_ACCESS_TOKEN` / `TIKTOK_ACCESS_TOKEN` / a
-configured AppsFlyer integration. See `.env.example`.
+You will also need `META_ACCESS_TOKEN` / `TIKTOK_ACCESS_TOKEN` / a configured AppsFlyer integration. See `.env.example`.
 
-## What to check next
+## What to look at next
 
-- `docs/architecture.md` — how the workers and adapters fit together.
-- `src/drip/orchestrator.py` — the supervisor today is a fixed pipeline; v0.2
-  replaces it with Claude Agent SDK subagent routing.
-- `src/drip/eval/bench.py` — empty in v0; the first 20 Drip-Bench cases are
-  the bigger lever for evaluating *decision* quality over time.
+- [`benchmarks/README.md`](../benchmarks/README.md) — why Drip-Bench exists, how scoring works, how to contribute a case.
+- [`docs/architecture.md`](./architecture.md) — how the layers (orchestrator, workers, adapters, bench) fit together.
+- [`src/drip/orchestrator.py`](../src/drip/orchestrator.py) — the supervisor today is a fixed pipeline; v0.2 replaces it with Claude Agent SDK subagent routing.
+- [`src/drip/eval/`](../src/drip/eval/) — the bench harness; this is where Drip earned its place in the open vs. the closed-source crowd.

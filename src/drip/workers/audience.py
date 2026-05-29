@@ -1,8 +1,10 @@
 """Audience worker — pre-flight reaction simulation via OASIS.
 
-Spawns N synthetic anime gachas with personality + memory, exposes each ad
+Spawns N synthetic users with personality + memory, exposes each ad
 candidate to them, and reports a predicted CTR distribution before any real
-budget is spent.
+budget is spent. The audience persona pool comes from OASIS' default
+sample in v0 — Knowledge Packs override it for verticals (anime / gacha,
+DTC, tools-app) starting v0.1.
 """
 
 from __future__ import annotations
@@ -48,7 +50,7 @@ class AudienceWorker(Worker):
         predictions.sort(key=lambda p: p.get("ctr", 0.0), reverse=True)
         top = predictions[:3]
 
-        lines.append(f"simulated {DEFAULT_SIM_SIZE:,} synthetic gachas via OASIS")
+        lines.append(f"simulated {DEFAULT_SIM_SIZE:,} synthetic users via OASIS")
         for p in top:
             lines.append(
                 f"  ctr≈{p.get('ctr', 0):.2%}  install≈{p.get('install', 0):.2%}  "

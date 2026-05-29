@@ -1,67 +1,117 @@
 # Drip Architecture
 
+Drip is a **supervisor + agents + swappable slots** system. The decision core
+is deterministic (rules over an 8-signal vector); the LLM only narrates. Every
+hard part we can't win or lack data for is a slot, not a self-build. See
+[vision.md](./vision.md) for *why*; this doc is *how*.
+
 ## Layers
 
 ```
-┌────────────────────────────────────────────────────────────┐
-│  L2  Orchestrator (Claude Agent SDK · supervisor pattern)  │
-│      drip.orchestrator.DripOrchestrator                    │
-│      Owns budget, mode, HITL gating, artifact passing.     │
-└────────────────────────────────────────────────────────────┘
-                              │ delegate
-                              ▼
-┌────────────────────────────────────────────────────────────┐
-│  L1  Workers — domain experts (one slice of the pipeline)  │
-│      Creative · Audience · Bidding · Reporter              │
-│      drip.workers.*                                        │
-└────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌────────────────────────────────────────────────────────────┐
-│  L0  Adapters — narrow domain interfaces over providers    │
-│      Image (gpt-image-2)                                   │
-│      Video (Seedance 2.0 via Volc Engine ARK)              │
-│      Simulation (OASIS · multi-agent social sim)           │
-│      Ads (Meta + TikTok via MCP — v0.2)                    │
-└────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────┐
+│  Entry — CLI                                                       │
+│  drip  run · doctor · bench · llm · launch · demo                  │
+└──────────────────────────────────────────────────────────────────┘
+                               │
+┌──────────────────────────────────────────────────────────────────┐
+│  Orchestration                                                     │
+│  Pipeline   — lightweight, framework-agnostic, runs offline        │
+│  Graph      — LangGraph: checkpointing + interrupt() approval +    │
+│               retries (production daemon). Nodes map 1:1 to agents.│
+└──────────────────────────────────────────────────────────────────┘
+                               │
+┌──────────────────────────────────────────────────────────────────┐
+│  Agents                                                            │
+│   investing            analytics                                   │
+│   Strategist  drip.strategist     Collector    drip.collectors     │
+│   Creative    drip.creative       Analyst      drip.analyst        │
+│   Allocator   drip.allocator      Attribution  drip.attribution    │
+│   Audience    drip.workers        Feedback     drip.feedback       │
+└──────────────────────────────────────────────────────────────────┘
+                               │ every "should I scale/pause?" goes through ↓
+┌──────────────────────────────────────────────────────────────────┐
+│  Decision Engine (deterministic core)   drip.engine                │
+│  signals (8) → rules → card    + LLM narration (why)               │
+└──────────────────────────────────────────────────────────────────┘
+                               │ speaks one data contract ↓
+┌──────────────────────────────────────────────────────────────────┐
+│  Data contract   drip.data.AdMetrics  (normalised across platforms)│
+└──────────────────────────────────────────────────────────────────┘
+                               │
+┌──────────────────────────────────────────────────────────────────┐
+│  Slots — all swappable                                             │
+│  LLM (drip.llm · 12 providers)   bidding (adapters.bidding)        │
+│  value/LTV (adapters.prediction) image/video/sim (adapters.*)      │
+│  ads write (adapters.ads)                                          │
+└──────────────────────────────────────────────────────────────────┘
+                               │
+        External: Meta/TikTok API · Claude/GPT/Qwen/… · OASIS · Kohort
+
+   ═══ cross-cutting: Drip-Bench (drip.eval) — scores any agent ═══
 ```
 
-## Run lifecycle
+## The one-stop loop
 
-1. **CLI** parses flags, loads the game spec YAML, applies budget cap.
-2. **Orchestrator** creates a `RunContext` (game, budget, regions, mode) and
-   walks the workers in deterministic order — v0 is a fixed pipeline; v0.2
-   replaces it with an Agent-SDK supervisor that re-routes on intermediate
-   signals.
-3. **Creative** brainstorms N concepts, then asks the image adapter for a
-   keyframe and the video adapter for a 5-6s spot per concept. Artifacts land
-   under `artifacts/images/` and `artifacts/videos/`.
-4. **Audience** spawns an OASIS social graph of synthetic gachas, exposes
-   each creative, and aggregates likes/comments into predicted CTR. Ranks
-   creatives and picks top-3.
-5. **Bidding** plans the spend across (creatives × regions × platforms).
-   In shadow mode it stops here; in copilot mode it asks for approval; in
-   autonomous mode it pushes via MCP.
-6. **Reporter** narrates the run, recommends next steps, and emits the
-   transcript to stdout (Slack / Lark integration arrives in v0.2).
+`drip run` (or the LangGraph graph) walks the full cycle:
 
-## Why these provider choices
+```
+Collector  pull insights → AdMetrics (samples offline, Meta/TikTok SDK live)
+   → Analyst     run each through the engine; scan anomalies; write a report
+   → Strategist  rank winners/losers; propose the next creative test + brief
+   → Creative    produce N variants for the winning direction (external gen)
+   → Allocator   reallocate a fixed budget across platforms (pause→0, fund winners)
+   → Feedback    distil learnings (platform weights, CTR bar) → next cycle
+```
 
-| Layer       | Choice                | Why                                                       |
-|-------------|-----------------------|-----------------------------------------------------------|
-| Orchestrator| Claude Agent SDK      | Anthropic-native, built-in subagents, HITL primitives.    |
-| Supervisor  | Sonnet 4.6            | Best routing-quality / cost trade for v0.                 |
-| Image       | gpt-image-2           | Strongest in-image text + multilingual; native 2K output. |
-| Video       | Seedance 2.0          | $0.14/s — half the price of Kling, third of Sora; cinematic motion. |
-| Simulation  | OASIS                 | Apache 2.0, up to 1M agents, native Reddit/Twitter sims.  |
-| Ads         | MCP (Meta + TikTok)   | 2026 protocol standard; we don't reinvent the API client. |
-| Observability| Langfuse self-hosted | MIT, US/EU/JP compliant, OTel-native.                     |
+Each agent is a pure-ish function of `AdMetrics`; `Pipeline` chains them, the
+LangGraph `Graph` adds checkpointing + a human-approval interrupt before the
+Allocator spends. Reference flow and production graph share the same agent
+boundaries, so they never drift.
 
-## What Drip v0 deliberately doesn't do
+## Decision engine
 
-- No real ad-platform writes (mode defaults to `shadow`).
-- No fine-tuning. Everything is prompt + tool use.
-- No multi-tenant. One process == one run.
-- No web UI. CLI only — landing page is marketing surface.
+The heart, and the only fully-built core. `drip.engine`:
 
-These all arrive in v0.2 once the demo pipeline is proven.
+1. `signals.py` — evaluate 8 signals (CPP, ROAS, CVR, daily spend, purchases,
+   CTR, frequency, budget headroom) against thresholds → GREEN/YELLOW/RED.
+2. `rules.py` — a decision (SCALE/REDUCE/HOLD/PAUSE/REFRESH) + confidence +
+   auto-generated guardrails + an auditable rule chain. **Rules decide, not the LLM.**
+3. `cards.py` — render a GrowthGPT-style card (signals + why + guardrails).
+4. `engine.py` — wire it together; the LLM (any `drip.llm` model) writes the
+   human "why", template fallback when no key.
+
+Thin sample → conservative scale + capped confidence (the lesson encoded from
+Drip-Bench case 001). Decisions are deterministic and replayable.
+
+## Slots — swap anything
+
+| Slot | Module | Plug in | Fallback |
+|---|---|---|---|
+| LLM | `drip.llm` | 12 providers + OpenRouter | — |
+| bidding | `adapters.bidding` | platform auto / Madgicx | shadow |
+| value/LTV | `adapters.prediction` | Kohort/Voyantis | null / heuristic |
+| creative gen | `adapters.image/video` | gpt-image / Seedance / ComfyUI | dry |
+| ads write | `adapters.ads` | Meta/TikTok MCP | shadow |
+| attribution truth | `attribution` | AppsFlyer/Adjust | documented haircut |
+
+## Run modes (money safety)
+
+`DRIP_MODE`: `shadow` (plan only, default) · `copilot` (approve each write) ·
+`autonomous` (write up to `DRIP_BUDGET_CAP`, checked before start). See
+[deploy.md](./deploy.md) for the go-live ladder.
+
+## Tech choices (from research, not invented)
+
+- **Orchestration**: LangGraph (checkpoint + `interrupt()` + retries); Temporal at scale.
+- **Ad APIs**: official SDKs as the floor (`facebook-business`, `tiktok-business-api-sdk`); MCP optional. System User token, async insights, parse `actions[]`, 2026-01 attribution window.
+- **Analytics**: reuse PyMC-Marketing (MMM/LTV), GeoLift (incrementality), WrenAI/Vanna (NL query), Prophet+ADTK (anomaly). SKAN/MMP truth as interfaces.
+- **Creative**: ComfyUI + Wan; performance→creative feedback self-built.
+
+## What Drip deliberately doesn't build
+
+- **Core auction bidding** — platform walled gardens (GEM/AXON/Smart+) win; it's a slot.
+- **LTV/MMM model training** — a data moat (Kohort $6B); it's a slot.
+- **Closed-source deps in the core** — every slot has a deterministic fallback, so `drip run` / `drip bench run --agent dummy` work with zero keys.
+
+The discipline: anything we ship must be visible in a Drip-Bench bundle, and
+the decision core must stay auditable end-to-end.

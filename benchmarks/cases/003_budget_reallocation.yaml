@@ -1,0 +1,74 @@
+id: 3
+category: budget_reallocation
+title: "Three channels, one budget — where does the next dollar go"
+difficulty: hard
+
+context: |
+  You manage a unified $3,500/day budget across Meta, Google, and TikTok
+  for a DTC subscription app. End of week 3.
+
+  Channel snapshot (past 7 days, daily averages):
+
+    Channel  Spend share  Conv share  ROAS   Signal stability   CPA
+    Meta     42%          68%         4.2x   3-week consistent  $19
+    Google   46%          20%         1.8x   3-week consistent  $48
+    TikTok   12%          12%         4.0x   noisy (week 1)     $22
+
+  Constraints:
+    - Total budget cap is fixed at $3,500/day (CFO mandate)
+    - Each channel has its own cap configured: Meta $1,500, Google $1,600,
+      TikTok $400
+    - TikTok is week 1 — only 7 days of data, high day-to-day variance
+    - Google's traffic is largely branded search (cheaper but capped by
+      branded demand)
+    - Last week ROAS targets: 3.0x portfolio, all three channels were
+      above target
+
+question: "What is your recommended budget reallocation for next week?"
+choices:
+  A: "Cut Google to $800, push the $800 to Meta (raise Meta cap to $2,300)"
+  B: "Cut Google to $1,000 (-$600), push $400 to Meta and $200 to TikTok"
+  C: "Hold all three channels at current caps for another week"
+  D: "Cut TikTok to $0 (too noisy), redistribute $400 to Meta"
+
+ground_truth:
+  action: B
+  numeric_delta: null
+  reasoning: |
+    Google's spend share (46%) wildly exceeds its conversion share (20%)
+    and its ROAS (1.8x) is well below the portfolio target (3.0x). It
+    is over-funded. But Google branded search is partly a floor — going
+    to zero forfeits high-intent traffic, so a complete cut is
+    overreaction.
+
+    Meta is the strongest channel (68% conv, 4.2x ROAS) and is closest
+    to its cap — adding budget there has the highest expected return.
+
+    TikTok at week 1 with noisy signals is not yet ready for a big
+    bet, but a small +$200 lets us collect a second week of data
+    without committing serious budget. Cutting TikTok to zero (D) loses
+    the option value of an emerging channel.
+
+    Holding (C) ignores the obvious mis-allocation in Google. Option A
+    overcorrects on Google (down to $800 may starve branded demand).
+    Option B is the right magnitude: trim Google to its conversion
+    share, fund Meta to absorb the headroom, give TikTok a controlled
+    second week.
+
+  reasoning_must_mention:
+    - "Google's spend share far exceeds its conversion share / Google is over-funded"
+    - "Meta is the strongest channel and adding budget there has highest expected return"
+    - "TikTok week 1 is too noisy for a big bet but a small allocation preserves option value"
+
+scoring:
+  action_match_max: 40
+  direction_match_max: 20
+  reasoning_max: 40
+  partial_credit:
+    A: 25    # right direction on Google + Meta, wrong on TikTok (kills option)
+    B: 40    # balanced and correct
+    C: 5     # ignores clear mis-allocation
+    D: 10    # over-correcting + kills the emerging channel
+
+source: "synthetic — patterned on cross-channel reallocation discussions common in DTC growth teams ($1M-$5M/mo)"
+tags: ["multi-platform", "reallocation", "google-branded", "option-value"]

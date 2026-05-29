@@ -1,0 +1,85 @@
+id: 8
+category: bid_strategy_switch
+title: "Lowest cost is overspending — switch to cost cap or bid cap?"
+difficulty: hard
+
+context: |
+  You manage a Meta campaign on "Lowest cost" bid strategy for an
+  e-commerce brand. The campaign hits its daily budget cap reliably
+  but CPA is creeping above target.
+
+  Past 14 days (Lowest cost strategy):
+
+    daily spend          $1,000   (cap, always exhausted)
+    CPA                  $34      (target $26, 31% over)
+    Volume               29       conversions/day (target 38)
+    Distribution         very spiky — some days $24 CPA, some days $48
+    Auction win rate     71%      (high, indicates Meta paying up)
+    Audience             3M lookalike, 5-week-stable, no fatigue
+
+  The strategies you are considering:
+
+    1. Stay on Lowest cost — known instability
+    2. Switch to Cost cap @ $26 — Meta tries to stay at or below
+       target, may under-deliver
+    3. Switch to Cost cap @ $30 — buffer above target, more delivery
+    4. Switch to Bid cap @ $20 — hard ceiling on auction bid, may
+       lose auctions but never overspends per conversion
+
+  Constraints:
+    - Quarterly volume target: 1,000 conversions/month, on track at
+      870 — cutting volume is risky
+    - 14 days of "Lowest cost" history gives Meta good learnings to
+      hand off
+
+question: "What bid strategy do you switch to?"
+choices:
+  A: "Stay on Lowest cost — accept the spikes"
+  B: "Switch to Cost cap @ $26 (target)"
+  C: "Switch to Cost cap @ $30 (buffer)"
+  D: "Switch to Bid cap @ $20"
+
+ground_truth:
+  action: C
+  numeric_delta: null
+  reasoning: |
+    Lowest cost (A) is causing the problem — Meta optimizes for
+    spending the budget, not for CPA. Auction win rate 71% confirms
+    Meta is overbidding to clear inventory. Staying is not an option
+    if quarterly volume is to be protected at acceptable CPA.
+
+    Cost cap @ $26 (target) (B) sounds appealing but is a common
+    rookie move. Cost cap with no buffer almost always under-delivers
+    because Meta needs headroom to win the cheap auctions that
+    average down to your target. Switching from $34 average to a
+    $26 hard cap typically drops delivery 30-50%, which puts the
+    quarterly volume target at serious risk.
+
+    Bid cap @ $20 (D) is even more restrictive — a per-auction
+    ceiling. Without bid-cap experience on this account, the most
+    likely outcome is delivery collapse.
+
+    Cost cap @ $30 (C) is the right balance: it is below the current
+    $34 (saves 12% per conversion in expectation), but above the
+    target $26 by enough buffer to let Meta still win the auctions
+    that bring the average down. This is the textbook "first switch
+    away from Lowest cost" — never cap at your target on day one,
+    cap above target and tighten weekly.
+
+  reasoning_must_mention:
+    - "Lowest cost optimizes spend not CPA — auction win rate 71% confirms Meta is overpaying"
+    - "Cost cap without buffer above target typically under-delivers significantly because Meta needs headroom"
+    - "the standard first switch is cap above current CPA with buffer, then tighten over weeks"
+
+scoring:
+  action_match_max: 40
+  direction_match_max: 20
+  reasoning_max: 40
+  partial_credit:
+    A: 0     # ignores the actual problem
+    B: 15    # right idea wrong execution (no buffer)
+    C: 40    # correct
+    D: 5     # too restrictive without bid-cap experience
+
+source: "synthetic — patterned on Meta bid-strategy switches in e-commerce ($500K-$2M/mo)"
+tags: ["meta", "bid-strategy", "cost-cap", "lowest-cost", "delivery-risk"]

@@ -1,0 +1,72 @@
+id: 4
+category: creative_fatigue
+title: "Top performer is decaying — refresh now or milk it"
+difficulty: medium
+
+context: |
+  You manage a Meta IG Reels campaign for a casual mobile game. One
+  creative — a 6-second clip of the main mascot — has been the top
+  performer for 16 days. It now accounts for 72% of campaign spend.
+
+  Past 14 days of that creative:
+
+    Day 1-7:   CTR 2.1%, CPP $14, Frequency 1.6
+    Day 8-10:  CTR 1.8%, CPP $15, Frequency 1.9
+    Day 11-14: CTR 1.5%, CPP $17, Frequency 2.3   ← current
+
+  The other creatives in the campaign:
+    - Two newer spots from a week-2 test, both ~CTR 1.3%, CPP $19
+    - One older "control" still running at ~CTR 1.0%, CPP $22
+
+  Backlog: the creative team has 3 new variants ready (storyboard
+  approved, edits in QA), all derived from the same hero clip's hook
+  but with different middle sections.
+
+question: "What is your decision for the next 48 hours?"
+choices:
+  A: "Hold — the top creative still has the best CPP, ride it"
+  B: "Immediately pause the top creative and rotate in the 3 new variants"
+  C: "Lower the top creative's budget share, ship the 3 new variants in parallel"
+  D: "Wait until CTR drops below 1.3% (parity with other creatives) before refreshing"
+
+ground_truth:
+  action: C
+  numeric_delta: null
+  reasoning: |
+    The top creative's CTR decay (2.1% → 1.5%) and CPP creep ($14 → $17)
+    over 14 days with frequency rising 1.6 → 2.3 is the textbook
+    fatigue curve. It is still the best performer in the campaign
+    *today*, but the trajectory is clear and frequency 2.3 is on the
+    edge of the 2.5 cap — pushing one more week likely accelerates the
+    decay non-linearly.
+
+    Holding (A) ignores the trend. Pausing immediately (B) throws away
+    a creative that still has the lowest CPP in the campaign and
+    forces all spend onto unproven variants — a brittle move. Waiting
+    until parity (D) means waiting until the creative is no longer the
+    top performer, by which point we have burned budget at degraded
+    CPP and lost a week of variant learning.
+
+    The correct move is to start the variant rotation now while the
+    top creative is still relatively healthy: cap the old creative's
+    spend share, give the 3 new variants meaningful budget so we get
+    clean per-variant CTR within 72h, then make the next decision with
+    real data instead of forecasts.
+
+  reasoning_must_mention:
+    - "the top creative shows textbook fatigue curve (CTR down, CPP up, frequency up)"
+    - "frequency 2.3 is near the 2.5 cap and decay typically accelerates non-linearly past that"
+    - "running new variants in parallel while the old one is still healthy gives clean comparison data"
+
+scoring:
+  action_match_max: 40
+  direction_match_max: 20
+  reasoning_max: 40
+  partial_credit:
+    A: 0     # ignores clear fatigue signal
+    B: 20    # right that variants must roll, wrong to throw away the still-best CPP
+    C: 40    # correct
+    D: 10    # waits too long, criterion is wrong (parity is the failure mode)
+
+source: "synthetic — patterned on Meta IG Reels creative fatigue postmortems"
+tags: ["meta", "creative-fatigue", "ig-reels", "variant-testing", "frequency-cap"]

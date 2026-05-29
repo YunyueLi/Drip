@@ -1,0 +1,31 @@
+# Sample campaign metrics for `drip doctor --metrics ./examples/account.yaml`.
+# Each record maps 1:1 to drip.engine.CampaignMetrics. Pull these from the
+# Meta / TikTok Marketing API in a real run (v0.1).
+
+- label: "Meta_US_Prospecting_v3"
+  cpp: 18.0
+  cpp_target: 25.0
+  roas: 3.8
+  roas_target: 3.0
+  cvr: 0.025
+  cvr_baseline: 0.025
+  daily_spend: 200.0
+  budget_cap: 240.0
+  purchases: 11
+  ctr: 0.014
+  ctr_baseline: 0.014
+  frequency: 1.8
+
+- label: "Meta_US_Broad_v1"
+  cpp: 41.0
+  cpp_target: 25.0
+  roas: 1.4
+  roas_target: 3.0
+  cvr: 0.012
+  cvr_baseline: 0.020
+  daily_spend: 240.0
+  budget_cap: 240.0
+  purchases: 6
+  ctr: 0.008
+  ctr_baseline: 0.014
+  frequency: 2.4

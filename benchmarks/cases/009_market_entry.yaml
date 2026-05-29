@@ -1,0 +1,86 @@
+id: 9
+category: market_entry
+title: "JP is winning — should we open KR next or double down on JP"
+difficulty: medium
+
+context: |
+  You manage a global UA budget for a mid-core mobile game. JP launch
+  is 8 weeks old and outperforming all projections.
+
+  JP snapshot (last 4 weeks):
+
+    daily spend         $1,400   (cap $1,600, 13% headroom)
+    CPI                 $1.10    (target $1.40, 21% below)
+    D7 ROAS             38%      (target 25%, exceeding)
+    D30 LTV (forecast)  $14.20   (target $10)
+    Install volume      1,200/day (target 1,000)
+    Channels live       Meta, TikTok (no Google yet)
+
+  The strategic question on the table:
+
+    - You have $3,000/day of unallocated regional budget for the next
+      8 weeks
+    - Option A: pour it into JP (raise JP cap to $4,400/day)
+    - Option B: open KR (new market, launch budget needed)
+    - Option C: open JP-Google (existing market, untapped channel)
+
+  Constraints / known unknowns:
+    - The game has full Japanese localization (text, voice). Korean
+      localization is *text-only* — voice would take 6 weeks to ship.
+    - You have no KR audience data. JP-Google has Meta lookalike seed
+      you could port to Google customer-match.
+    - JP audience: Meta + TikTok overlap is now 43% (saturation
+      starting). New JP channel is the natural next step.
+    - Marketing director's instinct is "ride the JP wave."
+
+question: "How do you allocate the $3,000/day?"
+choices:
+  A: "All-in on JP — raise JP cap to $4,400/day"
+  B: "Open KR — $3,000/day on Meta + TikTok JP-style playbook"
+  C: "Open JP-Google with $2,000/day, save $1,000/day reserve for KR test in 4 weeks"
+  D: "Split $1,500/JP, $1,500/KR — diversify in parallel"
+
+ground_truth:
+  action: C
+  numeric_delta: null
+  reasoning: |
+    The JP signals are excellent, but the saturation evidence
+    (Meta-TikTok overlap 43% and climbing) means pouring all $3,000
+    into the existing channels (A) will hit diminishing returns
+    fast — within 4 weeks the JP CPI will likely degrade as we bid
+    for the same users.
+
+    KR launch (B) is structurally wrong right now: voice
+    localization is 6 weeks out, and a voice-acted mid-core game in
+    KR with English voice will get crucified in reviews. Spending
+    UA budget on a partial localization is throwing money away. KR
+    must wait for voice.
+
+    Splitting JP/KR (D) inherits both problems — half the JP
+    saturation risk and half the KR localization risk.
+
+    The right move (C) compounds what is working: JP demand exists,
+    but the current channels are saturating. Adding Google
+    (especially with a Meta-seeded customer-match) opens a *new*
+    audience surface within the proven market. The $1,000 reserve
+    held back for a KR test in 4 weeks (when voice ships) is the
+    correct sequencing: ride the JP wave through the cheapest new
+    channel first, then test KR when the localization is real.
+
+  reasoning_must_mention:
+    - "Meta-TikTok audience overlap of 43% means JP channels are starting to saturate, so doubling existing channels has diminishing returns"
+    - "KR cannot launch yet because voice localization is 6 weeks away and a partial localization burns budget and reputation"
+    - "opening JP-Google adds new audience surface in the proven market while preserving reserve for KR when ready"
+
+scoring:
+  action_match_max: 40
+  direction_match_max: 20
+  reasoning_max: 40
+  partial_credit:
+    A: 10    # doubles into saturation
+    B: 0     # wrong on localization timing
+    C: 40    # correct sequencing
+    D: 10    # inherits both risks
+
+source: "synthetic — patterned on mid-core mobile game global launch sequencing decisions"
+tags: ["multi-region", "market-entry", "saturation", "localization", "channel-expansion"]

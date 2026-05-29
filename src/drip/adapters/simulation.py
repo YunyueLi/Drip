@@ -1,12 +1,13 @@
 """Simulation adapter — OASIS multi-agent social simulation.
 
-We seed a small social graph of synthetic anime gachas, expose each candidate
+We seed a small social graph of synthetic users, expose each candidate
 creative as a stimulus (post), and aggregate downstream signals (likes,
 comments, reshares) into predicted CTR / install-intent scores.
 
 v0 uses OASIS' bundled reddit profile sample so the loop is reproducible
-without external data. v0.2 will swap that for region-specific personas
-sampled from public game-community profiles.
+without external data. Knowledge Packs override the persona pool for
+verticals (anime / gacha, DTC, tools-app). v0.2 swaps the sample for
+region-specific personas sampled from public community profiles.
 """
 
 from __future__ import annotations
@@ -92,7 +93,7 @@ class SimulationAdapter:
             model_type=ModelType.GPT_4O_MINI,
         )
         agent_graph = await generate_reddit_agent_graph(
-            profile_path="./data/oasis/anime_gachas.json",
+            profile_path="./data/oasis/default_users.json",
             model=model,
             available_actions=[
                 ActionType.CREATE_POST,
@@ -126,7 +127,7 @@ class SimulationAdapter:
         ctr = (likes + 0.5 * comments) / n
         return {
             "ctr": ctr,
-            "install": ctr * 0.07,  # heuristic anime-gacha install/click rate
+            "install": ctr * 0.07,  # generic heuristic; Knowledge Packs override
             "engagement_score": float(likes + comments * 2),
             "sample_n": float(n),
         }

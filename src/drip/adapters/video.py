@@ -1,4 +1,4 @@
-"""Video adapter — Seedance 2.0 via Volc Engine ARK (字节跳动).
+"""Video adapter — Seedance 2.0 via Volc Engine ARK (ByteDance).
 
 The ARK content-generation API is async: submit a task, poll for completion,
 then download the resulting MP4 within 24 hours.

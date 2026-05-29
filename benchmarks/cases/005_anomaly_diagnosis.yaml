@@ -1,0 +1,78 @@
+id: 5
+category: anomaly_diagnosis
+title: "CPI tripled overnight — what happened?"
+difficulty: hard
+
+context: |
+  You manage a Meta Android campaign for a mid-core mobile game.
+  Yesterday evening (you got a Slack alert this morning):
+
+    Day-over-day:
+      CPI       $0.45 → $1.38   (+207%)
+      Install volume   1,200 → 380 installs
+      CPM       $4.10 → $11.20   (+173%)
+      CTR       1.2%  → 0.9%
+      Frequency 1.7   → 1.8
+      Daily spend $540 (same as cap, hit cap by 10pm vs usual 2am)
+
+  Account context (visible in the past 24h):
+    - The campaign's targeted custom audience was refreshed yesterday
+      morning by the data team (planned move, AppsFlyer-sourced
+      seed list updated)
+    - Meta announced a tracking-signal change for Android 14 users
+      effective yesterday
+    - A competitor launched a major IP event ad campaign yesterday
+      (you saw their creatives in the wild)
+    - The campaign's main creative passed its 12-day mark yesterday
+
+question: "What is your *first* diagnostic step?"
+choices:
+  A: "Roll back the custom audience refresh — that's the only deliberate change you made"
+  B: "Pause the 12-day creative — it's the longest-running variable"
+  C: "Don't act yet — pull a per-placement, per-OS-version breakdown to isolate the spike"
+  D: "Raise the bid cap by 50% to recover install volume while you investigate"
+
+ground_truth:
+  action: C
+  numeric_delta: null
+  reasoning: |
+    There are four plausible causes that all happened in the same
+    24-hour window: an audience refresh you made, a Meta tracking
+    change, a competitor entering the auction, and creative fatigue
+    crossing day 12. Each has a very different remediation. Acting on
+    a guess (A, B, D) costs information.
+
+    The fact that CPM jumped +173% is the key signal: that points
+    strongly at *auction pressure* (competitor) or *audience size
+    change* (own refresh), not creative (which would manifest as CTR
+    drop without CPM spike) and not the Meta tracking change (which
+    typically shows up first in *attribution* metrics, not auction
+    cost).
+
+    The first move is a breakdown: per-placement (Reels vs Feed vs
+    Stories tells you if it is competitor pressure on a specific
+    surface), per-OS-version (Android 14 vs 13 isolates the tracking
+    change), per-creative (isolates fatigue), and pre/post-audience-
+    refresh delivery (isolates the audience change). 10 minutes of
+    diagnosis prevents 24 hours of wrong-direction remediation.
+
+    Raising bid cap (D) is the worst option — you spend more to
+    confirm you have a problem.
+
+  reasoning_must_mention:
+    - "multiple plausible causes hit in the same 24-hour window so a guess costs information"
+    - "CPM spike points to auction pressure or audience size change rather than creative or tracking"
+    - "per-placement / per-OS-version / per-creative breakdown isolates which of the four causes is real"
+
+scoring:
+  action_match_max: 40
+  direction_match_max: 20
+  reasoning_max: 40
+  partial_credit:
+    A: 10    # one of four hypotheses, acted before isolating
+    B: 5     # less likely cause given CPM evidence
+    C: 40    # correct — investigate before acting
+    D: 0     # spends more to confirm a problem
+
+source: "synthetic — patterned on mid-core mobile game anomaly postmortems with multiple confounded changes"
+tags: ["meta", "anomaly", "cpm-spike", "multi-cause", "diagnostic-first"]

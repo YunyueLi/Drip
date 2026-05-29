@@ -1,0 +1,87 @@
+id: 7
+category: audience_expansion
+title: "Lookalike at capacity — broaden or stay tight"
+difficulty: medium
+
+context: |
+  You manage a Meta US campaign for a productivity SaaS. The campaign
+  has been running on a 1% lookalike audience (seeded from paying
+  customers) for 6 weeks. Performance is stable but install volume
+  is plateauing.
+
+  Past 4 weeks:
+
+    Week 1:  CPA $32, volume 180/day, ROAS 4.1x
+    Week 2:  CPA $33, volume 175/day, ROAS 4.0x
+    Week 3:  CPA $35, volume 168/day, ROAS 3.9x
+    Week 4:  CPA $37, volume 155/day, ROAS 3.8x   ← current
+
+  Audience health:
+    - Audience size: 2.1M (saturated; reaching 78% of audience monthly)
+    - Frequency: 2.4 (cap 2.5, hitting wall)
+    - Overlap with retargeting audience: now at 41% (up from 18%)
+
+  Available expansion options the audience team has prepped:
+    1. Broaden to 2% lookalike (4.2M audience, less precise)
+    2. Layer in interest targeting on top of 1% lookalike (keeps
+       precision, narrower)
+    3. Switch to broad targeting + advantage+ (let Meta decide)
+    4. Build a new 1% lookalike off "high-LTV" customers only (smaller
+       but higher quality seed)
+
+  Operator constraint:
+    - Quarterly ROAS target: 3.5x (current 3.8x, on track but trending down)
+
+question: "What audience move do you recommend?"
+choices:
+  A: "Broaden to 2% lookalike — fastest way to recover volume"
+  B: "Layer interest targeting on top of 1% — preserves precision"
+  C: "Switch to broad + Advantage+ — let Meta optimize"
+  D: "Build the high-LTV-seed 1% lookalike — improve quality before quantity"
+
+ground_truth:
+  action: D
+  numeric_delta: null
+  reasoning: |
+    The metrics tell a saturation story: ROAS drifting down (4.1 →
+    3.8x), CPA drifting up ($32 → $37), volume drifting down (180 →
+    155/day), frequency at 2.4 against a 2.5 cap, and 78% monthly
+    audience reach. Translation: you are bidding for the same users
+    over and over and the marginal user costs more.
+
+    Broadening to 2% (A) does buy volume but trades quality —
+    historically 2% lookalikes show ~15-20% CPA degradation against
+    1%. With ROAS already trending toward the 3.5x floor, that move
+    will likely break the quarterly target.
+
+    Interest layering (B) makes the audience smaller, not larger —
+    that addresses the wrong problem (audience size is saturated, not
+    targeting quality).
+
+    Broad + Advantage+ (C) sometimes works but throws away 6 weeks of
+    1% lookalike data and is a one-way door — once you switch, the
+    learning resets. With ROAS on a downward trend, this is too risky.
+
+    Rebuilding the lookalike on a high-LTV seed (D) addresses the
+    root cause: the current seed is "all paying customers," which
+    includes low-LTV converts. A high-LTV seed produces a tighter,
+    higher-quality 1% lookalike that should restore CPA and protect
+    ROAS, even if volume recovery is slower than broadening.
+
+  reasoning_must_mention:
+    - "frequency 2.4 / 2.5 cap and 78% monthly reach indicate audience saturation"
+    - "broadening to 2% lookalike typically degrades CPA by 15-20% which risks the quarterly ROAS floor"
+    - "a high-LTV-seeded 1% lookalike addresses quality root cause without a one-way switch"
+
+scoring:
+  action_match_max: 40
+  direction_match_max: 20
+  reasoning_max: 40
+  partial_credit:
+    A: 15    # fastest but most likely to break quarterly ROAS floor
+    B: 5     # solves wrong problem
+    C: 10    # risky one-way switch given downward trend
+    D: 40    # correct
+
+source: "synthetic — patterned on B2B SaaS Meta UA discussions ($500K-$2M/mo spend)"
+tags: ["meta", "lookalike", "audience-saturation", "frequency-cap", "ltv-seed"]

@@ -1,0 +1,84 @@
+id: 10
+category: crisis_response
+title: "Tracking broke at 2am — pause everything or trust attribution"
+difficulty: hard
+
+context: |
+  You are on-call. At 2:14am you receive an AppsFlyer alert: install
+  postbacks from Meta have dropped to ~12% of expected volume. By
+  6am the situation is partially clarified:
+
+    - Meta's Android SDK pushed a server-side change last night that
+      broke ATT (App Tracking Transparency) postbacks for ~88% of
+      installs on Android 14
+    - AppsFlyer confirmed the issue, is working with Meta, ETA "12-48h"
+    - Your Meta campaigns are still running normally on Meta's side
+      (Meta sees the installs, Meta-side optimization is fine)
+    - Your downstream optimization (LTV-based bidding via AppsFlyer
+      postbacks) is currently flying blind
+    - Total daily spend at risk: $4,200 across Meta Android campaigns
+
+  Operator context:
+    - You have an iOS Meta campaign that is unaffected ($1,800/day)
+    - You have a TikTok Android campaign that is unaffected (different
+      tracking pipeline, $1,500/day)
+    - Your campaigns are 4 days into a 14-day cycle; pausing now
+      means restarting the learning phase
+    - The marketing director is asleep — you can decide alone within
+      reason, but a "pause $4,200/day" decision crosses the threshold
+      for waking them
+
+question: "What do you do at 6am?"
+choices:
+  A: "Pause all Meta Android campaigns immediately — without tracking we are flying blind"
+  B: "Pause LTV-bid campaigns only ($1,800/day), keep CPI-bid campaigns running ($2,400/day)"
+  C: "Keep everything running — Meta's own optimization is intact, and pausing restarts learning phase"
+  D: "Keep everything running but cut Meta Android daily caps by 50% as a hedge"
+
+ground_truth:
+  action: D
+  numeric_delta: null
+  reasoning: |
+    Pausing all (A) is over-reaction: Meta's own optimization is
+    intact (they see the installs even if we don't get the postback),
+    so the immediate campaign decisions Meta is making are unaffected.
+    The damage is to *our* downstream LTV-based bidding, which is
+    indirect. And pausing for what may be a 12-48h fix throws away a
+    4-day learning phase.
+
+    Partial pause (B) is logically correct on which campaigns are
+    affected (LTV-bid campaigns are blind), but it is operationally
+    risky for the same reason: even if it is "just 24h," you have to
+    reverse it the same day the fix lands and restart Meta's learning.
+
+    Keeping everything running unchanged (C) accepts unbounded risk:
+    even though Meta-side optimization is fine, we will not catch
+    cohort quality regressions until postbacks return, which could be
+    48h of compounded bad spend.
+
+    The hedge (D) is the right shape: a 50% cap cut limits downside
+    (~$2,100/day of "flying blind" spend instead of $4,200) without
+    pausing the campaigns or resetting learning. It also gives a
+    clear, reversible action that does not require waking the
+    director — the $2,100/day risk is within delegated authority,
+    and a hedge that can be undone in one click is the correct
+    on-call posture for an external dependency that is being actively
+    worked on by the vendor.
+
+  reasoning_must_mention:
+    - "Meta-side optimization is intact so a full pause overreacts and discards the learning phase"
+    - "completely keeping running accepts unbounded LTV-blind risk that could compound over 48 hours"
+    - "a 50% budget cap hedge bounds the downside while staying reversible and within on-call authority"
+
+scoring:
+  action_match_max: 40
+  direction_match_max: 20
+  reasoning_max: 40
+  partial_credit:
+    A: 10    # over-reaction
+    B: 25    # right targeting wrong action shape
+    C: 5     # accepts unbounded risk
+    D: 40    # correct on-call hedge posture
+
+source: "synthetic — patterned on real ATT / SKAdNetwork / AppsFlyer-Meta postback incidents 2022-2025"
+tags: ["crisis-response", "appsflyer", "att", "postback", "on-call", "reversibility"]
