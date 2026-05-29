@@ -24,6 +24,14 @@
 
 </div>
 
+<div align="center">
+
+<a href="https://yunyueli.github.io/Drip/app.html"><img src="assets/screens/console.png" alt="Drip 操盘台 —— 开源、可审计的 UA 控制台" width="880" /></a>
+
+<sub>每条 campaign 跑 **8 信号** · 规则决定、LLM 只解释 · 动钱前先过你这关 · **[▶ 在线演示](https://yunyueli.github.io/Drip/app.html)** · 10 种语言</sub>
+
+</div>
+
 ---
 
 > 性能营销团队现在有一堆 AI agent 可选 —— Sett、Kohort、GrowthGPT、Meta GEM。

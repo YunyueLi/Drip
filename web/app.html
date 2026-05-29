@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Drip · Console</title>
+<style>
+:root{
+  --bg:#fff; --surface:#fafbfc; --surface-2:#f2f3f5; --surface-3:#e9ebf0;
+  --text:#1a1a1a; --text-2:#5f6368; --text-3:#9aa0a6;
+  --border:#ebecf0; --border-strong:#dcdee3;
+  --accent:#0052d9; --accent-hover:#0046b8; --accent-subtle:#eaf1fd; --accent-2:#5b8def;
+  --green:#16a34a; --green-subtle:#ecfdf3; --red:#dc2626; --red-subtle:#fef2f2;
+  --amber:#d97706; --amber-subtle:#fffbeb; --gray-badge:#6b7280;
+  --radius:8px; --radius-lg:12px;
+  --font:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans","Microsoft YaHei",system-ui,sans-serif;
+  --mono:ui-monospace,"SF Mono","Geist Mono",Menlo,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{font-size:14px}
+body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:1.5;-webkit-font-smoothing:antialiased;letter-spacing:-.003em}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-thumb{background:var(--border-strong);border-radius:6px;border:3px solid var(--bg)}
+button{font-family:var(--font)}
+
+.app{display:grid;grid-template-columns:56px 1fr 348px;grid-template-rows:100vh;height:100vh;overflow:hidden}
+.app.welcome{grid-template-columns:56px 1fr}
+.app.welcome .rrail{display:none}
+
+/* left rail */
+.rail{background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;align-items:center;padding:12px 0;gap:3px}
+.rail .logo{width:32px;height:32px;border-radius:9px;background:var(--accent);color:#fff;display:grid;place-items:center;font-weight:700;font-size:16px;margin-bottom:10px;letter-spacing:-.02em}
+.rail .ri{width:38px;height:38px;border-radius:9px;display:grid;place-items:center;color:var(--text-3);cursor:pointer;font-size:16px;border:none;background:none}
+.rail .ri:hover{background:var(--surface-2);color:var(--text)}
+.rail .ri.on{background:var(--accent-subtle);color:var(--accent)}
+.rail .sp{flex:1}
+.rail .av{width:32px;height:32px;border-radius:50%;background:#f0731f;color:#fff;display:grid;place-items:center;font-weight:600;font-size:13px;margin-top:6px}
+
+/* center */
+.center{display:flex;flex-direction:column;min-width:0;min-height:0;position:relative}
+.topbar{height:52px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 20px;flex-shrink:0}
+.topbar .ttl{font-size:13.5px;font-weight:600;display:flex;align-items:center;gap:9px}
+.topbar .ttl .ico{color:var(--text-3)}
+.topbar .ttl .meta{color:var(--text-3);font-weight:450;font-size:12px}
+.topbar .right{display:flex;align-items:center;gap:9px}
+.chip{font-size:11.5px;font-weight:600;color:var(--green);background:var(--green-subtle);padding:3px 9px;border-radius:20px;display:inline-flex;align-items:center;gap:5px}
+.chip .pip{width:6px;height:6px;border-radius:50%;background:var(--green)}
+.lang{display:flex;gap:1px;border:1px solid var(--border-strong);border-radius:7px;overflow:hidden}
+.lang button{font-size:11.5px;font-weight:500;padding:5px 8px;border:none;background:var(--bg);color:var(--text-2);cursor:pointer}
+.lang button:hover{background:var(--surface-2)}
+.lang button.on{background:var(--accent);color:#fff}
+
+.thread{flex:1;min-height:0;overflow-y:auto;padding:24px 0}
+.thread-in{max-width:880px;margin:0 auto;padding:0 28px}
+.msg{margin-bottom:22px}
+.msg.user{display:flex;justify-content:flex-end}
+.msg.user .bubble{background:var(--accent-subtle);border:1px solid #d7e5fb;padding:9px 14px;border-radius:13px 13px 4px 13px;font-size:13px;max-width:78%}
+.msg.bot{display:flex;gap:12px}
+.msg.bot .ava{width:27px;height:27px;border-radius:8px;background:var(--accent);color:#fff;display:grid;place-items:center;font-weight:700;font-size:12px;flex-shrink:0}
+.msg.bot .content{min-width:0;flex:1}
+.intro{font-size:13.5px;line-height:1.6;margin-bottom:12px}
+.intro strong{font-weight:650}
+.mantra{font-size:11px;color:var(--text-3);margin:-4px 0 14px;display:inline-flex;align-items:center;gap:6px}
+.mantra b{color:var(--accent);font-weight:600}
+
+/* CoT */
+.cot{border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);margin-bottom:14px}
+.cot summary{list-style:none;cursor:pointer;padding:10px 13px;font-size:12px;font-weight:600;color:var(--text-2);display:flex;align-items:center;gap:8px}
+.cot summary::-webkit-details-marker{display:none}
+.cot summary .tw{transition:transform .15s;color:var(--text-3);font-size:10px}
+.cot[open] summary .tw{transform:rotate(90deg)}
+.cot summary .seal{margin-left:auto;font-size:10px;font-weight:600;color:var(--accent);background:var(--accent-subtle);padding:2px 8px;border-radius:10px}
+.cot ol{margin:0;padding:0 16px 12px 38px}
+.cot li{font-size:12px;color:var(--text-2);line-height:1.5;margin-bottom:5px}
+.cot li .mono{color:var(--text)}
+
+/* generic block card */
+.block{border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:14px;overflow:hidden;box-shadow:0 1px 2px rgba(16,24,40,.04)}
+.block .bhead{display:flex;align-items:center;gap:9px;padding:12px 15px;border-bottom:1px solid var(--border)}
+.block .bhead .ic{width:24px;height:24px;border-radius:7px;background:var(--accent-subtle);color:var(--accent);display:grid;place-items:center;font-size:13px}
+.block .bhead .h{font-size:13.5px;font-weight:600}
+.block .bhead .sub{font-size:11.5px;color:var(--text-3);margin-left:auto}
+
+/* KPI strip */
+.kpis{display:grid;grid-template-columns:repeat(6,1fr);border-bottom:1px solid var(--border)}
+.kpi{padding:12px 14px;border-right:1px solid var(--border)}
+.kpi:last-child{border-right:none}
+.kpi .k{font-size:10.5px;color:var(--text-3);font-weight:500}
+.kpi .v{font-size:18px;font-weight:650;letter-spacing:-.03em;margin-top:3px}
+.kpi .d{font-size:10.5px;font-weight:500;margin-top:1px}
+.kpi .d.up{color:var(--green)} .kpi .d.down{color:var(--red)} .kpi .d.flat{color:var(--text-3)}
+
+/* chart */
+.chart-wrap{padding:14px 15px;border-bottom:1px solid var(--border)}
+.chart-wrap .clab{font-size:11px;color:var(--text-3);font-weight:500;margin-bottom:8px;display:flex;gap:14px}
+.chart-wrap .clab .li{display:flex;align-items:center;gap:5px}
+.chart-wrap .clab .sw{width:9px;height:3px;border-radius:2px}
+.chart{width:100%;height:104px;display:block}
+
+/* data table */
+.dt{width:100%;border-collapse:collapse;font-size:12px}
+.dt th{text-align:left;font-size:10.5px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.04em;padding:8px 12px;border-bottom:1px solid var(--border);white-space:nowrap}
+.dt td{padding:9px 12px;border-bottom:1px solid var(--border);white-space:nowrap}
+.dt tr:last-child td{border-bottom:none}
+.dt tr:hover td{background:var(--surface)}
+.dt .nm{font-weight:550}
+.dt .plat{color:var(--text-3);font-weight:450;font-size:11px}
+.dt .num{font-family:var(--mono);text-align:right}
+.dt .r{color:var(--red)} .dt .g{color:var(--green)}
+.thumb{width:26px;height:26px;border-radius:6px;flex-shrink:0;display:inline-block;vertical-align:middle;margin-right:8px}
+.tg1,.tg2,.tg3,.tg4,.tg5,.tg6,.tg7,.tg8{background:linear-gradient(135deg,#aab4c7,#7d899e)}
+
+/* decision badge */
+.bdg{font-size:10px;font-weight:700;padding:3px 7px;border-radius:5px;letter-spacing:.02em;display:inline-block}
+.bdg.scale{background:var(--green-subtle);color:var(--green)} .bdg.pause{background:var(--red-subtle);color:var(--red)}
+.bdg.refresh{background:var(--amber-subtle);color:var(--amber)} .bdg.hold{background:var(--surface-2);color:var(--gray-badge)}
+.narr{padding:12px 15px;font-size:12.5px;line-height:1.6;color:var(--text-2);background:var(--surface)}
+.narr strong{color:var(--text);font-weight:600}
+
+/* decision card */
+.card{border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:11px;overflow:hidden;cursor:pointer;transition:border-color .15s,box-shadow .15s;box-shadow:0 1px 2px rgba(16,24,40,.04)}
+.card:hover{border-color:var(--border-strong)}
+.card.sel{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-subtle)}
+.card .head{display:flex;align-items:center;gap:10px;padding:12px 14px}
+.act{font-size:10.5px;font-weight:700;padding:4px 8px;border-radius:6px;letter-spacing:.02em;flex-shrink:0}
+.act.scale{background:var(--green-subtle);color:var(--green)} .act.pause{background:var(--red-subtle);color:var(--red)}
+.act.refresh{background:var(--amber-subtle);color:var(--amber)} .act.hold{background:var(--surface-2);color:var(--gray-badge)}
+.card .title{font-weight:600;font-size:13px;flex:1;min-width:0}
+.card .title .plat{color:var(--text-3);font-weight:450;font-size:11.5px}
+.budget{font-family:var(--mono);font-size:12px;font-weight:600}
+.budget .arrow{color:var(--text-3);margin:0 4px}
+.budget .up{color:var(--green)} .budget .zero{color:var(--red)}
+.conf{font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px}
+.conf.high{color:var(--green);background:var(--green-subtle)} .conf.med{color:var(--amber);background:var(--amber-subtle)}
+.card .body{display:grid;grid-template-columns:1fr 1px 190px;border-top:1px solid var(--border)}
+.why{padding:11px 14px}.why .lab,.sigs .lab{font-size:9.5px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+.why p{font-size:12px;line-height:1.55}.why .guard{margin-top:8px;font-size:11px;color:var(--text-2)}.why .guard .mono{color:var(--text)}
+.vdiv{background:var(--border)}
+.sigs{padding:11px 14px}
+.sigrow{display:flex;align-items:center;gap:7px;margin-bottom:4px;font-size:11px}
+.dd{width:7px;height:7px;border-radius:50%;flex-shrink:0}.dd.g{background:var(--green)}.dd.y{background:var(--amber)}.dd.r{background:var(--red)}
+.sigrow .nm{color:var(--text-2);flex:1}.sigrow .val{font-family:var(--mono);font-size:10.5px}
+.card .foot{display:flex;align-items:center;justify-content:space-between;padding:9px 14px;border-top:1px solid var(--border);background:var(--surface)}
+.card .foot .next{font-size:11px;color:var(--text-3)}.card .foot .btns{display:flex;gap:6px}
+.mini{font-size:11.5px;font-weight:500;padding:5px 10px;border-radius:7px;border:1px solid var(--border-strong);background:var(--bg);cursor:pointer;color:var(--text)}
+.mini:hover{background:var(--surface-2)}.mini.approve{background:var(--accent);border-color:var(--accent);color:#fff}.mini.approve:hover{background:var(--accent-hover)}
+
+/* batch editor */
+.editor td{padding:8px 12px}
+.editor .bnum{width:74px;border:1px solid var(--border-strong);border-radius:6px;padding:4px 7px;font-family:var(--mono);font-size:11.5px;text-align:right;outline:none}
+.editor .bnum:focus{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-subtle)}
+.editor .bulk{display:flex;align-items:center;gap:10px;padding:11px 14px;border-top:1px solid var(--border);background:var(--surface);flex-wrap:wrap}
+.editor .bulk .fld{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--text-2)}
+.editor .efoot{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-top:1px solid var(--border)}
+.editor .efoot .tags{display:flex;gap:6px}
+.tag{font-size:10.5px;font-weight:550;color:var(--text-2);background:var(--surface-2);padding:3px 9px;border-radius:20px}
+.btn{font-size:12.5px;font-weight:500;border-radius:8px;padding:7px 13px;border:1px solid var(--border-strong);background:var(--bg);color:var(--text);cursor:pointer}
+.btn:hover{background:var(--surface-2)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}.btn.primary:hover{background:var(--accent-hover)}
+
+/* allocation */
+.alloc{border:1px solid var(--border);border-radius:var(--radius-lg);padding:15px;margin-bottom:11px;box-shadow:0 1px 2px rgba(16,24,40,.04)}
+.alloc .h{font-size:13px;font-weight:600;margin-bottom:13px;display:flex;align-items:center;gap:8px}.alloc .h .ic{color:var(--accent)}
+.alloc .grid{display:grid;grid-template-columns:128px 1fr;gap:18px;align-items:center}
+.donut{width:124px;height:124px;border-radius:50%;margin:0 auto;background:conic-gradient(var(--accent) 0 52%,var(--accent-2) 52% 88%,#c7d9f7 88% 100%);display:grid;place-items:center;position:relative}
+.donut::after{content:"";width:82px;height:82px;background:var(--bg);border-radius:50%}
+.donut .ctr{position:absolute;text-align:center}.donut .ctr .n{font-size:16px;font-weight:650;letter-spacing:-.02em}.donut .ctr .l{font-size:10px;color:var(--text-3)}
+.legend{display:flex;flex-direction:column;gap:7px}
+.legend .li{display:flex;align-items:center;gap:8px;font-size:12px}.legend .sw{width:9px;height:9px;border-radius:3px;flex-shrink:0}.legend .nm{flex:1;color:var(--text-2)}.legend .mv{font-family:var(--mono);font-weight:600;font-size:11.5px}
+.alloc .note{margin-top:12px;padding-top:11px;border-top:1px solid var(--border);font-size:11.5px;color:var(--text-2);line-height:1.5}.alloc .note .mono{color:var(--text)}
+
+/* composer */
+.composer-wrap{border-top:1px solid var(--border);padding:13px 28px 15px;flex-shrink:0;background:var(--bg)}
+.composer-in{max-width:880px;margin:0 auto}
+.composer{border:1px solid var(--border-strong);border-radius:var(--radius-lg);padding:9px 9px 7px;transition:border-color .15s,box-shadow .15s}
+.composer:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-subtle)}
+.composer textarea{width:100%;border:none;outline:none;resize:none;font-family:var(--font);font-size:13.5px;line-height:1.5;background:none;color:var(--text);max-height:120px}
+.composer textarea::placeholder{color:var(--text-3)}
+.composer .bar{display:flex;align-items:center;gap:6px;margin-top:5px}
+.cbtn{font-size:12px;font-weight:500;padding:5px 9px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text-2);cursor:pointer;display:inline-flex;align-items:center;gap:5px}
+.cbtn:hover{background:var(--surface-2);color:var(--text)}.cbtn .ic{opacity:.7}
+.cbtn select{font-family:var(--font);font-size:12px;font-weight:500;border:none;background:none;color:inherit;cursor:pointer;outline:none}
+.composer .send{margin-left:auto;width:31px;height:31px;border-radius:9px;background:var(--accent);color:#fff;border:none;cursor:pointer;display:grid;place-items:center;font-size:15px}.composer .send:hover{background:var(--accent-hover)}
+.disclaim{text-align:center;font-size:10.5px;color:var(--text-3);margin-top:8px}
+
+/* right rail */
+.rrail{border-left:1px solid var(--border);background:var(--surface);overflow-y:auto;min-height:0;display:flex;flex-direction:column;position:relative}
+.rr-grip{position:absolute;left:0;top:0;bottom:0;width:6px;cursor:col-resize;z-index:30}
+.rr-grip:hover,.rr-grip.drag{background:var(--accent-subtle)}
+.rp-audit{background:linear-gradient(180deg,#f4f8ff,var(--surface) 150px)}
+.panel-toggle{width:30px;height:30px;border-radius:8px;border:none;background:none;color:var(--text-3);cursor:pointer;display:grid;place-items:center;transition:background .12s,color .12s}
+.panel-toggle:hover{background:var(--surface-2);color:var(--text)}
+.panel-toggle svg{display:block}
+.panel-toggle .fill{fill:none}
+.panel-toggle.off{color:var(--accent)}
+.panel-toggle.off .fill{fill:var(--accent-subtle)}
+/* language selector */
+.langsel{position:relative}
+.lang-btn{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 9px;border:1px solid var(--border-strong);border-radius:8px;background:var(--bg);color:var(--text-2);cursor:pointer;font-family:var(--font);font-size:12.5px;font-weight:500}
+.lang-btn:hover{background:var(--surface-2);color:var(--text)}
+.lang-btn .caret{font-size:9px;color:var(--text-3);transition:transform .15s}
+.langsel.open .lang-btn .caret{transform:rotate(180deg)}
+.langsel.open .lang-btn{border-color:var(--accent);color:var(--text)}
+.lang-menu{position:absolute;top:calc(100% + 6px);right:0;min-width:172px;background:var(--bg);border:1px solid var(--border);border-radius:10px;box-shadow:0 8px 28px rgba(16,24,40,.12);padding:5px;z-index:50;display:none;flex-direction:column;gap:1px}
+.langsel.open .lang-menu{display:flex}
+.lang-menu button{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 10px;border:none;background:none;border-radius:7px;font-family:var(--font);font-size:13px;color:var(--text);cursor:pointer;text-align:left;width:100%}
+.lang-menu button:hover{background:var(--surface-2)}
+.lang-menu button .nat{color:var(--text-3);font-size:11px}
+.lang-menu button.on{color:var(--accent);font-weight:600}
+.lang-menu button.on::after{content:"✓";color:var(--accent);font-size:11px}
+.app.rr-hidden{grid-template-columns:56px 1fr}
+.app.rr-hidden .rrail{display:none}
+button.pressed{transform:scale(.97);opacity:.85;transition:transform .08s,opacity .08s}
+.rp{border-bottom:1px solid var(--border)}
+.rp>summary{list-style:none;cursor:pointer;padding:13px 16px;font-size:12px;font-weight:600;display:flex;align-items:center;gap:8px}
+.rp>summary::-webkit-details-marker{display:none}
+.rp>summary .tw{color:var(--text-3);font-size:10px;transition:transform .15s}.rp[open]>summary .tw{transform:rotate(90deg)}
+.rp>summary .ct{margin-left:auto;font-size:10.5px;color:var(--text-3);font-weight:500}
+.rp .pbody{padding:2px 16px 15px}
+/* progress steps */
+.pstep{display:flex;gap:10px;margin-bottom:11px;position:relative}
+.pstep .n{width:18px;height:18px;border-radius:50%;display:grid;place-items:center;font-size:10px;font-weight:700;flex-shrink:0;z-index:1}
+.pstep.done .n{background:var(--green);color:#fff}.pstep.now .n{background:var(--accent);color:#fff;box-shadow:0 0 0 3px var(--accent-subtle)}.pstep.wait .n{background:var(--surface-2);border:1px solid var(--border-strong);color:var(--text-3)}
+.pstep::before{content:"";position:absolute;left:8.5px;top:18px;bottom:-11px;width:1px;background:var(--border-strong)}.pstep:last-child::before{display:none}
+.pstep .tx{font-size:11.5px;color:var(--text-2);padding-top:1px}.pstep.now .tx{color:var(--text);font-weight:550}.pstep.wait .tx{color:var(--text-3)}
+/* why/audit */
+.wsec{font-size:9.5px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;margin:2px 0 9px;display:flex;justify-content:space-between}.wsec .ct{color:var(--text-2)}
+.whead{margin-bottom:11px}.whead .nm{font-size:13px;font-weight:650}.whead .plat{font-size:11px;color:var(--text-3)}.whead .vd{display:flex;gap:7px;margin-top:8px}
+.svrow{display:grid;grid-template-columns:11px 1fr auto auto;gap:8px;align-items:center;padding:4px 0;font-size:11.5px}
+.svrow .dd{width:7px;height:7px}.svrow .nm{font-weight:500}.svrow .val{font-family:var(--mono);font-weight:600;font-size:11px}.svrow .th{font-family:var(--mono);font-size:10px;color:var(--text-3);text-align:right}
+.dvr{height:1px;background:var(--border);margin:14px 0}
+.rule{display:flex;gap:9px;margin-bottom:10px;position:relative}
+.rule .n{width:17px;height:17px;border-radius:50%;background:var(--surface-2);border:1px solid var(--border-strong);color:var(--text-2);font-size:9.5px;font-weight:700;display:grid;place-items:center;flex-shrink:0;z-index:1}
+.rule.end .n{background:var(--accent);border-color:var(--accent);color:#fff}
+.rule::before{content:"";position:absolute;left:8px;top:17px;bottom:-10px;width:1px;background:var(--border-strong)}.rule:last-child::before{display:none}
+.rule .tx{font-size:11px;line-height:1.45;color:var(--text-2)}.rule .tx .mono{color:var(--text)}.rule.end .tx{color:var(--text);font-weight:550}
+.replay{border:1px solid var(--border);border-radius:var(--radius);background:var(--bg);padding:11px}
+.replay .row{display:flex;justify-content:space-between;font-size:11px;margin-bottom:5px}.replay .row .k{color:var(--text-3)}.replay .row .v{font-family:var(--mono)}
+.replay button{width:100%;margin-top:7px;font-size:12px;font-weight:500;padding:6px;border-radius:7px;border:1px solid var(--border-strong);background:var(--bg);cursor:pointer}.replay button:hover{background:var(--surface-2)}
+/* library + campaigns */
+.litem{display:flex;align-items:center;gap:10px;padding:7px 0;font-size:12px}
+.litem .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.litem .meta{font-size:10.5px;color:var(--text-3)}
+.crow{display:flex;align-items:center;gap:9px;padding:7px 0;font-size:12px;border-bottom:1px solid var(--border)}
+.crow:last-child{border-bottom:none}.crow .sd{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.crow .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500}.crow .sp{font-family:var(--mono);font-size:11px;color:var(--text-2)}
+
+/* welcome */
+.welcome-view{display:none;flex:1;overflow-y:auto}
+.app.welcome .welcome-view{display:flex;flex-direction:column}
+.app.welcome .thread,.app.welcome .composer-wrap{display:none}
+.wv-in{max-width:720px;margin:auto;padding:36px 28px;width:100%}
+.wv-logo{width:46px;height:46px;border-radius:13px;background:var(--accent);color:#fff;display:grid;place-items:center;font-weight:700;font-size:23px;margin-bottom:20px}
+.wv-in h1{font-size:29px;font-weight:680;letter-spacing:-.035em;line-height:1.15}
+.wv-in .sub{font-size:14.5px;color:var(--text-2);margin:11px 0 24px;line-height:1.55;max-width:580px}
+.wv-composer{border:1px solid var(--border-strong);border-radius:var(--radius-lg);padding:11px 11px 8px;margin-bottom:30px}
+.wv-composer:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-subtle)}
+.wv-composer textarea{width:100%;border:none;outline:none;resize:none;font-family:var(--font);font-size:14.5px;background:none;color:var(--text)}
+.wv-composer textarea::placeholder{color:var(--text-3)}
+.scene-lab{font-size:11.5px;font-weight:600;color:var(--text-3);text-align:center;margin-bottom:14px}
+.scenes{display:grid;grid-template-columns:repeat(3,1fr);gap:11px}
+.scene{border:1px solid var(--border);border-radius:var(--radius-lg);padding:15px;cursor:pointer;transition:border-color .15s,transform .1s;background:var(--bg)}
+.scene:hover{border-color:var(--accent);transform:translateY(-2px)}
+.scene .ic{width:29px;height:29px;border-radius:8px;background:var(--accent-subtle);color:var(--accent);display:grid;place-items:center;font-size:14px;margin-bottom:10px}
+.scene .t{font-size:13px;font-weight:600}.scene .d{font-size:11.5px;color:var(--text-2);margin:4px 0 9px;line-height:1.45}.scene .tag{font-size:10px;font-weight:550;color:var(--text-3);background:var(--surface-2);padding:2px 8px;border-radius:10px}
+
+@media(max-width:1180px){.app,.app.welcome{grid-template-columns:56px 1fr}.rrail{display:none}}
+@media(max-width:720px){.scenes{grid-template-columns:1fr}.kpis{grid-template-columns:repeat(3,1fr)}}
+
+/* ---------- multi-view screens ---------- */
+.screen{display:none;flex:1;overflow-y:auto;min-height:0}
+.screen.on{display:block}
+.screen-in{max-width:920px;margin:0 auto;padding:22px 28px 40px;width:100%}
+.scrn-head{display:flex;align-items:center;gap:11px;margin-bottom:18px}
+.scrn-head .bk{width:30px;height:30px;border-radius:8px;border:1px solid var(--border-strong);background:var(--bg);color:var(--text-2);cursor:pointer;display:grid;place-items:center;font-size:14px;flex-shrink:0}
+.scrn-head .bk:hover{background:var(--surface-2);color:var(--text)}
+.scrn-head .ic{width:30px;height:30px;border-radius:8px;background:var(--accent-subtle);color:var(--accent);display:grid;place-items:center;font-size:15px;flex-shrink:0}
+.scrn-head h2{font-size:18px;font-weight:680;letter-spacing:-.025em}
+.scrn-head .sub{font-size:12.5px;color:var(--text-3);margin-left:auto}
+.sect{font-size:11px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;margin:22px 0 11px}
+.sect:first-of-type{margin-top:4px}
+
+/* creative selector */
+.seg{display:inline-flex;border:1px solid var(--border-strong);border-radius:8px;overflow:hidden}
+.seg button{padding:6px 15px;border:none;background:var(--bg);font-size:12.5px;cursor:pointer;color:var(--text-2);font-family:var(--font)}
+.seg button.on{background:var(--accent);color:#fff}
+.tabs{display:flex;gap:20px;border-bottom:1px solid var(--border);margin:16px 0 16px}
+.tabs button{padding:0 0 10px;border:none;background:none;font-size:13px;color:var(--text-2);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;font-family:var(--font)}
+.tabs button.on{color:var(--accent);border-bottom-color:var(--accent);font-weight:600}
+.vgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:13px}
+.vcard{border:1px solid var(--border);border-radius:10px;overflow:hidden;cursor:pointer;position:relative;transition:border-color .15s,box-shadow .15s}
+.vcard:hover{border-color:var(--border-strong)}
+.vcard.sel{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-subtle)}
+.vthumb{aspect-ratio:9/16;background:linear-gradient(150deg,#aab4c7,#6c7889);position:relative;display:grid;place-items:center}
+.vthumb .play{width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.85);display:grid;place-items:center;color:var(--text);font-size:13px}
+.vthumb .dur{position:absolute;bottom:7px;right:7px;font-size:10px;font-family:var(--mono);background:rgba(0,0,0,.5);color:#fff;padding:1px 5px;border-radius:4px}
+.vmeta{padding:8px 10px}.vmeta .vn{font-size:12px;font-weight:550;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.vmeta .vs{font-size:10.5px;color:var(--text-3);margin-top:2px}
+.chk{position:absolute;top:8px;left:8px;width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,.9);border:1px solid var(--border-strong);display:grid;place-items:center;font-size:11px;color:transparent;z-index:2}
+.vcard.sel .chk{background:var(--green);border-color:var(--green);color:#fff}
+.scrn-foot{display:flex;align-items:center;justify-content:space-between;margin-top:20px;padding-top:16px;border-top:1px solid var(--border)}
+.scrn-foot .info{font-size:12.5px;color:var(--text-2)}.scrn-foot .info b{color:var(--text)}
+
+/* publish form */
+.fcard{border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:0 1px 2px rgba(16,24,40,.04)}
+.frow{display:flex;align-items:center;gap:14px;padding:14px 16px;border-bottom:1px solid var(--border)}
+.frow:last-child{border-bottom:none}
+.frow .fl{font-size:13px;font-weight:550;width:150px;flex-shrink:0}
+.frow .fl .h{font-size:11px;color:var(--text-3);font-weight:450;margin-top:2px}
+.frow .fc{flex:1;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.inp{border:1px solid var(--border-strong);border-radius:7px;padding:7px 10px;font-family:var(--font);font-size:13px;outline:none;background:var(--bg);color:var(--text)}
+.inp:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-subtle)}
+select.inp{cursor:pointer}
+.rad{display:inline-flex;align-items:center;gap:7px;font-size:13px;cursor:pointer}
+.rad input{accent-color:var(--accent)}
+.sw{position:relative;width:38px;height:22px;border-radius:20px;background:var(--border-strong);cursor:pointer;transition:background .15s;flex-shrink:0}
+.sw.on{background:var(--accent)}
+.sw::after{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform .15s}
+.sw.on::after{transform:translateX(16px)}
+
+/* strategy report */
+.rpt p{font-size:13px;line-height:1.65;color:var(--text-2);margin-bottom:10px}.rpt p strong{color:var(--text);font-weight:600}
+.rpt .lead{font-size:13.5px;color:var(--text);background:var(--surface);border-left:3px solid var(--accent);padding:12px 14px;border-radius:0 8px 8px 0;margin-bottom:4px}
+.rtable{width:100%;border-collapse:collapse;font-size:12.5px;border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-top:4px}
+.rtable th{text-align:left;background:var(--surface-2);font-size:11px;font-weight:600;color:var(--text-2);padding:9px 12px;border-bottom:1px solid var(--border)}
+.rtable td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:top;line-height:1.5}
+.rtable tr:last-child td{border-bottom:none}
+.rtable td.k{font-weight:600;color:var(--text);white-space:nowrap}
+.pill{display:inline-block;font-size:10.5px;font-weight:600;padding:2px 8px;border-radius:20px;background:var(--accent-subtle);color:var(--accent)}
+/* decisions queue */
+.dq{display:flex;flex-direction:column;gap:9px}
+.dqrow{display:flex;align-items:center;gap:13px;border:1px solid var(--border);border-radius:11px;padding:12px 15px;box-shadow:0 1px 2px rgba(16,24,40,.03);transition:border-color .15s}
+.dqrow:hover{border-color:var(--border-strong)}
+.dqrow .dqm{flex:1;min-width:0}.dqrow .dqm .nm{font-size:13px;font-weight:600}.dqrow .dqm .nm .plat{color:var(--text-3);font-weight:450;font-size:11.5px}
+.dqrow .dqm .rs{font-size:12px;color:var(--text-2);margin-top:3px}
+.dqrow .budget{white-space:nowrap}
+/* bench */
+.scorebar{display:inline-block;width:58px;height:6px;border-radius:3px;background:var(--surface-2);position:relative;vertical-align:middle;margin-right:8px}
+.scorebar i{position:absolute;left:0;top:0;bottom:0;border-radius:3px;background:var(--accent)}
+.rk{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:6px;background:var(--surface-2);font-size:11px;font-weight:700;color:var(--text-2)}
+.rk.g1{background:#fef3c7;color:#b45309}
+.acct{display:flex;align-items:center;gap:10px}.acct .lg{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;font-weight:700;font-size:13px;color:#fff}
+.lg.meta{background:#1877f2}.lg.tt{background:#111}.lg.gg{background:linear-gradient(135deg,#4285f4,#34a853)}
+/* account menu */
+.acctctl{position:relative}
+.acctctl .av{border:none;cursor:pointer;font-family:var(--font)}
+.acctctl .av.out{background:var(--surface-2);color:var(--text-3);border:1px solid var(--border-strong);font-weight:500}
+.acct-menu{position:absolute;left:46px;bottom:0;width:232px;background:var(--bg);border:1px solid var(--border);border-radius:12px;box-shadow:0 14px 38px rgba(16,24,40,.18);padding:6px;display:none;z-index:60}
+.acctctl.open .acct-menu{display:block}
+.am-head{display:flex;align-items:center;gap:10px;padding:8px 9px 4px}
+.am-av{width:34px;height:34px;border-radius:50%;background:#f0731f;color:#fff;display:grid;place-items:center;font-weight:600;font-size:14px;flex-shrink:0}
+.am-name{font-size:13px;font-weight:600}.am-mail{font-size:11px;color:var(--text-3)}
+.am-plan{font-size:10px;color:var(--accent);background:var(--accent-subtle);font-weight:600;border-radius:6px;padding:3px 8px;margin:2px 9px 6px;display:inline-block}
+.am-sep{height:1px;background:var(--border);margin:5px 4px}
+.am-item{display:flex;align-items:center;gap:10px;width:100%;padding:8px 10px;border:none;background:none;border-radius:7px;font-family:var(--font);font-size:13px;color:var(--text);cursor:pointer;text-align:left;text-decoration:none}
+.am-item:hover{background:var(--surface-2)}
+.am-item .ai{width:16px;text-align:center;color:var(--text-3);font-size:13px;flex-shrink:0}
+.am-item.danger{color:var(--red)}.am-item.danger .ai{color:var(--red)}
+.am-out{padding:6px 6px 8px}.am-out .si-h{font-size:12px;color:var(--text-2);padding:8px 9px 11px;line-height:1.55}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <aside class="rail">
+    <div class="logo">D</div>
+    <button class="ri" id="newBtn" title="新建">＋</button>
+    <button class="ri on" data-view="console" title="操盘台">◆</button>
+    <button class="ri" data-view="decisions" title="决策">▤</button>
+    <button class="ri" data-view="allocation" title="分配">◑</button>
+    <button class="ri" data-view="creative" title="创意">✦</button>
+    <button class="ri" data-view="bench" title="Bench">⚑</button>
+    <div class="sp"></div>
+    <button class="ri" data-view="settings" title="设置">⚙</button>
+    <div class="acctctl" id="acctCtl">
+      <button class="av" id="avBtn" title="账户">M</button>
+      <div class="acct-menu" id="acctMenu">
+        <div class="am-in">
+          <div class="am-head"><span class="am-av">M</span><div><div class="am-name">Operator</div><div class="am-mail">operator@drip.dev</div></div></div>
+          <span class="am-plan">● Self-host · Apache-2.0</span>
+          <div class="am-sep"></div>
+          <button class="am-item" data-view="settings"><span class="ai">⚙</span>设置</button>
+          <button class="am-item" data-view="bench"><span class="ai">⚑</span>Drip-Bench</button>
+          <a class="am-item" href="https://github.com/YunyueLi/Drip" target="_blank" rel="noopener"><span class="ai">↗</span>GitHub 仓库</a>
+          <div class="am-sep"></div>
+          <button class="am-item danger" id="signOut"><span class="ai">⏻</span>退出登录</button>
+        </div>
+        <div class="am-out" style="display:none">
+          <div class="si-h">登录后可连接广告账户、保存运行记录、跨设备同步。数据始终在你自己的环境里。</div>
+          <button class="btn primary" id="signIn" style="width:100%;justify-content:center;display:flex">登录 Drip</button>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="center">
+    <div class="topbar">
+      <div class="ttl"><span class="ico">◆</span><span data-i18n="top.session">今日预算分配</span><span class="meta" data-i18n="top.meta">· 4 账户 · 32 campaign</span></div>
+      <div class="right">
+        <span class="chip"><span class="pip"></span><span data-i18n="top.mode">Copilot · 上限 $3,500/天</span></span>
+        <div class="langsel" id="langSel">
+          <button class="lang-btn" id="langBtn" aria-haspopup="true"><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="8" cy="8" r="6.4"/><path d="M1.6 8h12.8"/><path d="M8 1.6c2.2 2 2.2 10.8 0 12.8c-2.2-2-2.2-10.8 0-12.8z"/></svg><span id="langCur">简体中文</span><span class="caret">▾</span></button>
+          <div class="lang-menu" id="langMenu">
+            <button data-lang="zh-CN">简体中文</button>
+            <button data-lang="zh-TW">繁體中文</button>
+            <button data-lang="en">English</button>
+            <button data-lang="ja">日本語</button>
+            <button data-lang="ko">한국어</button>
+            <button data-lang="es">Español</button>
+            <button data-lang="pt">Português</button>
+            <button data-lang="vi">Tiếng Việt</button>
+            <button data-lang="fr">Français</button>
+            <button data-lang="de">Deutsch</button>
+          </div>
+        </div>
+        <button class="panel-toggle" id="rrToggle" title="隐藏侧栏" aria-label="隐藏侧栏"><svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1.75" y="3" width="12.5" height="10" rx="2.5"/><rect class="fill" x="10.15" y="3.7" width="3.45" height="8.6" rx="1" stroke="none"/><line x1="10" y1="3" x2="10" y2="13"/></svg></button>
+      </div>
+    </div>
+
+    <div class="welcome-view"><div class="wv-in">
+      <div class="wv-logo">D</div>
+      <h1 data-i18n="wel.h1">今天，预算该投向哪里？</h1>
+      <p class="sub" data-i18n="wel.sub">诊断 campaign、跨平台再分配、规划下一个测试 —— 每个决策都由规则给出、可审计，动钱之前先过你这关。</p>
+      <div class="wv-composer">
+        <textarea rows="2" placeholder="问 Drip，或描述你想做什么…" data-i18n-ph="comp.ph" id="welInput"></textarea>
+        <div class="bar" style="display:flex;align-items:center;gap:6px;margin-top:4px">
+          <button class="cbtn"><span class="ic">⇪</span> <span data-i18n="comp.upload">上传</span></button>
+          <button class="cbtn"><span class="ic">✦</span> AI Creatives</button>
+          <button class="cbtn"><span class="ic">◐</span> <span data-i18n="mode.copilot">Copilot</span></button>
+          <button class="send" style="margin-left:auto" id="welSend">↑</button>
+        </div>
+      </div>
+      <div class="scene-lab" data-i18n="wel.pick">选一个场景，直接开始</div>
+      <div class="scenes">
+        <div class="scene" data-go><div class="ic">◎</div><div class="t" data-i18n="s1.t">诊断投放表现</div><div class="d" data-i18n="s1.d">用 8 个信号给每条 campaign 打分</div><span class="tag" data-i18n="s1.tag">连账户 · 或用样本</span></div>
+        <div class="scene" data-go><div class="ic">◑</div><div class="t" data-i18n="s2.t">再分配预算</div><div class="d" data-i18n="s2.d">把钱挪向赢家，饿死输家</div><span class="tag" data-i18n="s2.tag">核心循环</span></div>
+        <div class="scene" data-view="strategy"><div class="ic">✦</div><div class="t" data-i18n="s3.t">规划下一个测试</div><div class="d" data-i18n="s3.d">下一个创意角度该测什么</div><span class="tag" data-i18n="s3.tag">基于你的赢家</span></div>
+        <div class="scene" data-view="creative"><div class="ic">▣</div><div class="t" data-i18n="s4.t">生成创意</div><div class="d" data-i18n="s4.d">为赢的方向产出变体</div><span class="tag" data-i18n="s4.tag">gpt-image / Seedance</span></div>
+        <div class="scene" data-go><div class="ic">⇄</div><div class="t" data-i18n="s5.t">归因对账</div><div class="d" data-i18n="s5.d">平台口径 vs MMP 真值</div><span class="tag" data-i18n="s5.tag">AppsFlyer / Adjust</span></div>
+        <div class="scene" data-go><div class="ic">⟳</div><div class="t" data-i18n="s6.t">跑完整循环</div><div class="d" data-i18n="s6.d">收集 → 诊断 → 分配 → 复盘</div><span class="tag" data-i18n="s6.tag">一条命令</span></div>
+      </div>
+    </div></div>
+
+    <div class="thread"><div class="thread-in">
+
+  <div class="msg user"><div class="bubble">诊断我这 4 个账户，排出今天该扩 / 该停的，给一份预算分配方案，把要改的活动准备好让我批。</div></div>
+
+  <div class="msg bot"><div class="ava">D</div><div class="content">
+    <p class="intro">扫了 <strong>4 个账户 · 32 条 campaign · 今日花费 $3,240</strong>。8 信号逐条评估完，规则给出：<strong>2 条扩量、2 条换素材、2 条止损</strong>，其余保持。下面是诊断、决策卡、和一张可直接批的改动表。</p>
+    <div class="mantra">◆ <b>规则决定 · LLM 只解释 · 你批准</b></div>
+
+    <details class="cot" open>
+      <summary><span class="tw">▸</span>我是怎么定的 · 确定性、可回放<span class="seal">可审计</span></summary>
+      <ol>
+        <li>从 4 个账户拉取 insights · 32 条 campaign（Meta + TikTok），归一到统一 <span class="mono">AdMetrics</span> schema</li>
+        <li>对每条 campaign 用 <span class="mono">thresholds v2</span> 评估 8 个信号（CPP/ROAS/CVR/CTR/频次/花费/成交/余量）</li>
+        <li>跑规则引擎 → <span class="mono">2 SCALE · 2 REFRESH · 2 PAUSE · 26 HOLD</span></li>
+        <li>样本薄的地方压低置信度（DTC：仅 11 单成交 → MEDIUM）</li>
+        <li>Allocator 把止损腾出的预算回流给赢家，且总额不超 <span class="mono">$3,500/天</span> 上限</li>
+      </ol>
+    </details>
+
+    <div class="block">
+      <div class="bhead"><span class="ic">◎</span><span class="h">诊断 · 4 账户 / 32 campaign</span><span class="sub">2026-05-29 · 09:14 抓取</span></div>
+      <div class="kpis">
+        <div class="kpi"><div class="k">日花费</div><div class="v mono">$3,240</div><div class="d flat">上限 $3,500</div></div>
+        <div class="kpi"><div class="k">综合 ROAS</div><div class="v mono">3.6×</div><div class="d up">↑ 0.4× vs 上周</div></div>
+        <div class="kpi"><div class="k">CVR</div><div class="v mono">2.8%</div><div class="d up">↑ 0.3%</div></div>
+        <div class="kpi"><div class="k">CPA</div><div class="v mono">$19.3</div><div class="d up">↓ $2.1</div></div>
+        <div class="kpi"><div class="k">转化</div><div class="v mono">168</div><div class="d up">↑ 12%</div></div>
+        <div class="kpi"><div class="k">待批准</div><div class="v mono">6</div><div class="d down">2 扩 · 2 换 · 2 停</div></div>
+      </div>
+      <div class="chart-wrap">
+        <div class="clab"><span class="li"><span class="sw" style="background:var(--accent)"></span>综合 ROAS</span><span class="li"><span class="sw" style="background:var(--accent-2)"></span>日花费</span><span style="margin-left:auto">近 7 天</span></div>
+        <svg class="chart" viewBox="0 0 820 104" preserveAspectRatio="none">
+          <line x1="30" y1="12" x2="800" y2="12" stroke="var(--border)" stroke-width="1"/>
+          <line x1="30" y1="49" x2="800" y2="49" stroke="var(--border)" stroke-width="1"/>
+          <line x1="30" y1="86" x2="800" y2="86" stroke="var(--border)" stroke-width="1"/>
+          <polyline fill="none" stroke="var(--accent-2)" stroke-width="2" stroke-dasharray="4 3" points="30,64.9 158,54.3 287,70.1 415,43.7 543,38.4 672,22.6 800,28.9"/>
+          <polyline fill="none" stroke="var(--accent)" stroke-width="2.5" points="30,71.2 158,63.8 287,78.6 415,49 543,41.6 672,34.2 800,26.8"/>
+          <circle cx="800" cy="26.8" r="3.5" fill="var(--accent)"/>
+        </svg>
+      </div>
+      <table class="dt">
+        <thead><tr><th>Campaign</th><th>平台</th><th class="num">花费</th><th class="num">ROAS</th><th class="num">CPA</th><th class="num">CTR</th><th class="num">频次</th><th>决策</th></tr></thead>
+        <tbody>
+          <tr><td class="nm"><span class="thumb tg1"></span>AstralDrift · Hina</td><td class="plat">TikTok · JP</td><td class="num">¥12,000</td><td class="num g">3.6×</td><td class="num">¥820</td><td class="num">1.58%</td><td class="num">1.8</td><td><span class="bdg scale">SCALE</span></td></tr>
+          <tr><td class="nm"><span class="thumb tg2"></span>DTC_US_Prospecting_v3</td><td class="plat">Meta · US</td><td class="num">$200</td><td class="num g">3.8×</td><td class="num">$18</td><td class="num">1.40%</td><td class="num">1.8</td><td><span class="bdg scale">SCALE</span></td></tr>
+          <tr><td class="nm"><span class="thumb tg7"></span>Retargeting_7d</td><td class="plat">Meta · US</td><td class="num">$120</td><td class="num g">5.2×</td><td class="num">$11</td><td class="num">2.10%</td><td class="num r">3.1</td><td><span class="bdg refresh">REFRESH</span></td></tr>
+          <tr><td class="nm"><span class="thumb tg3"></span>IG_Reels_Hero</td><td class="plat">Meta · US</td><td class="num">$300</td><td class="num g">3.2×</td><td class="num">$17</td><td class="num">1.10%</td><td class="num r">2.6</td><td><span class="bdg refresh">REFRESH</span></td></tr>
+          <tr><td class="nm"><span class="thumb tg5"></span>Lookalike_2pct_v2</td><td class="plat">Meta · US</td><td class="num">$180</td><td class="num">3.1×</td><td class="num">$20</td><td class="num">1.30%</td><td class="num">1.9</td><td><span class="bdg hold">HOLD</span></td></tr>
+          <tr><td class="nm"><span class="thumb tg6"></span>Spark_Creator_Mix</td><td class="plat">TikTok · JP</td><td class="num">¥8,000</td><td class="num">2.9×</td><td class="num">¥1,050</td><td class="num">1.20%</td><td class="num">2.1</td><td><span class="bdg hold">HOLD</span></td></tr>
+          <tr><td class="nm"><span class="thumb tg4"></span>Broad_Interest_v4</td><td class="plat">TikTok · SEA</td><td class="num">$160</td><td class="num r">1.9×</td><td class="num">$33</td><td class="num">0.90%</td><td class="num">2.2</td><td><span class="bdg pause">PAUSE</span></td></tr>
+          <tr><td class="nm"><span class="thumb tg8"></span>Casual_Game_Broad_v1</td><td class="plat">TikTok · SEA</td><td class="num">$240</td><td class="num r">1.4×</td><td class="num">$40</td><td class="num">0.80%</td><td class="num">2.4</td><td><span class="bdg pause">PAUSE</span></td></tr>
+        </tbody>
+      </table>
+      <div class="narr"><strong>读法：</strong>赢家集中在 <strong>TikTok JP（Hina 素材，CTR 1.58% 是基线 2.1×）</strong> 和 <strong>Meta US 再营销（ROAS 5.2×）</strong>。两条 SEA broad 单位经济已崩（ROAS &lt; 2、CPA 翻倍），止损腾出 $400。两条 Meta 频次超 2.5 上限、CTR 衰减，该换素材而非硬扩。</div>
+    </div>
+
+    <div class="card sel" data-card="c1">
+      <div class="head"><span class="act scale">SCALE +20%</span><span class="title">AstralDrift · Hina <span class="plat">· TikTok · JP</span></span><span class="budget">¥12,000<span class="arrow">→</span><span class="up">¥18,000</span></span><span class="conf high">HIGH</span></div>
+      <div class="body">
+        <div class="why"><div class="lab">为什么</div><p>8 信号全绿，样本充足。Hina 素材在 JP 核心人群 CTR 是基线 2.1×，且未饱和——明确的扩量空间。</p><div class="guard">自动撤回：<span class="mono">CPP &gt; ¥1,500</span> 或 <span class="mono">CTR 跌 &gt; 15%</span></div></div>
+        <div class="vdiv"></div>
+        <div class="sigs"><div class="lab">8 信号 · 8/8</div>
+          <div class="sigrow"><span class="dd g"></span><span class="nm">CPP</span><span class="val">¥820</span></div>
+          <div class="sigrow"><span class="dd g"></span><span class="nm">ROAS</span><span class="val">3.6×</span></div>
+          <div class="sigrow"><span class="dd g"></span><span class="nm">CTR</span><span class="val">1.58%</span></div>
+          <div class="sigrow"><span class="dd g"></span><span class="nm">频次</span><span class="val">1.8</span></div>
+          <div class="sigrow"><span class="dd g"></span><span class="nm">成交</span><span class="val">1,247</span></div>
+        </div>
+      </div>
+      <div class="foot"><span class="next">下次检查 · 48 小时</span><div class="btns"><button class="mini">修改</button><button class="mini">忽略</button><button class="mini approve">批准</button></div></div>
+    </div>
+
+    <div class="card" data-card="c2">
+      <div class="head"><span class="act scale">SCALE +10%</span><span class="title">DTC_US_Prospecting_v3 <span class="plat">· Meta · US</span></span><span class="budget">$200<span class="arrow">→</span><span class="up">$240</span></span><span class="conf med">MEDIUM</span></div>
+      <div class="body">
+        <div class="why"><div class="lab">为什么</div><p>信号良好，但日成交（11）刚过最小样本线。薄样本激进扩量会反噬 CPP——保守 +10%，而非 +20%。</p><div class="guard">自动撤回：<span class="mono">CPP &gt; $22</span> 或 <span class="mono">CTR 跌 &gt; 15%</span></div></div>
+        <div class="vdiv"></div>
+        <div class="sigs"><div class="lab">8 信号 · 7/8</div>
+          <div class="sigrow"><span class="dd g"></span><span class="nm">CPP</span><span class="val">$18.00</span></div>
+          <div class="sigrow"><span class="dd g"></span><span class="nm">ROAS</span><span class="val">3.8×</span></div>
+          <div class="sigrow"><span class="dd y"></span><span class="nm">成交</span><span class="val">11 · 偏薄</span></div>
+          <div class="sigrow"><span class="dd g"></span><span class="nm">CTR</span><span class="val">1.4%</span></div>
+          <div class="sigrow"><span class="dd g"></span><span class="nm">频次</span><span class="val">1.8</span></div>
+        </div>
+      </div>
+      <div class="foot"><span class="next">下次检查 · 48 小时</span><div class="btns"><button class="mini">修改</button><button class="mini">忽略</button><button class="mini approve">批准</button></div></div>
+    </div>
+
+    <div class="card" data-card="c4">
+      <div class="head"><span class="act refresh">REFRESH</span><span class="title">IG_Reels_Hero <span class="plat">· Meta · US</span></span><span class="budget">保持 $300</span><span class="conf med">MEDIUM</span></div>
+      <div class="body">
+        <div class="why"><div class="lab">为什么</div><p>核心经济仍绿（CPP $17、ROAS 3.2×），但频次到 2.6（超 2.5 上限）且 CTR 衰减——素材在饱和。别硬扩：先换。Strategist 已基于赢家钩子草拟 3 个变体。</p><div class="guard">3 个变体就绪 · 在「创意」里复核</div></div>
+        <div class="vdiv"></div>
+        <div class="sigs"><div class="lab">8 信号 · 5/8</div>
+          <div class="sigrow"><span class="dd r"></span><span class="nm">频次</span><span class="val">2.6</span></div>
+          <div class="sigrow"><span class="dd y"></span><span class="nm">CTR</span><span class="val">↓ 1.1%</span></div>
+          <div class="sigrow"><span class="dd g"></span><span class="nm">CPP</span><span class="val">$17.00</span></div>
+          <div class="sigrow"><span class="dd g"></span><span class="nm">ROAS</span><span class="val">3.2×</span></div>
+        </div>
+      </div>
+      <div class="foot"><span class="next">变体 QA 中</span><div class="btns"><button class="mini" data-view="creative">看变体</button><button class="mini approve">批准换素材</button></div></div>
+    </div>
+
+    <div class="card" data-card="c3">
+      <div class="head"><span class="act pause">PAUSE</span><span class="title">Casual_Game_Broad_v1 <span class="plat">· TikTok · SEA</span></span><span class="budget">$240<span class="arrow">→</span><span class="zero">$0</span></span><span class="conf high">HIGH</span></div>
+      <div class="body">
+        <div class="why"><div class="lab">为什么</div><p>CPP 和 ROAS 双红——单位经济已崩，且样本足够（38 单）确认不是噪声。每多花一块都在买更差的用户。止损，腾出的 $240 流向赢家。</p><div class="guard">再分配交给 Allocator → 见下方分配卡</div></div>
+        <div class="vdiv"></div>
+        <div class="sigs"><div class="lab">8 信号 · 2/8</div>
+          <div class="sigrow"><span class="dd r"></span><span class="nm">CPP</span><span class="val">$40.00</span></div>
+          <div class="sigrow"><span class="dd r"></span><span class="nm">ROAS</span><span class="val">1.4×</span></div>
+          <div class="sigrow"><span class="dd r"></span><span class="nm">CVR</span><span class="val">1.1%</span></div>
+          <div class="sigrow"><span class="dd r"></span><span class="nm">CTR</span><span class="val">0.8%</span></div>
+          <div class="sigrow"><span class="dd y"></span><span class="nm">频次</span><span class="val">2.4</span></div>
+        </div>
+      </div>
+      <div class="foot"><span class="next">下次同步时停止</span><div class="btns"><button class="mini">继续跑</button><button class="mini approve">批准暂停</button></div></div>
+    </div>
+    <div class="block editor">
+      <div class="bhead"><span class="ic">▣</span><span class="h">应用这些改动 · 6 campaign</span><span class="sub">Copilot · 等你批准后写入</span></div>
+      <table class="dt">
+        <thead><tr><th>Campaign</th><th>平台</th><th class="num">当前/天</th><th>新预算/天</th><th>目标 ROAS</th><th>决策</th><th>状态</th></tr></thead>
+        <tbody>
+          <tr><td class="nm"><span class="thumb tg1"></span>AstralDrift · Hina</td><td class="plat">TikTok · JP</td><td class="num">¥12,000</td><td><input class="bnum" value="18000"></td><td><input class="bnum" value="3.0"></td><td><span class="bdg scale">SCALE</span></td><td><span class="tag">就绪</span></td></tr>
+          <tr><td class="nm"><span class="thumb tg2"></span>DTC_US_Prospecting_v3</td><td class="plat">Meta · US</td><td class="num">$200</td><td><input class="bnum" value="240"></td><td><input class="bnum" value="3.0"></td><td><span class="bdg scale">SCALE</span></td><td><span class="tag">就绪</span></td></tr>
+          <tr><td class="nm"><span class="thumb tg7"></span>Retargeting_7d</td><td class="plat">Meta · US</td><td class="num">$120</td><td><input class="bnum" value="120"></td><td><input class="bnum" value="4.0"></td><td><span class="bdg refresh">REFRESH</span></td><td><span class="tag">需素材</span></td></tr>
+          <tr><td class="nm"><span class="thumb tg3"></span>IG_Reels_Hero</td><td class="plat">Meta · US</td><td class="num">$300</td><td><input class="bnum" value="300"></td><td><input class="bnum" value="3.0"></td><td><span class="bdg refresh">REFRESH</span></td><td><span class="tag">3 变体就绪</span></td></tr>
+          <tr><td class="nm"><span class="thumb tg4"></span>Broad_Interest_v4</td><td class="plat">TikTok · SEA</td><td class="num">$160</td><td><input class="bnum" value="0"></td><td><input class="bnum" value="—" disabled></td><td><span class="bdg pause">PAUSE</span></td><td><span class="tag">就绪</span></td></tr>
+          <tr><td class="nm"><span class="thumb tg8"></span>Casual_Game_Broad_v1</td><td class="plat">TikTok · SEA</td><td class="num">$240</td><td><input class="bnum" value="0"></td><td><input class="bnum" value="—" disabled></td><td><span class="bdg pause">PAUSE</span></td><td><span class="tag">就绪</span></td></tr>
+        </tbody>
+      </table>
+      <div class="bulk">
+        <span style="font-weight:600;font-size:12px">批量改：</span>
+        <span class="fld">全部预算 <input class="bnum" placeholder="—"></span>
+        <span class="fld">全部目标 ROAS <input class="bnum" value="3.0"></span>
+        <button class="btn">应用到全部</button>
+        <span style="margin-left:auto;font-size:11px;color:var(--text-3)">活动名模板 <span class="mono">Drip_{platform}_{campaign}_{date}</span></span>
+      </div>
+      <div class="efoot">
+        <div class="tags"><span class="tag">6 就绪</span><span class="tag">2 扩 · 2 换 · 2 停</span><span class="tag">净额 +$0/天 · 上限内</span></div>
+        <div style="display:flex;gap:8px"><button class="btn">取消</button><button class="btn primary" data-view="publish">应用 6 项改动 →</button></div>
+      </div>
+    </div>
+    <div class="alloc">
+      <div class="h"><span class="ic">◑</span>跨平台预算分配 · 应用后</div>
+      <div class="grid">
+        <div class="donut"><div class="ctr"><div class="n mono">$3,500</div><div class="l">/ 天</div></div></div>
+        <div class="legend">
+          <div class="li"><span class="sw" style="background:var(--accent)"></span><span class="nm">Meta</span><span class="mv">52% · $1,820</span></div>
+          <div class="li"><span class="sw" style="background:var(--accent-2)"></span><span class="nm">TikTok</span><span class="mv">36% · $1,260</span></div>
+          <div class="li"><span class="sw" style="background:#c7d9f7"></span><span class="nm">Google</span><span class="mv">12% · $420</span></div>
+        </div>
+      </div>
+      <div class="note">止损腾出 <span class="mono">$400</span> + 上限内扩量：TikTok JP <span class="mono">+¥6,000</span>、Meta US <span class="mono">+$40</span>。两条 SEA 归零。总额仍 ≤ <span class="mono">$3,500/天</span> 上限，不需额外预算。</div>
+    </div>
+
+  </div></div>
+
+  <div class="msg user"><div class="bubble">为什么 DTC 那条只 +10%，不跟 Hina 一样 +20%？</div></div>
+
+  <div class="msg bot"><div class="ava">D</div><div class="content">
+    <p class="intro">因为它卡在「样本薄」这条规则上。它 8 个信号里 7 个绿，本来够格 +20%；但日成交只有 <strong>11 单</strong>（低于 30 的最小样本线），成交信号判黄。规则在薄样本上把置信度从 HIGH 压到 <strong>MEDIUM</strong>，扩量步长也随之从 +20% 收到 <strong>+10%</strong>——这正是资深操盘手在数据不足时会做的事：先小步加，等样本厚了再提速。右栏「为什么 · 审计」里规则链第 2、3 步就是这个判断，可点 DTC 那张卡查看完整链路。</p>
+  </div></div>
+
+  </div></div>
+
+    <div class="composer-wrap"><div class="composer-in">
+      <div class="composer">
+        <textarea rows="1" placeholder="问 Drip，或描述你想做什么…" data-i18n-ph="comp.ph"></textarea>
+        <div class="bar">
+          <button class="cbtn"><span class="ic">⇪</span></button>
+          <button class="cbtn"><span class="ic">✦</span> AI Creatives</button>
+          <button class="cbtn"><span class="ic">◐</span>
+            <select><option data-i18n="mode.shadow">Shadow · 只规划</option><option selected data-i18n="mode.copilot">Copilot · 逐条批准</option><option data-i18n="mode.auto">Autonomous · 上限内</option></select>
+          </button>
+          <button class="cbtn"><span class="ic">✲</span><span class="mono" style="font-size:11.5px">claude-sonnet-4-6</span></button>
+          <button class="send" title="发送">↑</button>
+        </div>
+      </div>
+      <div class="disclaim" data-i18n="comp.note">规则决定 · LLM 只负责解释 · 你批准后才写入平台</div>
+    </div></div>
+    <!-- 创意 / 视频选择器 -->
+    <div class="screen" id="view-creative"><div class="screen-in">
+      <div class="scrn-head"><button class="bk" data-view="console">←</button><span class="ic">✦</span><h2>选素材 · IG_Reels_Hero</h2><span class="sub">为「换素材」决策挑视频 · TikTok Spark</span></div>
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:2px">
+        <span style="font-size:12.5px;font-weight:550">创意模式</span>
+        <div class="seg" data-seg><button class="on">Auto</button><button>Manual</button></div>
+        <span style="font-size:11.5px;color:var(--text-3);margin-left:auto">Strategist 已基于赢家钩子草拟 3 个变体</span>
+      </div>
+      <div class="tabs" data-seg><button class="on">自有视频</button><button>授权视频</button><button>达人联盟视频</button></div>
+      <div class="vgrid">
+        <div class="vcard sel" data-sel><span class="chk">✓</span><div class="vthumb"><span class="play">▶</span><span class="dur">0:18</span></div><div class="vmeta"><div class="vn">Hina_hook_v3</div><div class="vs">CTR 1.58% · 赢家钩子</div></div></div>
+        <div class="vcard sel" data-sel><span class="chk">✓</span><div class="vthumb"><span class="play">▶</span><span class="dur">0:22</span></div><div class="vmeta"><div class="vn">UGC_unbox_07</div><div class="vs">CTR 1.31%</div></div></div>
+        <div class="vcard sel" data-sel><span class="chk">✓</span><div class="vthumb"><span class="play">▶</span><span class="dur">0:15</span></div><div class="vmeta"><div class="vn">Creator_demo_12</div><div class="vs">达人联盟</div></div></div>
+        <div class="vcard" data-sel><span class="chk">✓</span><div class="vthumb"><span class="play">▶</span><span class="dur">0:30</span></div><div class="vmeta"><div class="vn">Tutorial_braided</div><div class="vs">CTR 0.96%</div></div></div>
+        <div class="vcard" data-sel><span class="chk">✓</span><div class="vthumb"><span class="play">▶</span><span class="dur">0:12</span></div><div class="vmeta"><div class="vn">Static_carousel_A</div><div class="vs">图集 · 6 张</div></div></div>
+        <div class="vcard" data-sel><span class="chk">✓</span><div class="vthumb"><span class="play">▶</span><span class="dur">0:24</span></div><div class="vmeta"><div class="vn">Testimonial_03</div><div class="vs">CTR 1.12%</div></div></div>
+        <div class="vcard" data-sel><span class="chk">✓</span><div class="vthumb"><span class="play">▶</span><span class="dur">0:19</span></div><div class="vmeta"><div class="vn">Creator_grwm_21</div><div class="vs">达人联盟</div></div></div>
+        <div class="vcard" data-sel><span class="chk">✓</span><div class="vthumb"><span class="play">▶</span><span class="dur">0:27</span></div><div class="vmeta"><div class="vn">Hook_remix_v5</div><div class="vs">待测</div></div></div>
+      </div>
+      <div class="scrn-foot"><div class="info">已选 <b>3</b> 个素材 · 将用于 IG_Reels_Hero 的 3 个变体</div><div style="display:flex;gap:8px"><button class="btn" data-view="console">返回</button><button class="btn primary">用选中素材生成变体 →</button></div></div>
+    </div></div>
+
+    <!-- 发布表单 -->
+    <div class="screen" id="view-publish"><div class="screen-in">
+      <div class="scrn-head"><button class="bk" data-view="console">←</button><span class="ic">▣</span><h2>发布 · 6 campaign</h2><span class="sub">Copilot · 发布前最后确认</span></div>
+      <div class="sect">预算与目标</div>
+      <div class="fcard">
+        <div class="frow"><div class="fl">全局日预算<div class="h">分摊到 6 个 campaign</div></div><div class="fc"><input class="inp" style="width:120px" value="$3,500"><span style="font-size:12px;color:var(--text-3)">/ 天 · 账户上限</span></div></div>
+        <div class="frow"><div class="fl">目标 ROAS</div><div class="fc"><input class="inp" style="width:90px" value="3.0"><div class="seg" data-seg style="margin-left:2px"><button class="on">统一</button><button>逐条</button></div></div></div>
+      </div>
+      <div class="sect">高级设置</div>
+      <div class="fcard">
+        <div class="frow"><div class="fl">活动名模板</div><div class="fc"><input class="inp" style="flex:1;min-width:260px;font-family:var(--mono);font-size:12px" value="Drip_{platform}_{campaign}_{date}"></div></div>
+        <div class="frow"><div class="fl">时区</div><div class="fc"><select class="inp"><option>Asia/Tokyo (UTC+9)</option><option>America/Los_Angeles (UTC-8)</option><option>Asia/Bangkok (UTC+7)</option></select></div></div>
+        <div class="frow"><div class="fl">排期</div><div class="fc"><label class="rad"><input type="radio" name="sch" checked> 立即开始、不设结束</label><label class="rad"><input type="radio" name="sch"> 定时投放</label></div></div>
+        <div class="frow"><div class="fl">大促自动加投<div class="h">平台大促期间自动提量</div></div><div class="fc"><div class="sw on" data-sw></div></div></div>
+      </div>
+      <div class="scrn-foot"><div class="info"><b>6</b> 个 campaign 就绪 · 2 扩 · 2 换 · 2 停 · 净额 +$0/天</div><div style="display:flex;gap:8px"><button class="btn" data-view="console">取消</button><button class="btn primary">发布 6 个 campaign →</button></div></div>
+    </div></div>
+
+    <!-- 麦肯锡式策略报告 -->
+    <div class="screen" id="view-strategy"><div class="screen-in">
+      <div class="scrn-head"><button class="bk" data-view="console">←</button><span class="ic">◇</span><h2>增长策略 · OiOi Live</h2><span class="sub">Strategist · claude-sonnet-4-6 生成</span></div>
+      <div class="sect">核心摘要</div>
+      <p class="lead">OiOi Live 是面向马来西亚华人的直播社交 App。下载量低、品牌认知近零,属于典型的「潜在需求」冷启动。建议以付费广告为主引擎、社媒 + KOL 为加速器,30 天内获取首批 1–3 万种子用户,打破「无内容 → 无用户」的循环。</p>
+      <div class="sect">核心用户画像</div>
+      <table class="rtable"><thead><tr><th>画像</th><th>特征</th><th>主要触达</th></tr></thead><tbody>
+        <tr><td class="k">A · 主力用户</td><td>18–28 岁,马来西亚华裔,城市地区,爱看直播、愿打赏</td><td>Meta 短视频、TikTok</td></tr>
+        <tr><td class="k">B · 社交向</td><td>20–32 岁,寻找华人社交圈,语音 / 视频聊天需求强</td><td>Meta 兴趣定向</td></tr>
+        <tr><td class="k">C · 内容消费</td><td>18–35 岁,碎片时间消费,可从 TikTok / Bigo 转化</td><td>TikTok、达人内容</td></tr>
+      </tbody></table>
+      <div class="sect">竞品对比</div>
+      <table class="rtable"><thead><tr><th>竞品</th><th>规模</th><th>优势</th><th>对 OiOi 的机会</th></tr></thead><tbody>
+        <tr><td class="k">Bigo Live</td><td>5 亿+ 注册</td><td>品牌强、内容丰富</td><td>泛全球化,华人社交被稀释</td></tr>
+        <tr><td class="k">Mico</td><td>千万级</td><td>多人视频社交</td><td>非华语专属</td></tr>
+        <tr><td class="k">TikTok</td><td>10 亿+</td><td>时长最长</td><td>非 1v1 社交匹配</td></tr>
+      </tbody></table>
+      <div class="sect">问题诊断</div>
+      <p>当前核心问题是<strong>冷启动</strong>:品牌认知为零,需快速获取第一批种子用户,打破「无内容 → 无用户 → 无内容」的循环。产品功能已具备(直播 / PK / 连麦 / 匹配),缺的是认知与首批内容供给。</p>
+      <div class="sect">渠道与预算分配</div>
+      <table class="rtable"><thead><tr><th>渠道</th><th>月预算</th><th>角色</th><th>理由</th></tr></thead><tbody>
+        <tr><td class="k">Meta Ads</td><td><span class="pill">50% · $5,000</span></td><td>主引擎</td><td>马来西亚覆盖约 2,235 万,定向精准、起量快</td></tr>
+        <tr><td class="k">TikTok Ads</td><td><span class="pill">30% · $3,000</span></td><td>规模放大</td><td>年轻华人聚集,达人内容带量</td></tr>
+        <tr><td class="k">KOL / 达人</td><td><span class="pill">20% · $2,000</span></td><td>信任加速</td><td>华人 KOL 背书,降低社交产品的信任门槛</td></tr>
+      </tbody></table>
+      <div class="scrn-foot"><div class="info">基于公开数据与行业基准 · 可一键转成 campaign 草稿</div><div style="display:flex;gap:8px"><button class="btn" data-view="console">返回</button><button class="btn primary">转成 campaign 草稿 →</button></div></div>
+    </div></div>
+
+    <!-- 决策队列 -->
+    <div class="screen" id="view-decisions"><div class="screen-in">
+      <div class="scrn-head"><span class="ic">▤</span><h2>决策队列</h2><span class="sub">规则决定 · LLM 解释 · 你批准 · 6 项待批</span></div>
+      <div class="dq">
+        <div class="dqrow"><span class="act scale">SCALE +20%</span><div class="dqm"><div class="nm">AstralDrift · Hina <span class="plat">· TikTok · JP</span></div><div class="rs">8 信号全绿、未饱和 —— 明确扩量空间</div></div><span class="budget">¥12,000 → <span class="up">¥18,000</span></span><span class="conf high">HIGH</span><button class="mini approve">批准</button></div>
+        <div class="dqrow"><span class="act scale">SCALE +10%</span><div class="dqm"><div class="nm">DTC_US_Prospecting_v3 <span class="plat">· Meta · US</span></div><div class="rs">信号好但样本薄(11 单)—— 保守加</div></div><span class="budget">$200 → <span class="up">$240</span></span><span class="conf med">MEDIUM</span><button class="mini approve">批准</button></div>
+        <div class="dqrow"><span class="act refresh">REFRESH</span><div class="dqm"><div class="nm">IG_Reels_Hero <span class="plat">· Meta · US</span></div><div class="rs">频次 2.6 超上限、CTR 衰减 —— 先换素材</div></div><span class="budget">保持 $300</span><span class="conf med">MEDIUM</span><button class="mini approve">批准换素材</button></div>
+        <div class="dqrow"><span class="act refresh">REFRESH</span><div class="dqm"><div class="nm">Retargeting_7d <span class="plat">· Meta · US</span></div><div class="rs">ROAS 5.2× 但频次 3.1 过高 —— 扩受众 + 换素材</div></div><span class="budget">保持 $120</span><span class="conf med">MEDIUM</span><button class="mini approve">批准</button></div>
+        <div class="dqrow"><span class="act pause">PAUSE</span><div class="dqm"><div class="nm">Broad_Interest_v4 <span class="plat">· TikTok · SEA</span></div><div class="rs">ROAS 1.9×、CPA 翻倍 —— 止损</div></div><span class="budget">$160 → <span class="zero">$0</span></span><span class="conf high">HIGH</span><button class="mini approve">批准暂停</button></div>
+        <div class="dqrow"><span class="act pause">PAUSE</span><div class="dqm"><div class="nm">Casual_Game_Broad_v1 <span class="plat">· TikTok · SEA</span></div><div class="rs">CPP/ROAS 双红、样本足 —— 止损</div></div><span class="budget">$240 → <span class="zero">$0</span></span><span class="conf high">HIGH</span><button class="mini approve">批准暂停</button></div>
+      </div>
+      <div class="scrn-foot"><div class="info">点任一条 → 右栏看完整 8 信号 + 规则链 + 可回放</div><div style="display:flex;gap:8px"><button class="btn">全部忽略</button><button class="btn primary" data-view="publish">批准全部 6 项 →</button></div></div>
+    </div></div>
+
+    <!-- 预算分配 -->
+    <div class="screen" id="view-allocation"><div class="screen-in">
+      <div class="scrn-head"><span class="ic">◑</span><h2>预算分配</h2><span class="sub">应用后 · 仍 ≤ $3,500/天 上限</span></div>
+      <div class="sect">按平台</div>
+      <div class="fcard" style="padding:18px"><div class="alloc" style="border:none;margin:0;padding:0">
+        <div class="grid">
+          <div class="donut"><div class="ctr"><div class="n mono">$3,500</div><div class="l">/ 天</div></div></div>
+          <div class="legend">
+            <div class="li"><span class="sw" style="background:var(--accent)"></span><span class="nm">Meta</span><span class="mv">52% · $1,820</span></div>
+            <div class="li"><span class="sw" style="background:var(--accent-2)"></span><span class="nm">TikTok</span><span class="mv">36% · $1,260</span></div>
+            <div class="li"><span class="sw" style="background:#c7d9f7"></span><span class="nm">Google</span><span class="mv">12% · $420</span></div>
+          </div>
+        </div>
+      </div></div>
+      <div class="sect">按 campaign(应用后)</div>
+      <table class="rtable"><thead><tr><th>Campaign</th><th>平台</th><th>当前/天</th><th>新预算/天</th><th>Δ</th></tr></thead><tbody>
+        <tr><td class="k">AstralDrift · Hina</td><td>TikTok · JP</td><td>¥12,000</td><td>¥18,000</td><td><span class="pill">+¥6,000</span></td></tr>
+        <tr><td class="k">DTC_US_Prospecting_v3</td><td>Meta · US</td><td>$200</td><td>$240</td><td><span class="pill">+$40</span></td></tr>
+        <tr><td class="k">Broad_Interest_v4</td><td>TikTok · SEA</td><td>$160</td><td>$0</td><td><span style="color:var(--red);font-weight:600;font-size:11px">−$160</span></td></tr>
+        <tr><td class="k">Casual_Game_Broad_v1</td><td>TikTok · SEA</td><td>$240</td><td>$0</td><td><span style="color:var(--red);font-weight:600;font-size:11px">−$240</span></td></tr>
+      </tbody></table>
+      <div class="alloc" style="border:none;padding:0;margin-top:12px"><div class="note" style="border:none;padding:0">止损腾出 <span class="mono">$400</span>，在上限内回流给两条赢家；总额不变，无需追加预算。</div></div>
+    </div></div>
+
+    <!-- Drip-Bench 榜单 -->
+    <div class="screen" id="view-bench"><div class="screen-in">
+      <div class="scrn-head"><span class="ic">⚑</span><h2>Drip-Bench 榜单</h2><span class="sub">10 个 UA 决策用例 · 行动 40 / 方向 20 / 推理 40</span></div>
+      <p class="rpt" style="margin-bottom:14px">首个<strong>开放、可复现</strong>的 UA agent 决策基准。任何 agent 都能跑同一套用例并 PR 结果——赢输都收。下面是当前榜单。</p>
+      <table class="rtable"><thead><tr><th>#</th><th>Agent</th><th>总分</th><th>行动</th><th>方向</th><th>推理</th><th>日期</th></tr></thead><tbody>
+        <tr><td><span class="rk g1">1</span></td><td class="k">drip:claude-sonnet-4-6</td><td><span class="scorebar"><i style="width:91%"></i></span>91</td><td>38/40</td><td>18/20</td><td>35/40</td><td>05-28</td></tr>
+        <tr><td><span class="rk">2</span></td><td class="k">drip:gpt-4o</td><td><span class="scorebar"><i style="width:86%"></i></span>86</td><td>36/40</td><td>17/20</td><td>33/40</td><td>05-28</td></tr>
+        <tr><td><span class="rk">3</span></td><td class="k">drip:gemini-2.5-pro</td><td><span class="scorebar"><i style="width:83%"></i></span>83</td><td>35/40</td><td>16/20</td><td>32/40</td><td>05-27</td></tr>
+        <tr><td><span class="rk">4</span></td><td class="k">drip:deepseek-v3</td><td><span class="scorebar"><i style="width:79%"></i></span>79</td><td>33/40</td><td>16/20</td><td>30/40</td><td>05-27</td></tr>
+        <tr><td><span class="rk">5</span></td><td class="k">raw claude(无引擎)</td><td><span class="scorebar"><i style="width:64%"></i></span>64</td><td>26/40</td><td>13/20</td><td>25/40</td><td>05-26</td></tr>
+        <tr><td><span class="rk">6</span></td><td class="k">raw gpt-4o(无引擎)</td><td><span class="scorebar"><i style="width:61%"></i></span>61</td><td>25/40</td><td>12/20</td><td>24/40</td><td>05-26</td></tr>
+      </tbody></table>
+      <div class="scrn-foot"><div class="info">规则引擎把同一个模型的分数显著抬高 —— 这就是「规则决定、LLM 解释」的价值</div><div style="display:flex;gap:8px"><button class="btn">查看用例</button><button class="btn primary">跑我的 agent →</button></div></div>
+    </div></div>
+
+    <!-- 设置 -->
+    <div class="screen" id="view-settings"><div class="screen-in">
+      <div class="scrn-head"><span class="ic">⚙</span><h2>设置</h2><span class="sub">安全梯子 · 数据归你 · 自托管</span></div>
+      <div class="sect">运行模式(DRIP_MODE)</div>
+      <div class="fcard">
+        <div class="frow"><div class="fl">模式<div class="h">写入平台的权限级别</div></div><div class="fc"><label class="rad"><input type="radio" name="mode"> Shadow · 只规划</label><label class="rad"><input type="radio" name="mode" checked> Copilot · 逐条批准</label><label class="rad"><input type="radio" name="mode"> Autonomous · 上限内自动</label></div></div>
+        <div class="frow"><div class="fl">预算上限</div><div class="fc"><input class="inp" style="width:110px" value="$3,500"><span style="font-size:12px;color:var(--text-3)">/ 天 · 自动模式下的硬上限</span></div></div>
+      </div>
+      <div class="sect">连接的账户</div>
+      <div class="fcard">
+        <div class="frow"><div class="fl"><div class="acct"><span class="lg meta">f</span>Meta Ads</div></div><div class="fc"><span style="font-size:12px;color:var(--green)">● 已连接</span><div class="sw on" data-sw style="margin-left:auto"></div></div></div>
+        <div class="frow"><div class="fl"><div class="acct"><span class="lg tt">T</span>TikTok Ads</div></div><div class="fc"><span style="font-size:12px;color:var(--green)">● 已连接</span><div class="sw on" data-sw style="margin-left:auto"></div></div></div>
+        <div class="frow"><div class="fl"><div class="acct"><span class="lg gg">G</span>Google Ads</div></div><div class="fc"><span style="font-size:12px;color:var(--text-3)">○ 未连接</span><div class="sw" data-sw style="margin-left:auto"></div></div></div>
+      </div>
+      <div class="sect">模型与归因</div>
+      <div class="fcard">
+        <div class="frow"><div class="fl">LLM 提供方<div class="h">12 家 + OpenRouter 兜底</div></div><div class="fc"><select class="inp"><option>anthropic / claude-sonnet-4-6</option><option>openai / gpt-4o</option><option>google / gemini-2.5-pro</option><option>deepseek / deepseek-v3</option><option>本地 / ollama</option></select></div></div>
+        <div class="frow"><div class="fl">归因来源</div><div class="fc"><select class="inp"><option>AppsFlyer</option><option>Adjust</option><option>平台口径(打折)</option></select></div></div>
+      </div>
+    </div></div>
+
+  </main>
+
+  <aside class="rrail"><div class="rr-grip" id="rrGrip"></div>
+    <details class="rp" open>
+      <summary><span class="tw">▸</span>运行进度<span class="ct">5 步</span></summary>
+      <div class="pbody">
+        <div class="pstep done"><span class="n">✓</span><span class="tx">拉取 4 账户 insights · 32 campaign</span></div>
+        <div class="pstep done"><span class="n">✓</span><span class="tx">评估 8 信号 / campaign（thresholds v2）</span></div>
+        <div class="pstep done"><span class="n">✓</span><span class="tx">跑规则引擎 → 6 项决策</span></div>
+        <div class="pstep done"><span class="n">✓</span><span class="tx">Allocator 计算跨平台分配</span></div>
+        <div class="pstep now"><span class="n">5</span><span class="tx">等你批准 6 项改动后写入</span></div>
+      </div>
+    </details>
+
+    <details class="rp rp-audit" open>
+      <summary><span class="tw">▸</span>为什么 · 审计<span class="ct" id="wpTag">点卡片切换</span></summary>
+      <div class="pbody">
+        <div class="whead"><div class="nm" id="wpName">AstralDrift · Hina</div><div class="plat" id="wpPlat">TikTok · JP</div><div class="vd"><span class="act scale" id="wpAct">SCALE +20%</span><span class="conf high" id="wpConf">HIGH</span></div></div>
+        <div class="wsec">8 信号向量<span class="ct" id="wpCount">8/8</span></div>
+        <div id="wpSigs"></div>
+        <div class="dvr"></div>
+        <div class="wsec">规则链</div>
+        <div id="wpRules"></div>
+        <div class="dvr"></div>
+        <div class="wsec">可回放 / 审计</div>
+        <div class="replay">
+          <div class="row"><span class="k">输入</span><span class="v" id="wpHash">sha · 7f3a91c4</span></div>
+          <div class="row"><span class="k">阈值</span><span class="v">thresholds · v2</span></div>
+          <div class="row"><span class="k">引擎</span><span class="v">engine · 0.4.0</span></div>
+          <button>重放这次决策 →</button>
+        </div>
+      </div>
+    </details>
+
+    <details class="rp">
+      <summary><span class="tw">▸</span>素材库<span class="ct">12</span></summary>
+      <div class="pbody">
+        <div class="litem"><span class="thumb tg1"></span><span class="nm">Hina_hook_v3.mp4</span><span class="meta">CTR 1.58%</span></div>
+        <div class="litem"><span class="thumb tg3"></span><span class="nm">IG_Reels_variant_A</span><span class="meta">QA 中</span></div>
+        <div class="litem"><span class="thumb tg7"></span><span class="nm">Retarget_UGC_07.mp4</span><span class="meta">ROAS 5.2×</span></div>
+        <div class="litem"><span class="thumb tg2"></span><span class="nm">DTC_static_set.zip</span><span class="meta">6 张</span></div>
+      </div>
+    </details>
+
+    <details class="rp">
+      <summary><span class="tw">▸</span>Campaign<span class="ct">32</span></summary>
+      <div class="pbody">
+        <div class="crow"><span class="sd" style="background:var(--green)"></span><span class="nm">AstralDrift · Hina</span><span class="sp">¥18k</span></div>
+        <div class="crow"><span class="sd" style="background:var(--green)"></span><span class="nm">DTC_US_Prospecting_v3</span><span class="sp">$240</span></div>
+        <div class="crow"><span class="sd" style="background:var(--amber)"></span><span class="nm">IG_Reels_Hero</span><span class="sp">$300</span></div>
+        <div class="crow"><span class="sd" style="background:var(--amber)"></span><span class="nm">Retargeting_7d</span><span class="sp">$120</span></div>
+        <div class="crow"><span class="sd" style="background:var(--text-3)"></span><span class="nm">Lookalike_2pct_v2</span><span class="sp">$180</span></div>
+        <div class="crow"><span class="sd" style="background:var(--red)"></span><span class="nm">Casual_Game_Broad_v1</span><span class="sp">$0</span></div>
+        <div class="crow"><span class="sd" style="background:var(--red)"></span><span class="nm">Broad_Interest_v4</span><span class="sp">$0</span></div>
+      </div>
+    </details>
+  </aside>
+</div>
+<script>
+const AUDIT = {
+  c1:{name:"AstralDrift · Hina",plat:"TikTok · JP",act:"scale",actLabel:"SCALE +20%",conf:"high",confLabel:"HIGH",count:"8/8",hash:"sha · 7f3a91c4",
+    sigs:[["CPP","g","¥820","≤ ¥1,200"],["ROAS","g","3.6×","≥ 3.0×"],["CVR","g","4.1%","≥ 2.5%"],["CTR","g","1.58%","≥ 1.0%"],["频次","g","1.8","≤ 2.5"],["花费","g","¥12k","≤ 上限"],["成交","g","1,247","≥ 200"],["余量","g","+48%","> 0"]],
+    rules:["8 信号全部 <span class='mono'>GREEN</span>","成交 <span class='mono'>1,247 ≥ 200</span> → 样本充足","充足样本 + 全绿 → 置信度 <span class='mono'>HIGH</span>","余量 <span class='mono'>+48%</span> 未触顶 → SCALE","HIGH 区间 → 步长 <span class='mono'>+20%</span>，挂自动撤回护栏"]},
+  c2:{name:"DTC_US_Prospecting_v3",plat:"Meta · US",act:"scale",actLabel:"SCALE +10%",conf:"med",confLabel:"MEDIUM",count:"7/8",hash:"sha · b1c8e220",
+    sigs:[["CPP","g","$18.00","≤ $22"],["ROAS","g","3.8×","≥ 3.0×"],["CVR","g","2.6%","≥ 2.5%"],["CTR","g","1.4%","≥ 1.0%"],["频次","g","1.8","≤ 2.5"],["花费","g","$200","≤ 上限"],["成交","y","11","≥ 30"],["余量","g","+60%","> 0"]],
+    rules:["8 个里 7 个 <span class='mono'>GREEN</span>","成交 <span class='mono'>11 &lt; 30</span> → 样本偏薄（判黄）","薄样本压低置信度 → <span class='mono'>MEDIUM</span>","MEDIUM + 薄样本 → 步长限到 <span class='mono'>+10%</span>","护栏收紧：<span class='mono'>CPP &gt; $22</span> 即撤回"]},
+  c4:{name:"IG_Reels_Hero",plat:"Meta · US",act:"refresh",actLabel:"REFRESH",conf:"med",confLabel:"MEDIUM",count:"5/8",hash:"sha · e7720b15",
+    sigs:[["CPP","g","$17.00","≤ $22"],["ROAS","g","3.2×","≥ 3.0×"],["CVR","g","2.5%","≥ 2.5%"],["CTR","y","1.1%","≥ 1.0%"],["频次","r","2.6","≤ 2.5"],["花费","g","$300","≤ 上限"],["成交","g","210","≥ 30"],["余量","y","+8%","> 0"]],
+    rules:["经济仍绿：CPP <span class='mono'>$17</span>、ROAS <span class='mono'>3.2×</span>","频次 <span class='mono'>2.6 &gt; 2.5</span> 上限 → <span class='mono'>RED</span>","CTR <span class='mono'>1.1%</span> 且在衰减 → <span class='mono'>YELLOW</span>","饱和形态 → 别扩，换素材","预算保持；Strategist 已草拟 3 个变体"]},
+  c3:{name:"Casual_Game_Broad_v1",plat:"TikTok · SEA",act:"pause",actLabel:"PAUSE",conf:"high",confLabel:"HIGH",count:"2/8",hash:"sha · 4d9f0a7e",
+    sigs:[["CPP","r","$40.00","≤ $22"],["ROAS","r","1.4×","≥ 3.0×"],["CVR","r","1.1%","≥ 2.5%"],["CTR","r","0.8%","≥ 1.0%"],["频次","y","2.4","≤ 2.5"],["花费","g","$240","≤ 上限"],["成交","g","38","≥ 30"],["余量","r","—","> 0"]],
+    rules:["CPP <span class='mono'>$40 &gt; $22</span> → <span class='mono'>RED</span>","ROAS <span class='mono'>1.4× &lt; 3.0×</span> → <span class='mono'>RED</span>","成交 <span class='mono'>38 ≥ 30</span> → 样本足够确认","双红 + 样本足 → PAUSE，置信度 <span class='mono'>HIGH</span>","腾出的 <span class='mono'>$240</span> → 交给 Allocator"]}
+};
+const $ = id => document.getElementById(id);
+let curLang = "zh-CN";
+const LANGS = {"zh-CN":"简体中文","zh-TW":"繁體中文","en":"English","ja":"日本語","ko":"한국어","es":"Español","pt":"Português","vi":"Tiếng Việt","fr":"Français","de":"Deutsch"};
+const I18N = {
+"zh-CN":{"top.session":"今日预算分配","top.meta":"· 4 账户 · 32 campaign","top.mode":"Copilot · 上限 $3,500/天","comp.ph":"问 Drip，或描述你想做什么…","comp.upload":"上传","mode.shadow":"Shadow · 只规划","mode.copilot":"Copilot · 逐条批准","mode.auto":"Autonomous · 上限内","comp.note":"规则决定 · LLM 只负责解释 · 你批准后才写入平台","wel.h1":"今天，预算该投向哪里？","wel.sub":"诊断 campaign、跨平台再分配、规划下一个测试 —— 每个决策都由规则给出、可审计，动钱之前先过你这关。","wel.pick":"选一个场景，直接开始","s1.t":"诊断投放表现","s1.d":"用 8 个信号给每条 campaign 打分","s1.tag":"连账户 · 或用样本","s2.t":"再分配预算","s2.d":"把钱挪向赢家，饿死输家","s2.tag":"核心循环","s3.t":"规划下一个测试","s3.d":"下一个创意角度该测什么","s3.tag":"基于你的赢家","s4.t":"生成创意","s4.d":"为赢的方向产出变体","s4.tag":"gpt-image / Seedance","s5.t":"归因对账","s5.d":"平台口径 vs MMP 真值","s5.tag":"AppsFlyer / Adjust","s6.t":"跑完整循环","s6.d":"收集 → 诊断 → 分配 → 复盘","s6.tag":"一条命令","tip.hide":"隐藏侧栏","tip.show":"显示侧栏"},
+"zh-TW":{"top.session":"今日預算分配","top.meta":"· 4 帳戶 · 32 campaign","top.mode":"Copilot · 上限 $3,500/天","comp.ph":"問 Drip，或描述你想做什麼…","comp.upload":"上傳","mode.shadow":"Shadow · 只規劃","mode.copilot":"Copilot · 逐條批准","mode.auto":"Autonomous · 上限內","comp.note":"規則決定 · LLM 只負責解釋 · 你批准後才寫入平台","wel.h1":"今天，預算該投向哪裡？","wel.sub":"診斷 campaign、跨平台再分配、規劃下一個測試 —— 每個決策都由規則給出、可稽核，動錢之前先過你這關。","wel.pick":"選一個場景，直接開始","s1.t":"診斷投放表現","s1.d":"用 8 個信號給每條 campaign 評分","s1.tag":"連帳戶 · 或用樣本","s2.t":"重新分配預算","s2.d":"把錢挪向贏家，餓死輸家","s2.tag":"核心循環","s3.t":"規劃下一個測試","s3.d":"下一個創意角度該測什麼","s3.tag":"基於你的贏家","s4.t":"生成創意","s4.d":"為贏的方向產出變體","s4.tag":"gpt-image / Seedance","s5.t":"歸因對帳","s5.d":"平台口徑 vs MMP 真值","s5.tag":"AppsFlyer / Adjust","s6.t":"跑完整循環","s6.d":"收集 → 診斷 → 分配 → 複盤","s6.tag":"一條命令","tip.hide":"隱藏側欄","tip.show":"顯示側欄"},
+"en":{"top.session":"Today's allocation","top.meta":"· 4 accounts · 32 campaigns","top.mode":"Copilot · cap $3,500/day","comp.ph":"Ask Drip, or describe what you want to do…","comp.upload":"Upload","mode.shadow":"Shadow · plan only","mode.copilot":"Copilot · approve each","mode.auto":"Autonomous · within cap","comp.note":"Rules decide · the LLM only explains · nothing writes until you approve","wel.h1":"Where should your budget go today?","wel.sub":"Diagnose campaigns, reallocate across platforms, plan the next test — every call is rule-based and auditable, and waits for your approval before any spend.","wel.pick":"Pick a scene to start","s1.t":"Diagnose performance","s1.d":"Score every campaign on 8 signals","s1.tag":"Connect account · or sample","s2.t":"Reallocate budget","s2.d":"Move money to winners, starve losers","s2.tag":"The core loop","s3.t":"Plan the next test","s3.d":"What creative angle to try next","s3.tag":"From your winners","s4.t":"Generate creatives","s4.d":"Variants for the winning direction","s4.tag":"gpt-image / Seedance","s5.t":"Reconcile attribution","s5.d":"Platform-reported vs MMP truth","s5.tag":"AppsFlyer / Adjust","s6.t":"Run the full loop","s6.d":"Collect → diagnose → allocate → learn","s6.tag":"One command","tip.hide":"Hide panel","tip.show":"Show panel"},
+"ja":{"top.session":"本日の予算配分","top.meta":"· 4 アカウント · 32 キャンペーン","top.mode":"Copilot · 上限 $3,500/日","comp.ph":"Drip に質問、またはやりたいことを入力…","comp.upload":"アップロード","mode.shadow":"Shadow · 計画のみ","mode.copilot":"Copilot · 都度承認","mode.auto":"Autonomous · 上限内","comp.note":"ルールが決定 · LLM は説明のみ · 承認するまで書き込まない","wel.h1":"今日、予算はどこへ？","wel.sub":"キャンペーン診断、プラットフォーム横断の再配分、次のテスト設計 —— すべての判断はルールベースで監査可能、支出前に必ず承認を待ちます。","wel.pick":"シーンを選んで開始","s1.t":"パフォーマンス診断","s1.d":"8 シグナルで各キャンペーンを採点","s1.tag":"アカウント接続 · またはサンプル","s2.t":"予算を再配分","s2.d":"勝者に寄せ、敗者を絞る","s2.tag":"コアループ","s3.t":"次のテストを設計","s3.d":"次に試すクリエイティブの切り口","s3.tag":"勝者から","s4.t":"クリエイティブ生成","s4.d":"勝ち筋の方向に変種を量産","s4.tag":"gpt-image / Seedance","s5.t":"アトリビューション照合","s5.d":"プラットフォーム値 vs MMP 真値","s5.tag":"AppsFlyer / Adjust","s6.t":"フルループ実行","s6.d":"収集 → 診断 → 配分 → 振り返り","s6.tag":"1 コマンド","tip.hide":"パネルを隠す","tip.show":"パネルを表示"},
+"ko":{"top.session":"오늘의 예산 배분","top.meta":"· 4 계정 · 32 캠페인","top.mode":"Copilot · 한도 $3,500/일","comp.ph":"Drip에게 묻거나, 하고 싶은 일을 입력…","comp.upload":"업로드","mode.shadow":"Shadow · 계획만","mode.copilot":"Copilot · 건별 승인","mode.auto":"Autonomous · 한도 내","comp.note":"규칙이 결정 · LLM은 설명만 · 승인 전에는 쓰지 않음","wel.h1":"오늘 예산을 어디에 쓸까요?","wel.sub":"캠페인 진단, 플랫폼 간 재배분, 다음 테스트 설계 —— 모든 결정은 규칙 기반이고 감사 가능하며, 지출 전 승인을 기다립니다.","wel.pick":"장면을 골라 시작","s1.t":"성과 진단","s1.d":"8개 신호로 모든 캠페인 채점","s1.tag":"계정 연결 · 또는 샘플","s2.t":"예산 재배분","s2.d":"승자에 몰고 패자를 굶긴다","s2.tag":"핵심 루프","s3.t":"다음 테스트 설계","s3.d":"다음에 시도할 크리에이티브 각도","s3.tag":"당신의 승자에서","s4.t":"크리에이티브 생성","s4.d":"이긴 방향의 변형 양산","s4.tag":"gpt-image / Seedance","s5.t":"어트리뷰션 대조","s5.d":"플랫폼 보고 vs MMP 진실","s5.tag":"AppsFlyer / Adjust","s6.t":"전체 루프 실행","s6.d":"수집 → 진단 → 배분 → 복기","s6.tag":"한 명령","tip.hide":"패널 숨기기","tip.show":"패널 표시"},
+"es":{"top.session":"Asignación de hoy","top.meta":"· 4 cuentas · 32 campañas","top.mode":"Copilot · tope $3.500/día","comp.ph":"Pregunta a Drip o describe lo que quieres hacer…","comp.upload":"Subir","mode.shadow":"Shadow · solo plan","mode.copilot":"Copilot · aprobar cada uno","mode.auto":"Autonomous · dentro del tope","comp.note":"Las reglas deciden · el LLM solo explica · nada se escribe hasta que apruebes","wel.h1":"¿A dónde va tu presupuesto hoy?","wel.sub":"Diagnostica campañas, reasigna entre plataformas y planifica la próxima prueba: cada decisión es basada en reglas y auditable, y espera tu aprobación antes de gastar.","wel.pick":"Elige una escena para empezar","s1.t":"Diagnosticar rendimiento","s1.d":"Puntúa cada campaña con 8 señales","s1.tag":"Conectar cuenta · o muestra","s2.t":"Reasignar presupuesto","s2.d":"Mueve dinero a ganadores, recorta perdedores","s2.tag":"El bucle central","s3.t":"Planear la próxima prueba","s3.d":"Qué ángulo creativo probar","s3.tag":"De tus ganadores","s4.t":"Generar creativos","s4.d":"Variantes para la dirección ganadora","s4.tag":"gpt-image / Seedance","s5.t":"Conciliar atribución","s5.d":"Plataforma vs verdad del MMP","s5.tag":"AppsFlyer / Adjust","s6.t":"Ejecutar el bucle completo","s6.d":"Recolectar → diagnosticar → asignar → aprender","s6.tag":"Un comando","tip.hide":"Ocultar panel","tip.show":"Mostrar panel"},
+"pt":{"top.session":"Alocação de hoje","top.meta":"· 4 contas · 32 campanhas","top.mode":"Copilot · teto $3.500/dia","comp.ph":"Pergunte ao Drip ou descreva o que quer fazer…","comp.upload":"Enviar","mode.shadow":"Shadow · só plano","mode.copilot":"Copilot · aprovar cada um","mode.auto":"Autonomous · dentro do teto","comp.note":"As regras decidem · o LLM só explica · nada é gravado até você aprovar","wel.h1":"Para onde vai seu orçamento hoje?","wel.sub":"Diagnostique campanhas, realoque entre plataformas e planeje o próximo teste: cada decisão é baseada em regras e auditável, e espera sua aprovação antes de gastar.","wel.pick":"Escolha um cenário para começar","s1.t":"Diagnosticar desempenho","s1.d":"Pontue cada campanha com 8 sinais","s1.tag":"Conectar conta · ou amostra","s2.t":"Realocar orçamento","s2.d":"Leve dinheiro aos vencedores, corte perdedores","s2.tag":"O ciclo central","s3.t":"Planejar o próximo teste","s3.d":"Qual ângulo criativo testar","s3.tag":"Dos seus vencedores","s4.t":"Gerar criativos","s4.d":"Variações para a direção vencedora","s4.tag":"gpt-image / Seedance","s5.t":"Conciliar atribuição","s5.d":"Plataforma vs verdade do MMP","s5.tag":"AppsFlyer / Adjust","s6.t":"Rodar o ciclo completo","s6.d":"Coletar → diagnosticar → alocar → aprender","s6.tag":"Um comando","tip.hide":"Ocultar painel","tip.show":"Mostrar painel"},
+"vi":{"top.session":"Phân bổ hôm nay","top.meta":"· 4 tài khoản · 32 chiến dịch","top.mode":"Copilot · trần $3.500/ngày","comp.ph":"Hỏi Drip, hoặc mô tả điều bạn muốn làm…","comp.upload":"Tải lên","mode.shadow":"Shadow · chỉ lập kế hoạch","mode.copilot":"Copilot · duyệt từng mục","mode.auto":"Autonomous · trong hạn mức","comp.note":"Quy tắc quyết định · LLM chỉ giải thích · không ghi gì cho đến khi bạn duyệt","wel.h1":"Hôm nay ngân sách nên đi đâu?","wel.sub":"Chẩn đoán chiến dịch, phân bổ lại giữa các nền tảng, lên kế hoạch thử nghiệm tiếp theo — mọi quyết định đều dựa trên quy tắc và có thể kiểm toán, chờ bạn duyệt trước khi chi tiêu.","wel.pick":"Chọn một kịch bản để bắt đầu","s1.t":"Chẩn đoán hiệu suất","s1.d":"Chấm điểm mỗi chiến dịch trên 8 tín hiệu","s1.tag":"Kết nối tài khoản · hoặc mẫu","s2.t":"Phân bổ lại ngân sách","s2.d":"Dồn tiền cho bên thắng, cắt bên thua","s2.tag":"Vòng lặp cốt lõi","s3.t":"Lên kế hoạch thử nghiệm tiếp theo","s3.d":"Thử góc sáng tạo nào tiếp theo","s3.tag":"Từ bên thắng của bạn","s4.t":"Tạo nội dung quảng cáo","s4.d":"Biến thể cho hướng thắng","s4.tag":"gpt-image / Seedance","s5.t":"Đối soát phân bổ","s5.d":"Báo cáo nền tảng vs sự thật MMP","s5.tag":"AppsFlyer / Adjust","s6.t":"Chạy toàn bộ vòng lặp","s6.d":"Thu thập → chẩn đoán → phân bổ → học","s6.tag":"Một lệnh","tip.hide":"Ẩn bảng","tip.show":"Hiện bảng"},
+"fr":{"top.session":"Allocation du jour","top.meta":"· 4 comptes · 32 campagnes","top.mode":"Copilot · plafond 3 500 $/j","comp.ph":"Demandez à Drip ou décrivez ce que vous voulez faire…","comp.upload":"Importer","mode.shadow":"Shadow · plan seulement","mode.copilot":"Copilot · valider chacun","mode.auto":"Autonomous · dans le plafond","comp.note":"Les règles décident · le LLM explique seulement · rien n'est écrit avant votre validation","wel.h1":"Où doit aller votre budget aujourd'hui ?","wel.sub":"Diagnostiquez les campagnes, réallouez entre plateformes, planifiez le prochain test — chaque décision est basée sur des règles, auditable, et attend votre validation avant toute dépense.","wel.pick":"Choisissez une scène pour commencer","s1.t":"Diagnostiquer la performance","s1.d":"Notez chaque campagne sur 8 signaux","s1.tag":"Connecter un compte · ou échantillon","s2.t":"Réallouer le budget","s2.d":"Misez sur les gagnants, coupez les perdants","s2.tag":"La boucle centrale","s3.t":"Planifier le prochain test","s3.d":"Quel angle créatif essayer ensuite","s3.tag":"À partir de vos gagnants","s4.t":"Générer des créations","s4.d":"Variantes pour la direction gagnante","s4.tag":"gpt-image / Seedance","s5.t":"Réconcilier l'attribution","s5.d":"Plateforme vs vérité MMP","s5.tag":"AppsFlyer / Adjust","s6.t":"Lancer la boucle complète","s6.d":"Collecter → diagnostiquer → allouer → apprendre","s6.tag":"Une commande","tip.hide":"Masquer le panneau","tip.show":"Afficher le panneau"},
+"de":{"top.session":"Heutige Zuteilung","top.meta":"· 4 Konten · 32 Kampagnen","top.mode":"Copilot · Limit 3.500 $/Tag","comp.ph":"Frag Drip oder beschreibe, was du tun willst…","comp.upload":"Hochladen","mode.shadow":"Shadow · nur Plan","mode.copilot":"Copilot · einzeln freigeben","mode.auto":"Autonomous · im Limit","comp.note":"Regeln entscheiden · das LLM erklärt nur · nichts wird geschrieben, bis du freigibst","wel.h1":"Wohin soll dein Budget heute?","wel.sub":"Kampagnen diagnostizieren, plattformübergreifend umverteilen, den nächsten Test planen — jede Entscheidung ist regelbasiert und prüfbar und wartet vor jeder Ausgabe auf deine Freigabe.","wel.pick":"Wähle eine Szene zum Starten","s1.t":"Leistung diagnostizieren","s1.d":"Jede Kampagne anhand von 8 Signalen bewerten","s1.tag":"Konto verbinden · oder Beispiel","s2.t":"Budget umverteilen","s2.d":"Geld zu Gewinnern, Verlierer aushungern","s2.tag":"Der Kernkreislauf","s3.t":"Nächsten Test planen","s3.d":"Welcher Creative-Ansatz als Nächstes","s3.tag":"Aus deinen Gewinnern","s4.t":"Creatives generieren","s4.d":"Varianten für die Gewinnerrichtung","s4.tag":"gpt-image / Seedance","s5.t":"Attribution abgleichen","s5.d":"Plattform vs. MMP-Wahrheit","s5.tag":"AppsFlyer / Adjust","s6.t":"Vollständigen Loop ausführen","s6.d":"Sammeln → diagnostizieren → zuteilen → lernen","s6.tag":"Ein Befehl","tip.hide":"Panel ausblenden","tip.show":"Panel einblenden"}
+};
+function setLang(code){
+  if(!I18N[code]) code = "zh-CN";
+  curLang = code;
+  const d = I18N[code], base = I18N["zh-CN"];
+  document.querySelectorAll("[data-i18n]").forEach(el => { const k = el.getAttribute("data-i18n"); const v = (d && d[k] != null) ? d[k] : base[k]; if (v != null) el.innerHTML = v; });
+  document.querySelectorAll("[data-i18n-ph]").forEach(el => { const k = el.getAttribute("data-i18n-ph"); const v = (d && d[k] != null) ? d[k] : base[k]; if (v != null) el.setAttribute("placeholder", v); });
+  document.documentElement.lang = code;
+  const cur = $("langCur"); if (cur) cur.textContent = LANGS[code];
+  document.querySelectorAll("#langMenu button").forEach(b => b.classList.toggle("on", b.getAttribute("data-lang") === code));
+  const rb = $("rrToggle"); if (rb) rb.title = (typeof app !== "undefined" && app.classList.contains("rr-hidden")) ? (d["tip.show"] || base["tip.show"]) : (d["tip.hide"] || base["tip.hide"]);
+  try { localStorage.setItem("drip-lang", code); } catch (e) {}
+}
+(function(){
+  const sel = $("langSel"), btn = $("langBtn"), menu = $("langMenu");
+  if (btn) btn.addEventListener("click", e => { e.stopPropagation(); sel.classList.toggle("open"); });
+  if (menu) menu.querySelectorAll("button").forEach(b => b.addEventListener("click", () => { setLang(b.getAttribute("data-lang")); sel.classList.remove("open"); }));
+  document.addEventListener("click", e => { if (sel && !sel.contains(e.target)) sel.classList.remove("open"); });
+})();
+function render(id){
+  const d = AUDIT[id]; if(!d) return;
+  $("wpName").textContent = d.name; $("wpPlat").textContent = d.plat;
+  const a = $("wpAct"); a.className = "act " + d.act; a.textContent = d.actLabel;
+  const c = $("wpConf"); c.className = "conf " + d.conf; c.textContent = d.confLabel;
+  $("wpTag").textContent = d.actLabel; $("wpCount").textContent = d.count; $("wpHash").textContent = d.hash;
+  $("wpSigs").innerHTML = d.sigs.map(s => `<div class="svrow"><span class="dd ${s[1]}"></span><span class="nm">${s[0]}</span><span class="val">${s[2]}</span><span class="th">${s[3]}</span></div>`).join("");
+  $("wpRules").innerHTML = d.rules.map((r,i) => `<div class="rule${i===d.rules.length-1?' end':''}"><span class="n">${i+1}</span><span class="tx">${r}</span></div>`).join("");
+  document.querySelectorAll(".card[data-card]").forEach(x => x.classList.toggle("sel", x.dataset.card === id));
+}
+document.querySelectorAll(".card[data-card]").forEach(x => x.addEventListener("click", () => render(x.dataset.card)));
+const app = $("app");
+function setView(v){
+  if (v === "welcome") {
+    app.classList.add("welcome");
+    document.querySelectorAll(".screen").forEach(s => s.classList.remove("on"));
+    document.querySelector(".thread").style.display = "";
+    document.querySelector(".composer-wrap").style.display = "";
+    return;
+  }
+  app.classList.remove("welcome");
+  const isC = v === "console";
+  document.querySelector(".thread").style.display = isC ? "" : "none";
+  document.querySelector(".composer-wrap").style.display = isC ? "" : "none";
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("on"));
+  if (!isC) { const el = document.getElementById("view-" + v); if (el) { el.classList.add("on"); el.scrollTop = 0; } }
+  document.querySelectorAll(".rail .ri").forEach(r => r.classList.toggle("on", r.getAttribute("data-view") === v));
+}
+$("newBtn").addEventListener("click", () => setView("welcome"));
+const ws = $("welSend"); if (ws) ws.addEventListener("click", () => setView("console"));
+document.querySelectorAll("[data-go]").forEach(s => s.addEventListener("click", () => setView("console")));
+document.querySelectorAll("[data-view]").forEach(el => el.addEventListener("click", e => { e.stopPropagation(); setView(el.getAttribute("data-view")); }));
+document.querySelectorAll("[data-seg]").forEach(g => g.addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; g.querySelectorAll("button").forEach(x => x.classList.remove("on")); b.classList.add("on"); }));
+document.querySelectorAll("[data-sel]").forEach(c => c.addEventListener("click", () => { c.classList.toggle("sel"); const n = document.querySelectorAll("#view-creative .vcard.sel").length; const info = document.querySelector("#view-creative .scrn-foot .info"); if (info) info.innerHTML = "已选 <b>" + n + "</b> 个素材 · 将用于 IG_Reels_Hero 的变体"; }));
+document.querySelectorAll("[data-sw]").forEach(s => s.addEventListener("click", () => s.classList.toggle("on")));
+// card approve → confirmed state
+document.querySelectorAll(".card .mini.approve").forEach(b => {
+  b.addEventListener("click", e => {
+    e.stopPropagation();
+    if (b.dataset.done) return;
+    b.dataset.done = "1"; b.textContent = "✓ 已批准";
+    b.style.background = "var(--green)"; b.style.borderColor = "var(--green)";
+    const card = b.closest(".card"); if (card) card.style.opacity = ".6";
+  });
+});
+// secondary card buttons → light ack
+document.querySelectorAll(".card .mini:not(.approve)").forEach(b => {
+  b.addEventListener("click", e => { e.stopPropagation(); b.style.background = "var(--surface-2)"; });
+});
+// editor: bulk apply fills rows
+const bulkBtn = document.querySelector(".editor .bulk .btn");
+if (bulkBtn) bulkBtn.addEventListener("click", () => {
+  const ins = document.querySelectorAll(".editor .bulk .bnum");
+  const bud = ins[0] && ins[0].value, roas = ins[1] && ins[1].value;
+  document.querySelectorAll(".editor tbody tr").forEach(tr => {
+    const c = tr.querySelectorAll(".bnum");
+    if (bud && c[0] && !c[0].disabled) c[0].value = bud;
+    if (roas && c[1] && !c[1].disabled) c[1].value = roas;
+  });
+});
+// publish screen: confirm → advance progress + return to console
+const pubGo = document.querySelector("#view-publish .scrn-foot .btn.primary");
+if (pubGo) pubGo.addEventListener("click", () => {
+  if (pubGo.dataset.done) return;
+  pubGo.dataset.done = "1"; pubGo.textContent = "✓ 已发布 6 个 campaign";
+  const now = document.querySelector(".pstep.now");
+  if (now) { now.classList.remove("now"); now.classList.add("done"); now.querySelector(".n").textContent = "✓"; now.querySelector(".tx").textContent = "已发布 6 项改动 · 写入中"; }
+  setTimeout(() => setView("console"), 800);
+});
+// audit replay feedback
+const replayBtn = document.querySelector(".replay button");
+if (replayBtn) replayBtn.addEventListener("click", () => {
+  replayBtn.textContent = "✓ 已重放 · 输出一致";
+  setTimeout(() => { replayBtn.textContent = "重放这次决策 →"; }, 1800);
+});
+// rail + lang active toggles
+document.querySelectorAll(".rail .ri").forEach(r => r.addEventListener("click", () => {
+  if (r.id === "newBtn") return;
+  document.querySelectorAll(".rail .ri").forEach(x => x.classList.remove("on")); r.classList.add("on");
+}));
+document.querySelectorAll(".lang button").forEach(b => b.addEventListener("click", () => {
+  document.querySelectorAll(".lang button").forEach(x => x.classList.remove("on")); b.classList.add("on");
+}));
+// right rail: hide / show
+const rrBtn = $("rrToggle");
+if (rrBtn) rrBtn.addEventListener("click", () => {
+  const hidden = app.classList.toggle("rr-hidden");
+  if (hidden) app.style.gridTemplateColumns = "";
+  rrBtn.classList.toggle("off", hidden);
+  rrBtn.title = hidden ? (I18N[curLang]&&I18N[curLang]["tip.show"]||"显示侧栏") : (I18N[curLang]&&I18N[curLang]["tip.hide"]||"隐藏侧栏");
+});
+// right rail: drag edge to resize
+const grip = $("rrGrip"); let dragging = false;
+if (grip) {
+  grip.addEventListener("mousedown", e => { dragging = true; grip.classList.add("drag"); document.body.style.userSelect = "none"; e.preventDefault(); });
+  window.addEventListener("mousemove", e => {
+    if (!dragging || app.classList.contains("rr-hidden")) return;
+    const w = Math.max(300, Math.min(560, window.innerWidth - e.clientX));
+    app.style.gridTemplateColumns = "56px 1fr " + w + "px";
+  });
+  window.addEventListener("mouseup", () => { if (!dragging) return; dragging = false; grip.classList.remove("drag"); document.body.style.userSelect = ""; });
+}
+// every button gives tactile feedback so nothing feels dead
+document.addEventListener("mousedown", e => {
+  const b = e.target.closest("button");
+  if (b) { b.classList.add("pressed"); setTimeout(() => b.classList.remove("pressed"), 140); }
+});
+render("c1");
+setLang(localStorage.getItem("drip-lang") || (function(){ const n = (navigator.language || "zh").toLowerCase(); if (n.indexOf("zh") === 0) return (n.indexOf("tw") > -1 || n.indexOf("hk") > -1) ? "zh-TW" : "zh-CN"; const m = ["en","ja","ko","es","pt","vi","fr","de"].find(x => n.indexOf(x) === 0); return m || "zh-CN"; })());
+// URL params (deep-link / screenshots): ?view=bench&lang=en
+(function(){ const p = new URLSearchParams(location.search); const pl = p.get("lang"); if (pl && I18N[pl]) setLang(pl); const pv = p.get("view"); if (pv) setView(pv); })();
+// account menu + sign in/out
+(function(){
+  const ctl = $("acctCtl"), av = $("avBtn");
+  if (av) av.addEventListener("click", e => { e.stopPropagation(); ctl.classList.toggle("open"); });
+  const so = $("signOut"); if (so) so.addEventListener("click", () => { ctl.classList.add("signedout"); ctl.querySelector(".am-in").style.display = "none"; ctl.querySelector(".am-out").style.display = "block"; av.classList.add("out"); av.textContent = "?"; });
+  const si = $("signIn"); if (si) si.addEventListener("click", () => { ctl.classList.remove("signedout"); ctl.querySelector(".am-in").style.display = "block"; ctl.querySelector(".am-out").style.display = "none"; av.classList.remove("out"); av.textContent = "M"; ctl.classList.remove("open"); });
+  if (ctl) ctl.querySelectorAll(".am-item").forEach(it => it.addEventListener("click", () => ctl.classList.remove("open")));
+  document.addEventListener("click", e => { if (ctl && !ctl.contains(e.target)) ctl.classList.remove("open"); });
+})();
+</script>
+</body>
+</html>
