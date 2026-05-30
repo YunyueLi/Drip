@@ -450,14 +450,14 @@ button{cursor:pointer}
 
     <div class="thread"><div class="thread-in">
 
-  <div class="msg user"><div class="bubble">诊断我这 4 个账户，排出今天该扩 / 该停的，给一份预算分配方案，把要改的活动准备好让我批。</div></div>
+  <div class="msg user"><div class="bubble" data-i18n="l.q1">诊断我这 4 个账户，排出今天该扩 / 该停的，给一份预算分配方案，把要改的活动准备好让我批。</div></div>
 
   <div class="msg bot"><div class="ava">D</div><div class="content">
     <p class="intro" data-i18n="b.intro">扫了 <strong>4 个账户 · 32 条 campaign · 今日花费 $3,240</strong>。8 信号逐条评估完，规则给出：<strong>2 条扩量、2 条换素材、2 条止损</strong>，其余保持。下面是诊断、决策卡、和一张可直接批的改动表。</p>
-    <div class="mantra">◆ <b>规则决定 · LLM 只解释 · 你批准</b></div>
+    <div class="mantra">◆ <b data-i18n="l.mantra">规则决定 · LLM 只解释 · 你批准</b></div>
 
     <details class="cot" open>
-      <summary><span class="tw">▸</span>我是怎么定的 · 确定性、可回放<span class="seal">可审计</span></summary>
+      <summary><span class="tw">▸</span><span data-i18n="l.cot">我是怎么定的 · 确定性、可回放</span><span class="seal" data-i18n="l.seal">可审计</span></summary>
       <ol>
         <li data-i18n="b.s1">从 4 个账户拉取 insights · 32 条 campaign（Meta + TikTok），归一到统一 <span class="mono">AdMetrics</span> schema</li>
         <li data-i18n="b.s2">对每条 campaign 用 <span class="mono">thresholds v2</span> 评估 8 个信号（CPP/ROAS/CVR/CTR/频次/花费/成交/余量）</li>
@@ -468,17 +468,17 @@ button{cursor:pointer}
     </details>
 
     <div class="block">
-      <div class="bhead"><span class="ic">◎</span><span class="h">诊断 · 4 账户 / 32 campaign</span><span class="sub">2026-05-29 · 09:14 抓取</span></div>
+      <div class="bhead"><span class="ic">◎</span><span class="h" data-i18n="l.diag">诊断 · 4 账户 / 32 campaign</span><span class="sub" data-i18n="l.diagsub">2026-05-29 · 09:14 抓取</span></div>
       <div class="kpis">
-        <div class="kpi"><div class="k">日花费</div><div class="v mono">$3,240</div><div class="d flat">上限 $3,500</div></div>
-        <div class="kpi"><div class="k">综合 ROAS</div><div class="v mono">3.6×</div><div class="d up">↑ 0.4× vs 上周</div></div>
+        <div class="kpi"><div class="k" data-i18n="l.kspend">日花费</div><div class="v mono">$3,240</div><div class="d flat" data-i18n="l.kdspend">上限 $3,500</div></div>
+        <div class="kpi"><div class="k" data-i18n="l.kroas">综合 ROAS</div><div class="v mono">3.6×</div><div class="d up" data-i18n="l.kdroas">↑ 0.4× vs 上周</div></div>
         <div class="kpi"><div class="k">CVR</div><div class="v mono">2.8%</div><div class="d up">↑ 0.3%</div></div>
         <div class="kpi"><div class="k">CPA</div><div class="v mono">$19.3</div><div class="d up">↓ $2.1</div></div>
-        <div class="kpi"><div class="k">转化</div><div class="v mono">168</div><div class="d up">↑ 12%</div></div>
-        <div class="kpi"><div class="k">待批准</div><div class="v mono">6</div><div class="d down">2 扩 · 2 换 · 2 停</div></div>
+        <div class="kpi"><div class="k" data-i18n="l.kconv">转化</div><div class="v mono">168</div><div class="d up">↑ 12%</div></div>
+        <div class="kpi"><div class="k" data-i18n="l.kawait">待批准</div><div class="v mono">6</div><div class="d down" data-i18n="l.mix">2 扩 · 2 换 · 2 停</div></div>
       </div>
       <div class="chart-wrap">
-        <div class="clab"><span class="li"><span class="sw" style="background:var(--accent)"></span>综合 ROAS</span><span class="li"><span class="sw" style="background:var(--accent-2)"></span>日花费</span><span style="margin-left:auto">近 7 天</span></div>
+        <div class="clab"><span class="li"><span class="sw" style="background:var(--accent)"></span><span data-i18n="l.kroas">综合 ROAS</span></span><span class="li"><span class="sw" style="background:var(--accent-2)"></span><span data-i18n="l.kspend">日花费</span></span><span style="margin-left:auto" data-i18n="l.7d">近 7 天</span></div>
         <svg class="chart" viewBox="0 0 820 104" preserveAspectRatio="none">
           <line x1="30" y1="12" x2="800" y2="12" stroke="var(--border)" stroke-width="1"/>
           <line x1="30" y1="49" x2="800" y2="49" stroke="var(--border)" stroke-width="1"/>
@@ -489,7 +489,7 @@ button{cursor:pointer}
         </svg>
       </div>
       <table class="dt">
-        <thead><tr><th>Campaign</th><th>平台</th><th class="num">花费</th><th class="num">ROAS</th><th class="num">CPA</th><th class="num">CTR</th><th class="num">频次</th><th>决策</th></tr></thead>
+        <thead><tr><th>Campaign</th><th data-i18n="l.thplat">平台</th><th class="num" data-i18n="l.thspend">花费</th><th class="num">ROAS</th><th class="num">CPA</th><th class="num">CTR</th><th class="num" data-i18n="l.freq">频次</th><th data-i18n="l.thdec">决策</th></tr></thead>
         <tbody>
           <tr><td class="nm"><span class="thumb tg1"></span>AstralDrift · Hina</td><td class="plat">TikTok · JP</td><td class="num">¥12,000</td><td class="num g">3.6×</td><td class="num">¥820</td><td class="num">1.58%</td><td class="num">1.8</td><td><span class="bdg scale">SCALE</span></td></tr>
           <tr><td class="nm"><span class="thumb tg2"></span>DTC_US_Prospecting_v3</td><td class="plat">Meta · US</td><td class="num">$200</td><td class="num g">3.8×</td><td class="num">$18</td><td class="num">1.40%</td><td class="num">1.8</td><td><span class="bdg scale">SCALE</span></td></tr>
@@ -507,106 +507,106 @@ button{cursor:pointer}
     <div class="card sel" data-card="c1">
       <div class="head"><span class="act scale">SCALE +20%</span><span class="title">AstralDrift · Hina <span class="plat">· TikTok · JP</span></span><span class="budget">¥12,000<span class="arrow">→</span><span class="up">¥18,000</span></span><span class="conf high">HIGH</span></div>
       <div class="body">
-        <div class="why"><div class="lab">为什么</div><p data-i18n="c1why">8 信号全绿，样本充足。Hina 素材在 JP 核心人群 CTR 是基线 2.1×，且未饱和——明确的扩量空间。</p><div class="guard">自动撤回：<span class="mono">CPP &gt; ¥1,500</span> 或 <span class="mono">CTR 跌 &gt; 15%</span></div></div>
+        <div class="why"><div class="lab" data-i18n="l.why">为什么</div><p data-i18n="c1why">8 信号全绿，样本充足。Hina 素材在 JP 核心人群 CTR 是基线 2.1×，且未饱和——明确的扩量空间。</p><div class="guard" data-i18n="c1guard">自动撤回：<span class="mono">CPP &gt; ¥1,500</span> 或 <span class="mono">CTR 跌 &gt; 15%</span></div></div>
         <div class="vdiv"></div>
-        <div class="sigs"><div class="lab">8 信号 · 8/8</div>
+        <div class="sigs"><div class="lab" data-i18n="l.sig8">8 信号 · 8/8</div>
           <div class="sigrow"><span class="dd g"></span><span class="nm">CPP</span><span class="val">¥820</span></div>
           <div class="sigrow"><span class="dd g"></span><span class="nm">ROAS</span><span class="val">3.6×</span></div>
           <div class="sigrow"><span class="dd g"></span><span class="nm">CTR</span><span class="val">1.58%</span></div>
-          <div class="sigrow"><span class="dd g"></span><span class="nm">频次</span><span class="val">1.8</span></div>
-          <div class="sigrow"><span class="dd g"></span><span class="nm">成交</span><span class="val">1,247</span></div>
+          <div class="sigrow"><span class="dd g"></span><span class="nm" data-i18n="l.freq">频次</span><span class="val">1.8</span></div>
+          <div class="sigrow"><span class="dd g"></span><span class="nm" data-i18n="l.purch">成交</span><span class="val">1,247</span></div>
         </div>
       </div>
-      <div class="foot"><span class="next">下次检查 · 48 小时</span><div class="btns"><button class="mini">修改</button><button class="mini">忽略</button><button class="mini approve">批准</button></div></div>
+      <div class="foot"><span class="next" data-i18n="l.next1">下次检查 · 48 小时</span><div class="btns"><button class="mini" data-i18n="l.bmodify">修改</button><button class="mini" data-i18n="l.bdismiss">忽略</button><button class="mini approve" data-i18n="l.bapprove">批准</button></div></div>
     </div>
 
     <div class="card" data-card="c2">
       <div class="head"><span class="act scale">SCALE +10%</span><span class="title">DTC_US_Prospecting_v3 <span class="plat">· Meta · US</span></span><span class="budget">$200<span class="arrow">→</span><span class="up">$240</span></span><span class="conf med">MEDIUM</span></div>
       <div class="body">
-        <div class="why"><div class="lab">为什么</div><p data-i18n="c2why">信号良好，但日成交（11）刚过最小样本线。薄样本激进扩量会反噬 CPP——保守 +10%，而非 +20%。</p><div class="guard">自动撤回：<span class="mono">CPP &gt; $22</span> 或 <span class="mono">CTR 跌 &gt; 15%</span></div></div>
+        <div class="why"><div class="lab" data-i18n="l.why">为什么</div><p data-i18n="c2why">信号良好，但日成交（11）刚过最小样本线。薄样本激进扩量会反噬 CPP——保守 +10%，而非 +20%。</p><div class="guard" data-i18n="c2guard">自动撤回：<span class="mono">CPP &gt; $22</span> 或 <span class="mono">CTR 跌 &gt; 15%</span></div></div>
         <div class="vdiv"></div>
-        <div class="sigs"><div class="lab">8 信号 · 7/8</div>
+        <div class="sigs"><div class="lab" data-i18n="l.sig7">8 信号 · 7/8</div>
           <div class="sigrow"><span class="dd g"></span><span class="nm">CPP</span><span class="val">$18.00</span></div>
           <div class="sigrow"><span class="dd g"></span><span class="nm">ROAS</span><span class="val">3.8×</span></div>
-          <div class="sigrow"><span class="dd y"></span><span class="nm">成交</span><span class="val">11 · 偏薄</span></div>
+          <div class="sigrow"><span class="dd y"></span><span class="nm" data-i18n="l.purch">成交</span><span class="val" data-i18n="l.thin">11 · 偏薄</span></div>
           <div class="sigrow"><span class="dd g"></span><span class="nm">CTR</span><span class="val">1.4%</span></div>
-          <div class="sigrow"><span class="dd g"></span><span class="nm">频次</span><span class="val">1.8</span></div>
+          <div class="sigrow"><span class="dd g"></span><span class="nm" data-i18n="l.freq">频次</span><span class="val">1.8</span></div>
         </div>
       </div>
-      <div class="foot"><span class="next">下次检查 · 48 小时</span><div class="btns"><button class="mini">修改</button><button class="mini">忽略</button><button class="mini approve">批准</button></div></div>
+      <div class="foot"><span class="next" data-i18n="l.next1">下次检查 · 48 小时</span><div class="btns"><button class="mini" data-i18n="l.bmodify">修改</button><button class="mini" data-i18n="l.bdismiss">忽略</button><button class="mini approve" data-i18n="l.bapprove">批准</button></div></div>
     </div>
 
     <div class="card" data-card="c4">
-      <div class="head"><span class="act refresh">REFRESH</span><span class="title">IG_Reels_Hero <span class="plat">· Meta · US</span></span><span class="budget">保持 $300</span><span class="conf med">MEDIUM</span></div>
+      <div class="head"><span class="act refresh">REFRESH</span><span class="title">IG_Reels_Hero <span class="plat">· Meta · US</span></span><span class="budget" data-i18n="l.hold">保持 $300</span><span class="conf med">MEDIUM</span></div>
       <div class="body">
-        <div class="why"><div class="lab">为什么</div><p data-i18n="c4why">核心经济仍绿（CPP $17、ROAS 3.2×），但频次到 2.6（超 2.5 上限）且 CTR 衰减——素材在饱和。别硬扩：先换。Strategist 已基于赢家钩子草拟 3 个变体。</p><div class="guard">3 个变体就绪 · 在「创意」里复核</div></div>
+        <div class="why"><div class="lab" data-i18n="l.why">为什么</div><p data-i18n="c4why">核心经济仍绿（CPP $17、ROAS 3.2×），但频次到 2.6（超 2.5 上限）且 CTR 衰减——素材在饱和。别硬扩：先换。Strategist 已基于赢家钩子草拟 3 个变体。</p><div class="guard" data-i18n="c4guard">3 个变体就绪 · 在「创意」里复核</div></div>
         <div class="vdiv"></div>
-        <div class="sigs"><div class="lab">8 信号 · 5/8</div>
-          <div class="sigrow"><span class="dd r"></span><span class="nm">频次</span><span class="val">2.6</span></div>
+        <div class="sigs"><div class="lab" data-i18n="l.sig5">8 信号 · 5/8</div>
+          <div class="sigrow"><span class="dd r"></span><span class="nm" data-i18n="l.freq">频次</span><span class="val">2.6</span></div>
           <div class="sigrow"><span class="dd y"></span><span class="nm">CTR</span><span class="val">↓ 1.1%</span></div>
           <div class="sigrow"><span class="dd g"></span><span class="nm">CPP</span><span class="val">$17.00</span></div>
           <div class="sigrow"><span class="dd g"></span><span class="nm">ROAS</span><span class="val">3.2×</span></div>
         </div>
       </div>
-      <div class="foot"><span class="next">变体 QA 中</span><div class="btns"><button class="mini" data-view="creative">看变体</button><button class="mini approve">批准换素材</button></div></div>
+      <div class="foot"><span class="next" data-i18n="l.next4">变体 QA 中</span><div class="btns"><button class="mini" data-view="creative" data-i18n="l.bvariants">看变体</button><button class="mini approve" data-i18n="l.baprefresh">批准换素材</button></div></div>
     </div>
 
     <div class="card" data-card="c3">
       <div class="head"><span class="act pause">PAUSE</span><span class="title">Casual_Game_Broad_v1 <span class="plat">· TikTok · SEA</span></span><span class="budget">$240<span class="arrow">→</span><span class="zero">$0</span></span><span class="conf high">HIGH</span></div>
       <div class="body">
-        <div class="why"><div class="lab">为什么</div><p data-i18n="c3why">CPP 和 ROAS 双红——单位经济已崩，且样本足够（38 单）确认不是噪声。每多花一块都在买更差的用户。止损，腾出的 $240 流向赢家。</p><div class="guard">再分配交给 Allocator → 见下方分配卡</div></div>
+        <div class="why"><div class="lab" data-i18n="l.why">为什么</div><p data-i18n="c3why">CPP 和 ROAS 双红——单位经济已崩，且样本足够（38 单）确认不是噪声。每多花一块都在买更差的用户。止损，腾出的 $240 流向赢家。</p><div class="guard" data-i18n="c3guard">再分配交给 Allocator → 见下方分配卡</div></div>
         <div class="vdiv"></div>
-        <div class="sigs"><div class="lab">8 信号 · 2/8</div>
+        <div class="sigs"><div class="lab" data-i18n="l.sig2">8 信号 · 2/8</div>
           <div class="sigrow"><span class="dd r"></span><span class="nm">CPP</span><span class="val">$40.00</span></div>
           <div class="sigrow"><span class="dd r"></span><span class="nm">ROAS</span><span class="val">1.4×</span></div>
           <div class="sigrow"><span class="dd r"></span><span class="nm">CVR</span><span class="val">1.1%</span></div>
           <div class="sigrow"><span class="dd r"></span><span class="nm">CTR</span><span class="val">0.8%</span></div>
-          <div class="sigrow"><span class="dd y"></span><span class="nm">频次</span><span class="val">2.4</span></div>
+          <div class="sigrow"><span class="dd y"></span><span class="nm" data-i18n="l.freq">频次</span><span class="val">2.4</span></div>
         </div>
       </div>
-      <div class="foot"><span class="next">下次同步时停止</span><div class="btns"><button class="mini">继续跑</button><button class="mini approve">批准暂停</button></div></div>
+      <div class="foot"><span class="next" data-i18n="l.next3">下次同步时停止</span><div class="btns"><button class="mini" data-i18n="l.bkeep">继续跑</button><button class="mini approve" data-i18n="l.bappause">批准暂停</button></div></div>
     </div>
     <div class="block editor">
-      <div class="bhead"><span class="ic">▣</span><span class="h">应用这些改动 · 6 campaign</span><span class="sub">Copilot · 等你批准后写入</span></div>
+      <div class="bhead"><span class="ic">▣</span><span class="h" data-i18n="l.edh">应用这些改动 · 6 campaign</span><span class="sub" data-i18n="l.edsub">Copilot · 等你批准后写入</span></div>
       <table class="dt">
-        <thead><tr><th>Campaign</th><th>平台</th><th class="num">当前/天</th><th>新预算/天</th><th>目标 ROAS</th><th>决策</th><th>状态</th></tr></thead>
+        <thead><tr><th>Campaign</th><th data-i18n="l.thplat">平台</th><th class="num" data-i18n="l.edcur">当前/天</th><th data-i18n="l.ednew">新预算/天</th><th data-i18n="l.edtroas">目标 ROAS</th><th data-i18n="l.thdec">决策</th><th data-i18n="l.edstatus">状态</th></tr></thead>
         <tbody>
-          <tr><td class="nm"><span class="thumb tg1"></span>AstralDrift · Hina</td><td class="plat">TikTok · JP</td><td class="num">¥12,000</td><td><input class="bnum" value="18000"></td><td><input class="bnum" value="3.0"></td><td><span class="bdg scale">SCALE</span></td><td><span class="tag">就绪</span></td></tr>
-          <tr><td class="nm"><span class="thumb tg2"></span>DTC_US_Prospecting_v3</td><td class="plat">Meta · US</td><td class="num">$200</td><td><input class="bnum" value="240"></td><td><input class="bnum" value="3.0"></td><td><span class="bdg scale">SCALE</span></td><td><span class="tag">就绪</span></td></tr>
-          <tr><td class="nm"><span class="thumb tg7"></span>Retargeting_7d</td><td class="plat">Meta · US</td><td class="num">$120</td><td><input class="bnum" value="120"></td><td><input class="bnum" value="4.0"></td><td><span class="bdg refresh">REFRESH</span></td><td><span class="tag">需素材</span></td></tr>
-          <tr><td class="nm"><span class="thumb tg3"></span>IG_Reels_Hero</td><td class="plat">Meta · US</td><td class="num">$300</td><td><input class="bnum" value="300"></td><td><input class="bnum" value="3.0"></td><td><span class="bdg refresh">REFRESH</span></td><td><span class="tag">3 变体就绪</span></td></tr>
-          <tr><td class="nm"><span class="thumb tg4"></span>Broad_Interest_v4</td><td class="plat">TikTok · SEA</td><td class="num">$160</td><td><input class="bnum" value="0"></td><td><input class="bnum" value="—" disabled></td><td><span class="bdg pause">PAUSE</span></td><td><span class="tag">就绪</span></td></tr>
-          <tr><td class="nm"><span class="thumb tg8"></span>Casual_Game_Broad_v1</td><td class="plat">TikTok · SEA</td><td class="num">$240</td><td><input class="bnum" value="0"></td><td><input class="bnum" value="—" disabled></td><td><span class="bdg pause">PAUSE</span></td><td><span class="tag">就绪</span></td></tr>
+          <tr><td class="nm"><span class="thumb tg1"></span>AstralDrift · Hina</td><td class="plat">TikTok · JP</td><td class="num">¥12,000</td><td><input class="bnum" value="18000"></td><td><input class="bnum" value="3.0"></td><td><span class="bdg scale">SCALE</span></td><td><span class="tag" data-i18n="l.stready">就绪</span></td></tr>
+          <tr><td class="nm"><span class="thumb tg2"></span>DTC_US_Prospecting_v3</td><td class="plat">Meta · US</td><td class="num">$200</td><td><input class="bnum" value="240"></td><td><input class="bnum" value="3.0"></td><td><span class="bdg scale">SCALE</span></td><td><span class="tag" data-i18n="l.stready">就绪</span></td></tr>
+          <tr><td class="nm"><span class="thumb tg7"></span>Retargeting_7d</td><td class="plat">Meta · US</td><td class="num">$120</td><td><input class="bnum" value="120"></td><td><input class="bnum" value="4.0"></td><td><span class="bdg refresh">REFRESH</span></td><td><span class="tag" data-i18n="l.stneed">需素材</span></td></tr>
+          <tr><td class="nm"><span class="thumb tg3"></span>IG_Reels_Hero</td><td class="plat">Meta · US</td><td class="num">$300</td><td><input class="bnum" value="300"></td><td><input class="bnum" value="3.0"></td><td><span class="bdg refresh">REFRESH</span></td><td><span class="tag" data-i18n="l.stvar">3 变体就绪</span></td></tr>
+          <tr><td class="nm"><span class="thumb tg4"></span>Broad_Interest_v4</td><td class="plat">TikTok · SEA</td><td class="num">$160</td><td><input class="bnum" value="0"></td><td><input class="bnum" value="—" disabled></td><td><span class="bdg pause">PAUSE</span></td><td><span class="tag" data-i18n="l.stready">就绪</span></td></tr>
+          <tr><td class="nm"><span class="thumb tg8"></span>Casual_Game_Broad_v1</td><td class="plat">TikTok · SEA</td><td class="num">$240</td><td><input class="bnum" value="0"></td><td><input class="bnum" value="—" disabled></td><td><span class="bdg pause">PAUSE</span></td><td><span class="tag" data-i18n="l.stready">就绪</span></td></tr>
         </tbody>
       </table>
       <div class="bulk">
-        <span style="font-weight:600;font-size:12px">批量改：</span>
-        <span class="fld">全部预算 <input class="bnum" placeholder="—"></span>
-        <span class="fld">全部目标 ROAS <input class="bnum" value="3.0"></span>
-        <button class="btn">应用到全部</button>
-        <span style="margin-left:auto;font-size:11px;color:var(--text-3)">活动名模板 <span class="mono">Drip_{platform}_{campaign}_{date}</span></span>
+        <span style="font-weight:600;font-size:12px" data-i18n="l.bulk">批量改：</span>
+        <span class="fld"><span data-i18n="l.bulkbud">全部预算</span> <input class="bnum" placeholder="—"></span>
+        <span class="fld"><span data-i18n="l.bulkroas">全部目标 ROAS</span> <input class="bnum" value="3.0"></span>
+        <button class="btn" data-i18n="l.bulkapply">应用到全部</button>
+        <span style="margin-left:auto;font-size:11px;color:var(--text-3)"><span data-i18n="l.tmpl">活动名模板</span> <span class="mono">Drip_{platform}_{campaign}_{date}</span></span>
       </div>
       <div class="efoot">
-        <div class="tags"><span class="tag">6 就绪</span><span class="tag">2 扩 · 2 换 · 2 停</span><span class="tag">净额 +$0/天 · 上限内</span></div>
-        <div style="display:flex;gap:8px"><button class="btn">取消</button><button class="btn primary" data-view="publish">应用 6 项改动 →</button></div>
+        <div class="tags"><span class="tag" data-i18n="l.efready">6 就绪</span><span class="tag" data-i18n="l.mix">2 扩 · 2 换 · 2 停</span><span class="tag" data-i18n="l.efnet">净额 +$0/天 · 上限内</span></div>
+        <div style="display:flex;gap:8px"><button class="btn" data-i18n="l.bcancel">取消</button><button class="btn primary" data-view="publish" data-i18n="l.bapply6">应用 6 项改动 →</button></div>
       </div>
     </div>
     <div class="alloc">
-      <div class="h"><span class="ic">◑</span>跨平台预算分配 · 应用后</div>
+      <div class="h"><span class="ic">◑</span><span data-i18n="l.alh">跨平台预算分配 · 应用后</span></div>
       <div class="grid">
-        <div class="donut"><div class="ctr"><div class="n mono">$3,500</div><div class="l">/ 天</div></div></div>
+        <div class="donut"><div class="ctr"><div class="n mono">$3,500</div><div class="l" data-i18n="l.perday">/ 天</div></div></div>
         <div class="legend">
           <div class="li"><span class="sw" style="background:var(--accent)"></span><span class="nm">Meta</span><span class="mv">52% · $1,820</span></div>
           <div class="li"><span class="sw" style="background:var(--accent-2)"></span><span class="nm">TikTok</span><span class="mv">36% · $1,260</span></div>
           <div class="li"><span class="sw" style="background:#c7d9f7"></span><span class="nm">Google</span><span class="mv">12% · $420</span></div>
         </div>
       </div>
-      <div class="note">止损腾出 <span class="mono">$400</span> + 上限内扩量：TikTok JP <span class="mono">+¥6,000</span>、Meta US <span class="mono">+$40</span>。两条 SEA 归零。总额仍 ≤ <span class="mono">$3,500/天</span> 上限，不需额外预算。</div>
+      <div class="note" data-i18n="l.alnote">止损腾出 <span class="mono">$400</span> + 上限内扩量：TikTok JP <span class="mono">+¥6,000</span>、Meta US <span class="mono">+$40</span>。两条 SEA 归零。总额仍 ≤ <span class="mono">$3,500/天</span> 上限，不需额外预算。</div>
     </div>
 
   </div></div>
 
-  <div class="msg user"><div class="bubble">为什么 DTC 那条只 +10%，不跟 Hina 一样 +20%？</div></div>
+  <div class="msg user"><div class="bubble" data-i18n="l.q2">为什么 DTC 那条只 +10%，不跟 Hina 一样 +20%？</div></div>
 
   <div class="msg bot"><div class="ava">D</div><div class="content">
     <p class="intro" data-i18n="b.a2">因为它卡在「样本薄」这条规则上。它 8 个信号里 7 个绿，本来够格 +20%；但日成交只有 <strong>11 单</strong>（低于 30 的最小样本线），成交信号判黄。规则在薄样本上把置信度从 HIGH 压到 <strong>MEDIUM</strong>，扩量步长也随之从 +20% 收到 <strong>+10%</strong>——这正是资深操盘手在数据不足时会做的事：先小步加，等样本厚了再提速。右栏「为什么 · 审计」里规则链第 2、3 步就是这个判断，可点 DTC 那张卡查看完整链路。</p>
@@ -701,12 +701,12 @@ button{cursor:pointer}
     <div class="screen" id="view-decisions"><div class="screen-in">
       <div class="scrn-head"><span class="ic">▤</span><h2>决策队列</h2><span class="sub">规则决定 · LLM 解释 · 你批准 · 6 项待批</span></div>
       <div class="dq">
-        <div class="dqrow"><span class="act scale">SCALE +20%</span><div class="dqm"><div class="nm">AstralDrift · Hina <span class="plat">· TikTok · JP</span></div><div class="rs">8 信号全绿、未饱和 —— 明确扩量空间</div></div><span class="budget">¥12,000 → <span class="up">¥18,000</span></span><span class="conf high">HIGH</span><button class="mini approve">批准</button></div>
-        <div class="dqrow"><span class="act scale">SCALE +10%</span><div class="dqm"><div class="nm">DTC_US_Prospecting_v3 <span class="plat">· Meta · US</span></div><div class="rs">信号好但样本薄(11 单)—— 保守加</div></div><span class="budget">$200 → <span class="up">$240</span></span><span class="conf med">MEDIUM</span><button class="mini approve">批准</button></div>
-        <div class="dqrow"><span class="act refresh">REFRESH</span><div class="dqm"><div class="nm">IG_Reels_Hero <span class="plat">· Meta · US</span></div><div class="rs">频次 2.6 超上限、CTR 衰减 —— 先换素材</div></div><span class="budget">保持 $300</span><span class="conf med">MEDIUM</span><button class="mini approve">批准换素材</button></div>
-        <div class="dqrow"><span class="act refresh">REFRESH</span><div class="dqm"><div class="nm">Retargeting_7d <span class="plat">· Meta · US</span></div><div class="rs">ROAS 5.2× 但频次 3.1 过高 —— 扩受众 + 换素材</div></div><span class="budget">保持 $120</span><span class="conf med">MEDIUM</span><button class="mini approve">批准</button></div>
-        <div class="dqrow"><span class="act pause">PAUSE</span><div class="dqm"><div class="nm">Broad_Interest_v4 <span class="plat">· TikTok · SEA</span></div><div class="rs">ROAS 1.9×、CPA 翻倍 —— 止损</div></div><span class="budget">$160 → <span class="zero">$0</span></span><span class="conf high">HIGH</span><button class="mini approve">批准暂停</button></div>
-        <div class="dqrow"><span class="act pause">PAUSE</span><div class="dqm"><div class="nm">Casual_Game_Broad_v1 <span class="plat">· TikTok · SEA</span></div><div class="rs">CPP/ROAS 双红、样本足 —— 止损</div></div><span class="budget">$240 → <span class="zero">$0</span></span><span class="conf high">HIGH</span><button class="mini approve">批准暂停</button></div>
+        <div class="dqrow"><span class="act scale">SCALE +20%</span><div class="dqm"><div class="nm">AstralDrift · Hina <span class="plat">· TikTok · JP</span></div><div class="rs">8 信号全绿、未饱和 —— 明确扩量空间</div></div><span class="budget">¥12,000 → <span class="up">¥18,000</span></span><span class="conf high">HIGH</span><button class="mini approve" data-i18n="l.bapprove">批准</button></div>
+        <div class="dqrow"><span class="act scale">SCALE +10%</span><div class="dqm"><div class="nm">DTC_US_Prospecting_v3 <span class="plat">· Meta · US</span></div><div class="rs">信号好但样本薄(11 单)—— 保守加</div></div><span class="budget">$200 → <span class="up">$240</span></span><span class="conf med">MEDIUM</span><button class="mini approve" data-i18n="l.bapprove">批准</button></div>
+        <div class="dqrow"><span class="act refresh">REFRESH</span><div class="dqm"><div class="nm">IG_Reels_Hero <span class="plat">· Meta · US</span></div><div class="rs">频次 2.6 超上限、CTR 衰减 —— 先换素材</div></div><span class="budget" data-i18n="l.hold">保持 $300</span><span class="conf med">MEDIUM</span><button class="mini approve" data-i18n="l.baprefresh">批准换素材</button></div>
+        <div class="dqrow"><span class="act refresh">REFRESH</span><div class="dqm"><div class="nm">Retargeting_7d <span class="plat">· Meta · US</span></div><div class="rs">ROAS 5.2× 但频次 3.1 过高 —— 扩受众 + 换素材</div></div><span class="budget">保持 $120</span><span class="conf med">MEDIUM</span><button class="mini approve" data-i18n="l.bapprove">批准</button></div>
+        <div class="dqrow"><span class="act pause">PAUSE</span><div class="dqm"><div class="nm">Broad_Interest_v4 <span class="plat">· TikTok · SEA</span></div><div class="rs">ROAS 1.9×、CPA 翻倍 —— 止损</div></div><span class="budget">$160 → <span class="zero">$0</span></span><span class="conf high">HIGH</span><button class="mini approve" data-i18n="l.bappause">批准暂停</button></div>
+        <div class="dqrow"><span class="act pause">PAUSE</span><div class="dqm"><div class="nm">Casual_Game_Broad_v1 <span class="plat">· TikTok · SEA</span></div><div class="rs">CPP/ROAS 双红、样本足 —— 止损</div></div><span class="budget">$240 → <span class="zero">$0</span></span><span class="conf high">HIGH</span><button class="mini approve" data-i18n="l.bappause">批准暂停</button></div>
       </div>
       <div class="scrn-foot"><div class="info">点任一条 → 右栏看完整 8 信号 + 规则链 + 可回放</div><div style="display:flex;gap:8px"><button class="btn">全部忽略</button><button class="btn primary" data-view="publish">批准全部 6 项 →</button></div></div>
     </div></div>
@@ -717,7 +717,7 @@ button{cursor:pointer}
       <div class="sect">按平台</div>
       <div class="fcard" style="padding:18px"><div class="alloc" style="border:none;margin:0;padding:0">
         <div class="grid">
-          <div class="donut"><div class="ctr"><div class="n mono">$3,500</div><div class="l">/ 天</div></div></div>
+          <div class="donut"><div class="ctr"><div class="n mono">$3,500</div><div class="l" data-i18n="l.perday">/ 天</div></div></div>
           <div class="legend">
             <div class="li"><span class="sw" style="background:var(--accent)"></span><span class="nm">Meta</span><span class="mv">52% · $1,820</span></div>
             <div class="li"><span class="sw" style="background:var(--accent-2)"></span><span class="nm">TikTok</span><span class="mv">36% · $1,260</span></div>
@@ -726,7 +726,7 @@ button{cursor:pointer}
         </div>
       </div></div>
       <div class="sect">按 campaign(应用后)</div>
-      <table class="rtable"><thead><tr><th>Campaign</th><th>平台</th><th>当前/天</th><th>新预算/天</th><th>Δ</th></tr></thead><tbody>
+      <table class="rtable"><thead><tr><th>Campaign</th><th data-i18n="l.thplat">平台</th><th>当前/天</th><th>新预算/天</th><th>Δ</th></tr></thead><tbody>
         <tr><td class="k">AstralDrift · Hina</td><td>TikTok · JP</td><td>¥12,000</td><td>¥18,000</td><td><span class="pill">+¥6,000</span></td></tr>
         <tr><td class="k">DTC_US_Prospecting_v3</td><td>Meta · US</td><td>$200</td><td>$240</td><td><span class="pill">+$40</span></td></tr>
         <tr><td class="k">Broad_Interest_v4</td><td>TikTok · SEA</td><td>$160</td><td>$0</td><td><span style="color:var(--red);font-weight:600;font-size:11px">−$160</span></td></tr>
@@ -775,38 +775,38 @@ button{cursor:pointer}
 
   <aside class="rrail"><div class="rr-grip" id="rrGrip"></div>
     <details class="rp" open>
-      <summary><span class="tw">▸</span>运行进度<span class="ct">5 步</span></summary>
+      <summary><span class="tw">▸</span><span data-i18n="r.progress">运行进度</span><span class="ct" data-i18n="r.steps">5 步</span></summary>
       <div class="pbody">
-        <div class="pstep done"><span class="n">✓</span><span class="tx">拉取 4 账户 insights · 32 campaign</span></div>
-        <div class="pstep done"><span class="n">✓</span><span class="tx">评估 8 信号 / campaign（thresholds v2）</span></div>
-        <div class="pstep done"><span class="n">✓</span><span class="tx">跑规则引擎 → 6 项决策</span></div>
-        <div class="pstep done"><span class="n">✓</span><span class="tx">Allocator 计算跨平台分配</span></div>
-        <div class="pstep now"><span class="n">5</span><span class="tx">等你批准 6 项改动后写入</span></div>
+        <div class="pstep done"><span class="n">✓</span><span class="tx" data-i18n="r.s1">拉取 4 账户 insights · 32 campaign</span></div>
+        <div class="pstep done"><span class="n">✓</span><span class="tx" data-i18n="r.s2">评估 8 信号 / campaign（thresholds v2）</span></div>
+        <div class="pstep done"><span class="n">✓</span><span class="tx" data-i18n="r.s3">跑规则引擎 → 6 项决策</span></div>
+        <div class="pstep done"><span class="n">✓</span><span class="tx" data-i18n="r.s4">Allocator 计算跨平台分配</span></div>
+        <div class="pstep now"><span class="n">5</span><span class="tx" data-i18n="r.s5">等你批准 6 项改动后写入</span></div>
       </div>
     </details>
 
     <details class="rp rp-audit" open>
-      <summary><span class="tw">▸</span>为什么 · 审计<span class="ct" id="wpTag">点卡片切换</span></summary>
+      <summary><span class="tw">▸</span><span data-i18n="r.audit">为什么 · 审计</span><span class="ct" id="wpTag">点卡片切换</span></summary>
       <div class="pbody">
         <div class="whead"><div class="nm" id="wpName">AstralDrift · Hina</div><div class="plat" id="wpPlat">TikTok · JP</div><div class="vd"><span class="act scale" id="wpAct">SCALE +20%</span><span class="conf high" id="wpConf">HIGH</span></div></div>
-        <div class="wsec">8 信号向量<span class="ct" id="wpCount">8/8</span></div>
+        <div class="wsec"><span data-i18n="r.sigvec">8 信号向量</span><span class="ct" id="wpCount">8/8</span></div>
         <div id="wpSigs"></div>
         <div class="dvr"></div>
-        <div class="wsec">规则链</div>
+        <div class="wsec" data-i18n="r.rules">规则链</div>
         <div id="wpRules"></div>
         <div class="dvr"></div>
-        <div class="wsec">可回放 / 审计</div>
+        <div class="wsec" data-i18n="r.replay">可回放 / 审计</div>
         <div class="replay">
-          <div class="row"><span class="k">输入</span><span class="v" id="wpHash">sha · 7f3a91c4</span></div>
-          <div class="row"><span class="k">阈值</span><span class="v">thresholds · v2</span></div>
-          <div class="row"><span class="k">引擎</span><span class="v">engine · 0.4.0</span></div>
-          <button>重放这次决策 →</button>
+          <div class="row"><span class="k" data-i18n="r.inputs">输入</span><span class="v" id="wpHash">sha · 7f3a91c4</span></div>
+          <div class="row"><span class="k" data-i18n="r.thresholds">阈值</span><span class="v">thresholds · v2</span></div>
+          <div class="row"><span class="k" data-i18n="r.engine">引擎</span><span class="v">engine · 0.4.0</span></div>
+          <button data-i18n="r.replaybtn">重放这次决策 →</button>
         </div>
       </div>
     </details>
 
     <details class="rp">
-      <summary><span class="tw">▸</span>素材库<span class="ct">12</span></summary>
+      <summary><span class="tw">▸</span><span data-i18n="r.lib">素材库</span><span class="ct">12</span></summary>
       <div class="pbody">
         <div class="litem"><span class="thumb tg1"></span><span class="nm">Hina_hook_v3.mp4</span><span class="meta">CTR 1.58%</span></div>
         <div class="litem"><span class="thumb tg3"></span><span class="nm">IG_Reels_variant_A</span><span class="meta">QA 中</span></div>
@@ -873,6 +873,48 @@ const I18N_BODY = {
 "de":{"b.intro":"<strong>4 Konten · 32 Kampagnen · heutige Ausgaben 3.240 $</strong> gescannt. Alle 8 Signale bewertet; die Regeln sagen: <strong>2 skalieren, 2 erneuern, 2 stoppen</strong>, Rest halten. Unten: Diagnose, Entscheidungskarten und eine freigabefertige Änderungsliste.","b.s1":"Insights aus 4 Konten · 32 Kampagnen (Meta + TikTok), normalisiert auf ein <span class='mono'>AdMetrics</span>-Schema","b.s2":"Jede Kampagne anhand von 8 Signalen gegen <span class='mono'>thresholds v2</span> bewertet (CPP/ROAS/CVR/CTR/Frequenz/Ausgaben/Käufe/Spielraum)","b.s3":"Regel-Engine → <span class='mono'>2 SCALE · 2 REFRESH · 2 PAUSE · 26 HOLD</span>","b.s4":"Konfidenz gedeckelt, wo die Stichprobe dünn war (DTC: nur 11 Käufe → MEDIUM)","b.s5":"Allocator leitete freigewordenes Budget zurück an die Gewinner, gesamt im Limit von <span class='mono'>3.500 $/Tag</span>","c1why":"Alle 8 Signale grün bei dicker Stichprobe. Das Hina-Creative schlägt die CTR-Baseline um das 2,1-Fache in der JP-Kernzielgruppe und ist nicht gesättigt — klarer Skalierungsspielraum.","c2why":"Gute Signale, aber die täglichen Käufe (11) überschreiten kaum die Mindeststichprobe. Aggressives Skalieren bei dünner Stichprobe verschlechtert den CPP — daher konservativ +10%, nicht +20%.","c4why":"Ökonomie noch grün (CPP 17 $, ROAS 3,2×), aber die Frequenz erreichte 2,6 (über dem 2,5-Limit) und die CTR sinkt — das Creative sättigt. Nicht gegen die Wand skalieren: erst erneuern. Strategist hat 3 Varianten entworfen.","c3why":"CPP und ROAS beide rot — die Unit Economics sind kaputt, und die Stichprobe (38) reicht, um zu wissen, dass es kein Rauschen ist. Jeder weitere Dollar kauft eine schlechtere Kohorte. Stoppen; die freien 240 $ fließen zu den Gewinnern.","b.narr":"<strong>Lesart:</strong> die Gewinner ballen sich in <strong>TikTok JP</strong> und <strong>Meta-US-Retargeting (ROAS 5,2×)</strong>. Zwei SEA-Broad-Sets mit kaputter Ökonomie — Stoppen macht 400 $ frei. Zwei Meta-Sets über dem Frequenzlimit mit sinkender CTR — erneuern, nicht erzwingen.","b.a2":"Weil sie die Dünne-Stichprobe-Regel ausgelöst hat. 7 ihrer 8 Signale sind grün — das qualifiziert für +20%. Aber die täglichen Käufe lagen bei nur <strong>11</strong> (unter dem Minimum von 30), daher wird das Käufe-Signal gelb. Bei dünner Stichprobe senkt die Regel die Konfidenz von HIGH auf <strong>MEDIUM</strong> und den Schritt von +20% auf <strong>+10%</strong> — genau das, was ein erfahrener Buyer bei dünnen Daten tut."}
 };
 for (const _l in I18N_BODY) { if (I18N[_l]) Object.assign(I18N[_l], I18N_BODY[_l]); }
+// ---- console short labels ----
+const I18N_LBL = {
+"zh-CN":{"l.q1":"诊断我这 4 个账户，排出今天该扩 / 该停的，给一份预算分配方案，把要改的活动准备好让我批。","l.q2":"为什么 DTC 那条只 +10%，不跟 Hina 一样 +20%？","l.mantra":"规则决定 · LLM 只解释 · 你批准","l.cot":"我是怎么定的 · 确定性、可回放","l.seal":"可审计","l.diag":"诊断 · 4 账户 / 32 campaign","l.why":"为什么","l.freq":"频次","l.purch":"成交","l.next1":"下次检查 · 48 小时","l.next3":"下次同步时停止","l.next4":"变体 QA 中","l.hold":"保持 $300","l.kspend":"日花费","l.kroas":"综合 ROAS","l.kconv":"转化","l.kawait":"待批准","l.kdspend":"上限 $3,500","l.kdroas":"↑ 0.4× vs 上周","l.mix":"2 扩 · 2 换 · 2 停","l.7d":"近 7 天","l.thplat":"平台","l.thspend":"花费","l.thdec":"决策","l.bmodify":"修改","l.bdismiss":"忽略","l.bapprove":"批准","l.bkeep":"继续跑","l.bappause":"批准暂停","l.baprefresh":"批准换素材","l.bvariants":"看变体","l.edh":"应用这些改动 · 6 campaign","l.edsub":"Copilot · 等你批准后写入","l.edcur":"当前/天","l.ednew":"新预算/天","l.edtroas":"目标 ROAS","l.edstatus":"状态","l.stready":"就绪","l.stneed":"需素材","l.stvar":"3 变体就绪","l.bulk":"批量改：","l.bulkbud":"全部预算","l.bulkroas":"全部目标 ROAS","l.bulkapply":"应用到全部","l.tmpl":"活动名模板","l.efready":"6 就绪","l.efnet":"净额 +$0/天 · 上限内","l.bcancel":"取消","l.bapply6":"应用 6 项改动 →","l.alh":"跨平台预算分配 · 应用后","l.perday":"/ 天","l.alnote":"止损腾出 <span class='mono'>$400</span>，在上限内回流给两条赢家；总额不变，无需追加预算。"},
+"zh-TW":{"l.q1":"診斷我這 4 個帳戶，排出今天該擴 / 該停的，給一份預算分配方案，把要改的活動準備好讓我批。","l.q2":"為什麼 DTC 那條只 +10%，不跟 Hina 一樣 +20%？","l.mantra":"規則決定 · LLM 只解釋 · 你批准","l.cot":"我是怎麼定的 · 確定性、可回放","l.seal":"可稽核","l.diag":"診斷 · 4 帳戶 / 32 campaign","l.why":"為什麼","l.freq":"頻次","l.purch":"成交","l.next1":"下次檢查 · 48 小時","l.next3":"下次同步時停止","l.next4":"變體 QA 中","l.hold":"維持 $300","l.kspend":"日花費","l.kroas":"綜合 ROAS","l.kconv":"轉化","l.kawait":"待批准","l.kdspend":"上限 $3,500","l.kdroas":"↑ 0.4× vs 上週","l.mix":"2 擴 · 2 換 · 2 停","l.7d":"近 7 天","l.thplat":"平台","l.thspend":"花費","l.thdec":"決策","l.bmodify":"修改","l.bdismiss":"忽略","l.bapprove":"批准","l.bkeep":"繼續跑","l.bappause":"批准暫停","l.baprefresh":"批准換素材","l.bvariants":"看變體","l.edh":"套用這些改動 · 6 campaign","l.edsub":"Copilot · 等你批准後寫入","l.edcur":"目前/天","l.ednew":"新預算/天","l.edtroas":"目標 ROAS","l.edstatus":"狀態","l.stready":"就緒","l.stneed":"需素材","l.stvar":"3 變體就緒","l.bulk":"批次改：","l.bulkbud":"全部預算","l.bulkroas":"全部目標 ROAS","l.bulkapply":"套用到全部","l.tmpl":"活動名範本","l.efready":"6 就緒","l.efnet":"淨額 +$0/天 · 上限內","l.bcancel":"取消","l.bapply6":"套用 6 項改動 →","l.alh":"跨平台預算分配 · 套用後","l.perday":"/ 天","l.alnote":"止損騰出 <span class='mono'>$400</span>，在上限內回流給兩條贏家；總額不變，無需追加預算。"},
+"en":{"l.q1":"Diagnose my 4 accounts, rank today's scale / cut, give a budget plan, and stage the changes for me to approve.","l.q2":"Why only +10% on DTC, not +20% like Hina?","l.mantra":"rules decide · the LLM explains · you approve","l.cot":"How I decided · deterministic, replayable","l.seal":"auditable","l.diag":"Diagnosis · 4 accounts / 32 campaigns","l.why":"Why","l.freq":"Freq","l.purch":"Purch","l.next1":"next check · 48h","l.next3":"stops at next sync","l.next4":"variants in QA","l.hold":"hold $300","l.kspend":"Spend / day","l.kroas":"Blended ROAS","l.kconv":"Conversions","l.kawait":"Awaiting","l.kdspend":"cap $3,500","l.kdroas":"↑ 0.4× vs last wk","l.mix":"2 scale · 2 refresh · 2 cut","l.7d":"last 7 days","l.thplat":"Platform","l.thspend":"Spend","l.thdec":"Decision","l.bmodify":"Modify","l.bdismiss":"Dismiss","l.bapprove":"Approve","l.bkeep":"Keep running","l.bappause":"Approve pause","l.baprefresh":"Approve refresh","l.bvariants":"View variants","l.edh":"Apply these changes · 6 campaigns","l.edsub":"Copilot · writes after you approve","l.edcur":"current/day","l.ednew":"new budget/day","l.edtroas":"target ROAS","l.edstatus":"Status","l.stready":"ready","l.stneed":"needs video","l.stvar":"3 variants ready","l.bulk":"Bulk edit:","l.bulkbud":"all budgets","l.bulkroas":"all target ROAS","l.bulkapply":"Apply to all","l.tmpl":"Campaign name template","l.efready":"6 ready","l.efnet":"net +$0/day · within cap","l.bcancel":"Cancel","l.bapply6":"Apply 6 changes →","l.alh":"Cross-platform allocation · after apply","l.perday":"/ day","l.alnote":"Cutting frees <span class='mono'>$400</span>, routed to the two winners within the cap; total unchanged, no extra budget needed."},
+"ja":{"l.q1":"4 アカウントを診断し、今日の拡大 / 停止を並べ、予算配分案を出し、変更を承認用に用意して。","l.q2":"なぜ DTC は Hina の +20% でなく +10% だけ？","l.mantra":"ルールが決定 · LLM が説明 · あなたが承認","l.cot":"判断の根拠 · 確定的・再現可能","l.seal":"監査可能","l.diag":"診断 · 4 アカウント / 32 キャンペーン","l.why":"理由","l.freq":"頻度","l.purch":"成約","l.next1":"次回 · 48時間","l.next3":"次回同期で停止","l.next4":"変種 QA 中","l.hold":"$300 維持","l.kspend":"日次支出","l.kroas":"総合 ROAS","l.kconv":"CV","l.kawait":"承認待ち","l.kdspend":"上限 $3,500","l.kdroas":"↑ 0.4× 前週比","l.mix":"2 拡大 · 2 刷新 · 2 停止","l.7d":"直近 7 日","l.thplat":"プラットフォーム","l.thspend":"支出","l.thdec":"判断","l.bmodify":"修正","l.bdismiss":"却下","l.bapprove":"承認","l.bkeep":"継続","l.bappause":"停止を承認","l.baprefresh":"刷新を承認","l.bvariants":"変種を見る","l.edh":"この変更を適用 · 6 キャンペーン","l.edsub":"Copilot · 承認後に書き込み","l.edcur":"現在/日","l.ednew":"新予算/日","l.edtroas":"目標 ROAS","l.edstatus":"状態","l.stready":"準備完了","l.stneed":"素材必要","l.stvar":"3 案準備完了","l.bulk":"一括変更：","l.bulkbud":"全予算","l.bulkroas":"全目標 ROAS","l.bulkapply":"全てに適用","l.tmpl":"キャンペーン名テンプレ","l.efready":"6 準備完了","l.efnet":"純額 +$0/日 · 上限内","l.bcancel":"取消","l.bapply6":"6 件の変更を適用 →","l.alh":"クロスプラットフォーム配分 · 適用後","l.perday":"/ 日","l.alnote":"停止で <span class='mono'>$400</span> を捻出、上限内で 2 件の勝者へ還流；総額は不変、追加予算不要。"},
+"ko":{"l.q1":"내 4개 계정을 진단하고, 오늘 확대 / 중단을 정리하고, 예산 배분안을 주고, 변경을 승인용으로 준비해줘.","l.q2":"왜 DTC는 Hina처럼 +20%가 아니라 +10%만?","l.mantra":"규칙이 결정 · LLM이 설명 · 당신이 승인","l.cot":"내가 결정한 방식 · 결정적, 재현 가능","l.seal":"감사 가능","l.diag":"진단 · 4 계정 / 32 캠페인","l.why":"이유","l.freq":"빈도","l.purch":"구매","l.next1":"다음 점검 · 48시간","l.next3":"다음 동기화 시 중지","l.next4":"변형 QA 중","l.hold":"$300 유지","l.kspend":"일 지출","l.kroas":"통합 ROAS","l.kconv":"전환","l.kawait":"승인 대기","l.kdspend":"한도 $3,500","l.kdroas":"↑ 0.4× 전주 대비","l.mix":"2 확대 · 2 교체 · 2 중단","l.7d":"최근 7일","l.thplat":"플랫폼","l.thspend":"지출","l.thdec":"결정","l.bmodify":"수정","l.bdismiss":"무시","l.bapprove":"승인","l.bkeep":"계속 실행","l.bappause":"중지 승인","l.baprefresh":"교체 승인","l.bvariants":"변형 보기","l.edh":"이 변경 적용 · 6 캠페인","l.edsub":"Copilot · 승인 후 기록","l.edcur":"현재/일","l.ednew":"새 예산/일","l.edtroas":"목표 ROAS","l.edstatus":"상태","l.stready":"준비됨","l.stneed":"소재 필요","l.stvar":"3 변형 준비","l.bulk":"일괄 변경:","l.bulkbud":"전체 예산","l.bulkroas":"전체 목표 ROAS","l.bulkapply":"전체 적용","l.tmpl":"캠페인 이름 템플릿","l.efready":"6 준비","l.efnet":"순액 +$0/일 · 한도 내","l.bcancel":"취소","l.bapply6":"6개 변경 적용 →","l.alh":"크로스 플랫폼 배분 · 적용 후","l.perday":"/ 일","l.alnote":"중단으로 <span class='mono'>$400</span> 확보, 한도 내에서 두 승자로 환류; 총액 불변, 추가 예산 불필요."},
+"es":{"l.q1":"Diagnostica mis 4 cuentas, ordena hoy qué escalar / cortar, da un plan de presupuesto y deja los cambios listos para aprobar.","l.q2":"¿Por qué solo +10% en DTC y no +20% como Hina?","l.mantra":"las reglas deciden · el LLM explica · tú apruebas","l.cot":"Cómo decidí · determinista, reproducible","l.seal":"auditable","l.diag":"Diagnóstico · 4 cuentas / 32 campañas","l.why":"Por qué","l.freq":"Frec.","l.purch":"Compras","l.next1":"próx. revisión · 48h","l.next3":"se detiene en la próxima sync","l.next4":"variantes en QA","l.hold":"mantener $300","l.kspend":"Gasto / día","l.kroas":"ROAS combinado","l.kconv":"Conversiones","l.kawait":"Pendiente","l.kdspend":"tope $3,500","l.kdroas":"↑ 0.4× vs sem. ant.","l.mix":"2 escalar · 2 renovar · 2 cortar","l.7d":"últimos 7 días","l.thplat":"Plataforma","l.thspend":"Gasto","l.thdec":"Decisión","l.bmodify":"Modificar","l.bdismiss":"Descartar","l.bapprove":"Aprobar","l.bkeep":"Mantener","l.bappause":"Aprobar pausa","l.baprefresh":"Aprobar renovación","l.bvariants":"Ver variantes","l.edh":"Aplicar estos cambios · 6 campañas","l.edsub":"Copilot · escribe tras tu aprobación","l.edcur":"actual/día","l.ednew":"nuevo presup./día","l.edtroas":"ROAS objetivo","l.edstatus":"Estado","l.stready":"listo","l.stneed":"falta video","l.stvar":"3 variantes listas","l.bulk":"Edición masiva:","l.bulkbud":"todos los presup.","l.bulkroas":"todos los ROAS objetivo","l.bulkapply":"Aplicar a todo","l.tmpl":"Plantilla de nombre","l.efready":"6 listos","l.efnet":"neto +$0/día · dentro del tope","l.bcancel":"Cancelar","l.bapply6":"Aplicar 6 cambios →","l.alh":"Asignación multiplataforma · tras aplicar","l.perday":"/ día","l.alnote":"Cortar libera <span class='mono'>$400</span>, enviados a los dos ganadores dentro del tope; total sin cambios, sin presupuesto extra."},
+"pt":{"l.q1":"Diagnostique minhas 4 contas, ordene hoje o que escalar / cortar, dê um plano de orçamento e prepare as mudanças para eu aprovar.","l.q2":"Por que só +10% na DTC e não +20% como a Hina?","l.mantra":"as regras decidem · o LLM explica · você aprova","l.cot":"Como decidi · determinístico, reproduzível","l.seal":"auditável","l.diag":"Diagnóstico · 4 contas / 32 campanhas","l.why":"Por quê","l.freq":"Freq.","l.purch":"Compras","l.next1":"próx. verificação · 48h","l.next3":"para na próxima sync","l.next4":"variações em QA","l.hold":"manter $300","l.kspend":"Gasto / dia","l.kroas":"ROAS combinado","l.kconv":"Conversões","l.kawait":"Pendente","l.kdspend":"teto $3,500","l.kdroas":"↑ 0.4× vs sem. ant.","l.mix":"2 escalar · 2 renovar · 2 cortar","l.7d":"últimos 7 dias","l.thplat":"Plataforma","l.thspend":"Gasto","l.thdec":"Decisão","l.bmodify":"Modificar","l.bdismiss":"Descartar","l.bapprove":"Aprovar","l.bkeep":"Manter","l.bappause":"Aprovar pausa","l.baprefresh":"Aprovar renovação","l.bvariants":"Ver variações","l.edh":"Aplicar estas mudanças · 6 campanhas","l.edsub":"Copilot · grava após sua aprovação","l.edcur":"atual/dia","l.ednew":"novo orç./dia","l.edtroas":"ROAS alvo","l.edstatus":"Status","l.stready":"pronto","l.stneed":"falta vídeo","l.stvar":"3 variações prontas","l.bulk":"Edição em massa:","l.bulkbud":"todos os orç.","l.bulkroas":"todos os ROAS alvo","l.bulkapply":"Aplicar a todos","l.tmpl":"Modelo de nome","l.efready":"6 prontos","l.efnet":"líquido +$0/dia · dentro do teto","l.bcancel":"Cancelar","l.bapply6":"Aplicar 6 mudanças →","l.alh":"Alocação multiplataforma · após aplicar","l.perday":"/ dia","l.alnote":"Cortar libera <span class='mono'>$400</span>, enviados aos dois vencedores dentro do teto; total inalterado, sem orçamento extra."},
+"vi":{"l.q1":"Chẩn đoán 4 tài khoản của tôi, xếp hôm nay nên mở rộng / dừng, đưa kế hoạch ngân sách và chuẩn bị các thay đổi để tôi duyệt.","l.q2":"Vì sao DTC chỉ +10% mà không +20% như Hina?","l.mantra":"quy tắc quyết định · LLM giải thích · bạn duyệt","l.cot":"Cách tôi quyết định · xác định, tái lập","l.seal":"kiểm toán được","l.diag":"Chẩn đoán · 4 tài khoản / 32 chiến dịch","l.why":"Vì sao","l.freq":"Tần suất","l.purch":"Đơn","l.next1":"kiểm tra sau · 48h","l.next3":"dừng ở lần sync sau","l.next4":"biến thể đang QA","l.hold":"giữ $300","l.kspend":"Chi tiêu / ngày","l.kroas":"ROAS tổng","l.kconv":"Chuyển đổi","l.kawait":"Chờ duyệt","l.kdspend":"trần $3,500","l.kdroas":"↑ 0.4× so tuần trước","l.mix":"2 mở rộng · 2 đổi · 2 dừng","l.7d":"7 ngày qua","l.thplat":"Nền tảng","l.thspend":"Chi tiêu","l.thdec":"Quyết định","l.bmodify":"Sửa","l.bdismiss":"Bỏ qua","l.bapprove":"Duyệt","l.bkeep":"Tiếp tục","l.bappause":"Duyệt dừng","l.baprefresh":"Duyệt đổi nội dung","l.bvariants":"Xem biến thể","l.edh":"Áp dụng thay đổi · 6 chiến dịch","l.edsub":"Copilot · ghi sau khi bạn duyệt","l.edcur":"hiện tại/ngày","l.ednew":"ngân sách mới/ngày","l.edtroas":"ROAS mục tiêu","l.edstatus":"Trạng thái","l.stready":"sẵn sàng","l.stneed":"cần video","l.stvar":"3 biến thể sẵn sàng","l.bulk":"Sửa hàng loạt:","l.bulkbud":"tất cả ngân sách","l.bulkroas":"tất cả ROAS mục tiêu","l.bulkapply":"Áp dụng tất cả","l.tmpl":"Mẫu tên chiến dịch","l.efready":"6 sẵn sàng","l.efnet":"ròng +$0/ngày · trong trần","l.bcancel":"Huỷ","l.bapply6":"Áp dụng 6 thay đổi →","l.alh":"Phân bổ đa nền tảng · sau khi áp dụng","l.perday":"/ ngày","l.alnote":"Dừng giải phóng <span class='mono'>$400</span>, dồn cho hai bên thắng trong trần; tổng không đổi, không cần thêm ngân sách."},
+"fr":{"l.q1":"Diagnostique mes 4 comptes, classe ce qu'il faut scaler / couper aujourd'hui, donne un plan budgétaire et prépare les changements à valider.","l.q2":"Pourquoi seulement +10% sur DTC, pas +20% comme Hina ?","l.mantra":"les règles décident · le LLM explique · vous validez","l.cot":"Comment j'ai décidé · déterministe, rejouable","l.seal":"auditable","l.diag":"Diagnostic · 4 comptes / 32 campagnes","l.why":"Pourquoi","l.freq":"Fréq.","l.purch":"Achats","l.next1":"prochaine vérif · 48h","l.next3":"s'arrête à la prochaine sync","l.next4":"variantes en QA","l.hold":"maintenir 300 $","l.kspend":"Dépense / j","l.kroas":"ROAS global","l.kconv":"Conversions","l.kawait":"En attente","l.kdspend":"plafond 3 500 $","l.kdroas":"↑ 0,4× vs sem. préc.","l.mix":"2 scaler · 2 renouveler · 2 couper","l.7d":"7 derniers jours","l.thplat":"Plateforme","l.thspend":"Dépense","l.thdec":"Décision","l.bmodify":"Modifier","l.bdismiss":"Ignorer","l.bapprove":"Valider","l.bkeep":"Continuer","l.bappause":"Valider la pause","l.baprefresh":"Valider le renouvellement","l.bvariants":"Voir les variantes","l.edh":"Appliquer ces changements · 6 campagnes","l.edsub":"Copilot · écrit après validation","l.edcur":"actuel/j","l.ednew":"nouveau budget/j","l.edtroas":"ROAS cible","l.edstatus":"Statut","l.stready":"prêt","l.stneed":"vidéo requise","l.stvar":"3 variantes prêtes","l.bulk":"Édition groupée :","l.bulkbud":"tous les budgets","l.bulkroas":"tous les ROAS cibles","l.bulkapply":"Appliquer à tout","l.tmpl":"Modèle de nom","l.efready":"6 prêts","l.efnet":"net +0 $/j · dans le plafond","l.bcancel":"Annuler","l.bapply6":"Appliquer 6 changements →","l.alh":"Allocation multiplateforme · après application","l.perday":"/ j","l.alnote":"Couper libère <span class='mono'>400 $</span>, réinjectés vers les deux gagnants sous le plafond ; total inchangé, aucun budget supplémentaire."},
+"de":{"l.q1":"Diagnostiziere meine 4 Konten, ordne heute Skalieren / Stoppen, gib einen Budgetplan und stelle die Änderungen zur Freigabe bereit.","l.q2":"Warum nur +10% bei DTC, nicht +20% wie Hina?","l.mantra":"Regeln entscheiden · das LLM erklärt · du gibst frei","l.cot":"Wie ich entschied · deterministisch, reproduzierbar","l.seal":"prüfbar","l.diag":"Diagnose · 4 Konten / 32 Kampagnen","l.why":"Warum","l.freq":"Freq.","l.purch":"Käufe","l.next1":"nächste Prüfung · 48 Std","l.next3":"stoppt beim nächsten Sync","l.next4":"Varianten in QA","l.hold":"300 $ halten","l.kspend":"Ausgaben / Tag","l.kroas":"Gesamt-ROAS","l.kconv":"Conversions","l.kawait":"Ausstehend","l.kdspend":"Limit 3.500 $","l.kdroas":"↑ 0,4× vs. Vorwoche","l.mix":"2 skalieren · 2 erneuern · 2 stoppen","l.7d":"letzte 7 Tage","l.thplat":"Plattform","l.thspend":"Ausgaben","l.thdec":"Entscheidung","l.bmodify":"Ändern","l.bdismiss":"Verwerfen","l.bapprove":"Freigeben","l.bkeep":"Weiterlaufen","l.bappause":"Stopp freigeben","l.baprefresh":"Erneuern freigeben","l.bvariants":"Varianten ansehen","l.edh":"Diese Änderungen anwenden · 6 Kampagnen","l.edsub":"Copilot · schreibt nach Freigabe","l.edcur":"aktuell/Tag","l.ednew":"neues Budget/Tag","l.edtroas":"Ziel-ROAS","l.edstatus":"Status","l.stready":"bereit","l.stneed":"Video nötig","l.stvar":"3 Varianten bereit","l.bulk":"Massenbearbeitung:","l.bulkbud":"alle Budgets","l.bulkroas":"alle Ziel-ROAS","l.bulkapply":"Auf alle anwenden","l.tmpl":"Kampagnennamen-Vorlage","l.efready":"6 bereit","l.efnet":"netto +0 $/Tag · im Limit","l.bcancel":"Abbrechen","l.bapply6":"6 Änderungen anwenden →","l.alh":"Plattformübergreifende Zuteilung · nach Anwendung","l.perday":"/ Tag","l.alnote":"Stoppen macht <span class='mono'>$400</span> frei, an die zwei Gewinner im Limit umgeleitet; Summe unverändert, kein Extrabudget nötig."}
+};
+for (const _l in I18N_LBL) { if (I18N[_l]) Object.assign(I18N[_l], I18N_LBL[_l]); }
+// ---- right rail (static labels) ----
+const I18N_RR = {
+"zh-CN":{"r.progress":"运行进度","r.steps":"5 步","r.s1":"拉取 4 账户 insights · 32 campaign","r.s2":"评估 8 信号 / campaign（thresholds v2）","r.s3":"跑规则引擎 → 6 项决策","r.s4":"Allocator 计算跨平台分配","r.s5":"等你批准 6 项改动后写入","r.audit":"为什么 · 审计","r.sigvec":"8 信号向量","r.rules":"规则链","r.replay":"可回放 / 审计","r.inputs":"输入","r.thresholds":"阈值","r.engine":"引擎","r.replaybtn":"重放这次决策 →","r.lib":"素材库"},
+"zh-TW":{"r.progress":"執行進度","r.steps":"5 步","r.s1":"拉取 4 帳戶 insights · 32 campaign","r.s2":"評估 8 信號 / campaign（thresholds v2）","r.s3":"跑規則引擎 → 6 項決策","r.s4":"Allocator 計算跨平台分配","r.s5":"等你批准 6 項改動後寫入","r.audit":"為什麼 · 稽核","r.sigvec":"8 信號向量","r.rules":"規則鏈","r.replay":"可重播 / 稽核","r.inputs":"輸入","r.thresholds":"閾值","r.engine":"引擎","r.replaybtn":"重播這次決策 →","r.lib":"素材庫"},
+"en":{"r.progress":"Run progress","r.steps":"5 steps","r.s1":"Pull insights · 4 accounts · 32 campaigns","r.s2":"Score 8 signals / campaign (thresholds v2)","r.s3":"Run rule engine → 6 decisions","r.s4":"Allocator computes cross-platform split","r.s5":"Awaiting your approval of 6 changes","r.audit":"Why · audit","r.sigvec":"8-signal vector","r.rules":"Rule chain","r.replay":"Replay / audit","r.inputs":"inputs","r.thresholds":"thresholds","r.engine":"engine","r.replaybtn":"Replay this decision →","r.lib":"Library"},
+"ja":{"r.progress":"実行の進捗","r.steps":"5 ステップ","r.s1":"insights 取得 · 4 アカウント · 32 キャンペーン","r.s2":"8 シグナル評価 / campaign（thresholds v2）","r.s3":"ルールエンジン実行 → 6 件の判断","r.s4":"Allocator がクロスPF配分を計算","r.s5":"6 件の変更の承認待ち","r.audit":"理由 · 監査","r.sigvec":"8 シグナルベクトル","r.rules":"ルールチェーン","r.replay":"再現 / 監査","r.inputs":"入力","r.thresholds":"閾値","r.engine":"エンジン","r.replaybtn":"この判断を再生 →","r.lib":"ライブラリ"},
+"ko":{"r.progress":"실행 진행","r.steps":"5 단계","r.s1":"insights 수집 · 4 계정 · 32 캠페인","r.s2":"8 신호 평가 / campaign(thresholds v2)","r.s3":"규칙 엔진 실행 → 6 결정","r.s4":"Allocator가 크로스플랫폼 배분 계산","r.s5":"6개 변경 승인 대기","r.audit":"이유 · 감사","r.sigvec":"8 신호 벡터","r.rules":"규칙 체인","r.replay":"재현 / 감사","r.inputs":"입력","r.thresholds":"임계값","r.engine":"엔진","r.replaybtn":"이 결정 재생 →","r.lib":"라이브러리"},
+"es":{"r.progress":"Progreso","r.steps":"5 pasos","r.s1":"Insights · 4 cuentas · 32 campañas","r.s2":"8 señales / campaña (thresholds v2)","r.s3":"Motor de reglas → 6 decisiones","r.s4":"Allocator calcula el reparto multiplataforma","r.s5":"Esperando tu aprobación de 6 cambios","r.audit":"Por qué · auditoría","r.sigvec":"Vector de 8 señales","r.rules":"Cadena de reglas","r.replay":"Reproducir / auditar","r.inputs":"entradas","r.thresholds":"umbrales","r.engine":"motor","r.replaybtn":"Reproducir esta decisión →","r.lib":"Biblioteca"},
+"pt":{"r.progress":"Progresso","r.steps":"5 passos","r.s1":"Insights · 4 contas · 32 campanhas","r.s2":"8 sinais / campanha (thresholds v2)","r.s3":"Motor de regras → 6 decisões","r.s4":"Allocator calcula o rateio multiplataforma","r.s5":"Aguardando sua aprovação de 6 mudanças","r.audit":"Por quê · auditoria","r.sigvec":"Vetor de 8 sinais","r.rules":"Cadeia de regras","r.replay":"Reproduzir / auditar","r.inputs":"entradas","r.thresholds":"limiares","r.engine":"motor","r.replaybtn":"Reproduzir esta decisão →","r.lib":"Biblioteca"},
+"vi":{"r.progress":"Tiến trình","r.steps":"5 bước","r.s1":"Lấy insights · 4 tài khoản · 32 chiến dịch","r.s2":"Chấm 8 tín hiệu / chiến dịch (thresholds v2)","r.s3":"Chạy bộ quy tắc → 6 quyết định","r.s4":"Allocator tính phân bổ đa nền tảng","r.s5":"Chờ bạn duyệt 6 thay đổi","r.audit":"Vì sao · kiểm toán","r.sigvec":"Vector 8 tín hiệu","r.rules":"Chuỗi quy tắc","r.replay":"Phát lại / kiểm toán","r.inputs":"đầu vào","r.thresholds":"ngưỡng","r.engine":"engine","r.replaybtn":"Phát lại quyết định này →","r.lib":"Thư viện"},
+"fr":{"r.progress":"Progression","r.steps":"5 étapes","r.s1":"Insights · 4 comptes · 32 campagnes","r.s2":"8 signaux / campagne (thresholds v2)","r.s3":"Moteur de règles → 6 décisions","r.s4":"L'Allocator calcule la répartition multiplateforme","r.s5":"En attente de votre validation de 6 changements","r.audit":"Pourquoi · audit","r.sigvec":"Vecteur de 8 signaux","r.rules":"Chaîne de règles","r.replay":"Rejouer / auditer","r.inputs":"entrées","r.thresholds":"seuils","r.engine":"moteur","r.replaybtn":"Rejouer cette décision →","r.lib":"Bibliothèque"},
+"de":{"r.progress":"Ablauf","r.steps":"5 Schritte","r.s1":"Insights · 4 Konten · 32 Kampagnen","r.s2":"8 Signale / Kampagne (thresholds v2)","r.s3":"Regel-Engine → 6 Entscheidungen","r.s4":"Allocator berechnet die Verteilung","r.s5":"Warte auf deine Freigabe von 6 Änderungen","r.audit":"Warum · Audit","r.sigvec":"8-Signal-Vektor","r.rules":"Regelkette","r.replay":"Wiederholen / Audit","r.inputs":"Eingaben","r.thresholds":"Schwellen","r.engine":"Engine","r.replaybtn":"Diese Entscheidung wiederholen →","r.lib":"Bibliothek"}
+};
+for (const _l in I18N_RR) { if (I18N[_l]) Object.assign(I18N[_l], I18N_RR[_l]); }
+// ---- console guards + sig headers (completing the console) ----
+const I18N_G = {
+"zh-CN":{"c1guard":"自动撤回：<span class='mono'>CPP &gt; ¥1,500</span> 或 <span class='mono'>CTR 跌 &gt; 15%</span>","c2guard":"自动撤回：<span class='mono'>CPP &gt; $22</span> 或 <span class='mono'>CTR 跌 &gt; 15%</span>","c4guard":"3 个变体就绪 · 在「创意」里复核","c3guard":"再分配交给 Allocator → 见下方分配卡","l.sig8":"8 信号 · 8/8","l.sig7":"8 信号 · 7/8","l.sig5":"8 信号 · 5/8","l.sig2":"8 信号 · 2/8","l.thin":"11 · 偏薄","l.diagsub":"2026-05-29 · 09:14 抓取"},
+"zh-TW":{"c1guard":"自動撤回：<span class='mono'>CPP &gt; ¥1,500</span> 或 <span class='mono'>CTR 跌 &gt; 15%</span>","c2guard":"自動撤回：<span class='mono'>CPP &gt; $22</span> 或 <span class='mono'>CTR 跌 &gt; 15%</span>","c4guard":"3 個變體就緒 · 在「創意」裡複核","c3guard":"再分配交給 Allocator → 見下方分配卡","l.sig8":"8 信號 · 8/8","l.sig7":"8 信號 · 7/8","l.sig5":"8 信號 · 5/8","l.sig2":"8 信號 · 2/8","l.thin":"11 · 偏薄","l.diagsub":"2026-05-29 · 09:14 擷取"},
+"en":{"c1guard":"Auto-revert if <span class='mono'>CPP &gt; ¥1,500</span> or <span class='mono'>CTR drop &gt; 15%</span>","c2guard":"Auto-revert if <span class='mono'>CPP &gt; $22</span> or <span class='mono'>CTR drop &gt; 15%</span>","c4guard":"3 variants ready · review in Creative","c3guard":"Reallocation handled by Allocator → see card below","l.sig8":"8 signals · 8/8","l.sig7":"8 signals · 7/8","l.sig5":"8 signals · 5/8","l.sig2":"8 signals · 2/8","l.thin":"11 · thin","l.diagsub":"pulled 2026-05-29 · 09:14"},
+"ja":{"c1guard":"自動巻き戻し：<span class='mono'>CPP &gt; ¥1,500</span> または <span class='mono'>CTR 低下 &gt; 15%</span>","c2guard":"自動巻き戻し：<span class='mono'>CPP &gt; $22</span> または <span class='mono'>CTR 低下 &gt; 15%</span>","c4guard":"3 案準備完了 · クリエイティブで確認","c3guard":"再配分は Allocator が処理 → 下のカード参照","l.sig8":"8 シグナル · 8/8","l.sig7":"8 シグナル · 7/8","l.sig5":"8 シグナル · 5/8","l.sig2":"8 シグナル · 2/8","l.thin":"11 · 薄い","l.diagsub":"取得 2026-05-29 · 09:14"},
+"ko":{"c1guard":"자동 롤백: <span class='mono'>CPP &gt; ¥1,500</span> 또는 <span class='mono'>CTR 하락 &gt; 15%</span>","c2guard":"자동 롤백: <span class='mono'>CPP &gt; $22</span> 또는 <span class='mono'>CTR 하락 &gt; 15%</span>","c4guard":"3 변형 준비 · 크리에이티브에서 검토","c3guard":"재배분은 Allocator가 처리 → 아래 카드 참조","l.sig8":"8 신호 · 8/8","l.sig7":"8 신호 · 7/8","l.sig5":"8 신호 · 5/8","l.sig2":"8 신호 · 2/8","l.thin":"11 · 얇음","l.diagsub":"수집 2026-05-29 · 09:14"},
+"es":{"c1guard":"Revertir si <span class='mono'>CPP &gt; ¥1,500</span> o <span class='mono'>caída de CTR &gt; 15%</span>","c2guard":"Revertir si <span class='mono'>CPP &gt; $22</span> o <span class='mono'>caída de CTR &gt; 15%</span>","c4guard":"3 variantes listas · revisar en Creativos","c3guard":"Reasignación por Allocator → ver tarjeta abajo","l.sig8":"8 señales · 8/8","l.sig7":"8 señales · 7/8","l.sig5":"8 señales · 5/8","l.sig2":"8 señales · 2/8","l.thin":"11 · escasa","l.diagsub":"capturado 2026-05-29 · 09:14"},
+"pt":{"c1guard":"Reverter se <span class='mono'>CPP &gt; ¥1,500</span> ou <span class='mono'>queda de CTR &gt; 15%</span>","c2guard":"Reverter se <span class='mono'>CPP &gt; $22</span> ou <span class='mono'>queda de CTR &gt; 15%</span>","c4guard":"3 variações prontas · revisar em Criativos","c3guard":"Realocação pelo Allocator → ver cartão abaixo","l.sig8":"8 sinais · 8/8","l.sig7":"8 sinais · 7/8","l.sig5":"8 sinais · 5/8","l.sig2":"8 sinais · 2/8","l.thin":"11 · baixa","l.diagsub":"capturado 2026-05-29 · 09:14"},
+"vi":{"c1guard":"Tự hoàn nếu <span class='mono'>CPP &gt; ¥1,500</span> hoặc <span class='mono'>CTR giảm &gt; 15%</span>","c2guard":"Tự hoàn nếu <span class='mono'>CPP &gt; $22</span> hoặc <span class='mono'>CTR giảm &gt; 15%</span>","c4guard":"3 biến thể sẵn sàng · xem ở Creative","c3guard":"Phân bổ lại do Allocator → xem thẻ bên dưới","l.sig8":"8 tín hiệu · 8/8","l.sig7":"8 tín hiệu · 7/8","l.sig5":"8 tín hiệu · 5/8","l.sig2":"8 tín hiệu · 2/8","l.thin":"11 · mỏng","l.diagsub":"thu thập 2026-05-29 · 09:14"},
+"fr":{"c1guard":"Annulation auto si <span class='mono'>CPP &gt; ¥1,500</span> ou <span class='mono'>baisse CTR &gt; 15%</span>","c2guard":"Annulation auto si <span class='mono'>CPP &gt; $22</span> ou <span class='mono'>baisse CTR &gt; 15%</span>","c4guard":"3 variantes prêtes · à revoir dans Créa","c3guard":"Réallocation par l'Allocator → voir la carte ci-dessous","l.sig8":"8 signaux · 8/8","l.sig7":"8 signaux · 7/8","l.sig5":"8 signaux · 5/8","l.sig2":"8 signaux · 2/8","l.thin":"11 · faible","l.diagsub":"collecté 2026-05-29 · 09:14"},
+"de":{"c1guard":"Auto-Rückgängig bei <span class='mono'>CPP &gt; ¥1.500</span> oder <span class='mono'>CTR-Rückgang &gt; 15%</span>","c2guard":"Auto-Rückgängig bei <span class='mono'>CPP &gt; $22</span> oder <span class='mono'>CTR-Rückgang &gt; 15%</span>","c4guard":"3 Varianten bereit · in Creatives prüfen","c3guard":"Neuverteilung durch Allocator → Karte unten","l.sig8":"8 Signale · 8/8","l.sig7":"8 Signale · 7/8","l.sig5":"8 Signale · 5/8","l.sig2":"8 Signale · 2/8","l.thin":"11 · dünn","l.diagsub":"erfasst 2026-05-29 · 09:14"}
+};
+for (const _l in I18N_G) { if (I18N[_l]) Object.assign(I18N[_l], I18N_G[_l]); }
 function setLang(code){
   if(!I18N[code]) code = "zh-CN";
   curLang = code;
@@ -962,7 +1004,7 @@ if (pubGo) pubGo.addEventListener("click", () => {
 const replayBtn = document.querySelector(".replay button");
 if (replayBtn) replayBtn.addEventListener("click", () => {
   replayBtn.textContent = "✓ 已重放 · 输出一致";
-  setTimeout(() => { replayBtn.textContent = "重放这次决策 →"; }, 1800);
+  setTimeout(() => { replayBtn.textContent = (I18N[curLang] && I18N[curLang]["r.replaybtn"]) || "重放这次决策 →"; }, 1800);
 });
 // --- toast layer: every otherwise-dead button confirms it did something ---
 const _toasts = document.createElement("div"); _toasts.className = "toasts"; document.body.appendChild(_toasts);
