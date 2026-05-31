@@ -388,6 +388,31 @@ select.inp{cursor:pointer}
 .btn:active,.mini:active,.cbtn:active,.lang-btn:active,.panel-toggle:active,.send:active,.am-item:active,.seg button:active,.tabs button:active,.scene:active,.vcard:active,.dqrow:active{transform:scale(.975)}
 .send:active{transform:scale(.92)}
 button{cursor:pointer}
+/* ===== guided demo (roadshow / interview autoplay) ===== */
+.d-off{display:none!important}
+.d-in{animation:dIn .45s cubic-bezier(.22,.61,.36,1) both}
+@keyframes dIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.demo-pill{position:fixed;left:18px;bottom:18px;z-index:120;display:inline-flex;align-items:center;gap:7px;height:34px;padding:0 14px;border-radius:20px;border:1px solid var(--border-strong);background:var(--bg);color:var(--text);font-size:12.5px;font-weight:600;cursor:pointer;box-shadow:0 6px 20px rgba(16,24,40,.14)}
+.demo-pill:hover{border-color:var(--accent);color:var(--accent)}
+.demo-cap{position:fixed;left:50%;bottom:78px;transform:translateX(-50%);z-index:130;max-width:min(700px,92vw);background:rgba(18,22,30,.93);color:#fff;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);padding:13px 20px;border-radius:13px;font-size:14.5px;line-height:1.55;text-align:center;box-shadow:0 14px 44px rgba(0,0,0,.34);opacity:0;transition:opacity .35s ease;pointer-events:none}
+.demo-cap.show{opacity:1}
+.demo-cap .act{display:block;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#7fb0ff;margin-bottom:4px}
+.demo-ctl{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:131;display:flex;align-items:center;gap:5px;background:var(--bg);border:1px solid var(--border);border-radius:14px;padding:6px 8px;box-shadow:0 10px 34px rgba(16,24,40,.18)}
+.demo-ctl button{min-width:30px;height:30px;padding:0 4px;border-radius:8px;border:none;background:none;color:var(--text-2);cursor:pointer;display:grid;place-items:center;font-size:12px;font-family:var(--font)}
+.demo-ctl button:hover{background:var(--surface-2);color:var(--text)}
+.demo-ctl .pp{background:var(--accent);color:#fff}.demo-ctl .pp:hover{background:var(--accent-hover)}
+.demo-prog{display:flex;gap:5px;align-items:center;padding:0 9px}
+.demo-prog i{width:7px;height:7px;border-radius:50%;background:var(--border-strong);cursor:pointer;transition:background .2s,transform .2s}
+.demo-prog i.on{background:var(--accent);transform:scale(1.3)}
+.demo-prog i.done{background:var(--accent-2)}
+.type-cursor::after{content:"▋";color:var(--accent);animation:dblink 1s step-end infinite;font-weight:400}
+@keyframes dblink{50%{opacity:0}}
+.demo-end{border:1px solid var(--accent);border-radius:14px;background:linear-gradient(155deg,var(--accent-subtle),var(--bg) 62%);padding:22px}
+.demo-end h3{font-size:18px;font-weight:680;letter-spacing:-.02em;margin-bottom:7px}
+.demo-end .ds{font-size:13px;color:var(--text-2);line-height:1.65;margin-bottom:14px}
+.demo-end .dl{display:flex;flex-wrap:wrap;gap:8px}
+.demo-end .dl span{font-size:11.5px;font-weight:600;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:5px 11px}
+.demo-end .dl .gh{color:var(--accent);border-color:var(--accent)}
 /* approval gate · inline guardrails */
 .gate .bhead .ic{background:var(--accent-subtle);color:var(--accent)}
 .grows{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);border-bottom:1px solid var(--border)}
@@ -1275,6 +1300,157 @@ setLang(localStorage.getItem("drip-lang") || (function(){ const n = (navigator.l
     setTimeout(() => root.classList.remove("theming"), 360);
   });
   window.__applyTheme = apply;
+})();
+// ===== Guided demo · autoplay from a blank chat (built for roadshow / interview) =====
+(function(){
+  const body = document.body, appEl = $("app");
+  const isEN = () => (curLang && curLang.indexOf("en") === 0);
+  const tx = o => (isEN() ? (o.en || o.zh) : o.zh);
+  const C = (zh, en) => ({ zh, en });
+  const thread = () => document.querySelector(".thread-in");
+  const userMsgs = () => thread() ? [...thread().querySelectorAll(":scope > .msg.user")] : [];
+  const botMsgs  = () => thread() ? [...thread().querySelectorAll(":scope > .msg.bot")] : [];
+  let steps = [], idx = -1, playing = false, timer = null, started = false;
+  const clearT = () => { if (timer) { clearTimeout(timer); timer = null; } };
+  const hideNow = el => el && el.classList.add("d-off");
+  const showNow = el => { if (el) { el.classList.remove("d-off"); el.classList.remove("d-in"); } };
+  const showAnim = el => { if (el) { el.classList.remove("d-off"); void el.offsetWidth; el.classList.add("d-in"); } };
+  const scrollTo = el => el && el.scrollIntoView({ block: "center", behavior: "smooth" });
+  const last = a => a && a[a.length - 1];
+
+  function build(){
+    const b = botMsgs(), b1 = b[0], a2 = b[1], posthoc = b[2];
+    const q = (el, s) => el ? el.querySelector(s) : null;
+    const intro = q(b1, ".intro"), mantra = q(b1, ".mantra"), cot = q(b1, ".cot");
+    const diag = q(b1, ".block"), editor = q(b1, ".editor"), gate = $("gateCard"), alloc = q(b1, ".alloc");
+    const cards = b1 ? [...b1.querySelectorAll(".card[data-card]")] : [];
+    steps = [
+      { welcome:1, act:C("问题","The problem"), cap:C("操盘手每天第一件事:把跨平台、上百条 campaign 的数据拉到一起","Every operator's day starts the same way — pulling scattered cross-platform data together"), dwell:2800 },
+      { say:C("诊断我这 4 个账户,该加该停?","Diagnose my 4 accounts — scale or cut?"), toConsole:1, act:C("诊断","Diagnose"), cap:C("一句话——它不给建议,直接开始干活","One line — it doesn't advise, it goes to work"), dwell:1000 },
+      { reveal:[intro, mantra, cot], progress:[0,1], act:C("诊断","Diagnose"), cap:C("先把 4 个账户拉齐、归一到统一口径","First it pulls & normalizes all 4 accounts into one schema"), dwell:2800 },
+      { reveal:[diag], progress:[2], act:C("诊断","Diagnose"), cap:C("用 8 个确定性信号给每条 campaign 打分","Then scores every campaign on 8 deterministic signals"), dwell:2800 },
+      { stagger:cards, progress:[3], audit:"c1", act:C("护城河","The moat"), cap:C("规则决定该扩 / 换 / 停,LLM 只解释——右栏每条都可审计、可回放","Rules decide scale/refresh/cut; the LLM only explains — every call is auditable & replayable"), dwell:4200 },
+      { say:C("DTC 为什么只 +10%?","Why is DTC only +10%?"), user:1, reveal:[a2], act:C("信任","Trust"), cap:C("每个决定都能质询:样本太薄 → 自动从 +20% 压到 +10%","You can interrogate any call: thin sample → auto-capped from +20% to +10%"), dwell:3800 },
+      { reveal:[editor], act:C("执行","Execute"), cap:C("汇成一张可直接批的改动表","It all rolls up into one ready-to-approve change sheet"), dwell:2600 },
+      { reveal:[gate], act:C("信任","Trust"), cap:C("动钱之前先过你这关——护栏就是引擎阈值,改这里每条决策重推导","Nothing writes until you approve — the guardrails ARE the engine thresholds"), dwell:3800 },
+      { reveal:[alloc], progress:"done", act:C("赛道","The lane"), cap:C("止损腾出的钱跨 Meta / TikTok / Google 回流赢家——平台内没人做的'下一块钱去哪'","Freed budget flows across Meta/TikTok/Google to the winners — the cross-platform gap nobody fills"), dwell:4000 },
+      { say:C("上一轮咋样?","How did last cycle go?"), user:2, reveal:[posthoc], act:C("复利","Compounding"), cap:C("投后闭环:预测 vs 实际,护栏 0 触发,自动排出下一条建议","The loop closes — predicted vs actual, 0 guardrails fired, next move auto-queued"), dwell:4200 },
+      { view:"bench", act:C("可防御","Defensible"), cap:C("决策质量可被基准化、开放可复现——规则引擎把任何模型的分都抬高","Decision quality is benchmarked & reproducible — the engine lifts any model's score"), dwell:3800 },
+      { view:"console", end:1, act:"Drip", cap:C("开源 · 自托管 · 可审计——你现在就能 fork 跑起来","Open-source · self-hostable · auditable — fork it and run today"), dwell:7000 }
+    ];
+  }
+  function resetProgress(){
+    const ps = document.querySelectorAll(".rp .pstep");
+    ps.forEach((p,i) => { p.className = "pstep wait"; const n = p.querySelector(".n"); if (n) n.textContent = i + 1; });
+  }
+  function tickProgress(which){
+    const ps = document.querySelectorAll(".rp .pstep");
+    const done = p => { if (!p) return; p.classList.remove("now","wait"); p.classList.add("done"); const n = p.querySelector(".n"); if (n) n.textContent = "✓"; };
+    if (which === "done") { ps.forEach(done); return; }
+    which.forEach(i => done(ps[i]));
+    const nx = ps[Math.max(...which) + 1]; if (nx) { nx.classList.remove("wait"); nx.classList.add("now"); }
+  }
+  function allTargets(){
+    const t = []; steps.forEach(s => { if (s.reveal) t.push(...s.reveal); if (s.stagger) t.push(...s.stagger); });
+    userMsgs().forEach(u => t.push(u)); const e = $("demoEndMsg"); if (e) t.push(e); return t.filter(Boolean);
+  }
+  function hideAll(){ allTargets().forEach(hideNow); resetProgress(); }
+  function setCap(s){
+    const cap = $("demoCap"); if (!cap) return;
+    if (!s || !s.cap) { cap.classList.remove("show"); return; }
+    cap.innerHTML = '<span class="act">' + (s.act ? tx(typeof s.act === "string" ? {zh:s.act,en:s.act} : s.act) : "") + '</span>' + tx(s.cap);
+    cap.classList.add("show");
+  }
+  function activeTextarea(){
+    return appEl.classList.contains("welcome") ? $("welInput") : document.querySelector(".composer-wrap .composer textarea");
+  }
+  function typeInto(text, done){
+    const ta = activeTextarea(); if (!ta) { done && done(); return; }
+    ta.classList.add("type-cursor"); ta.value = ""; let i = 0;
+    (function tick(){
+      if (!playing) { timer = setTimeout(tick, 150); return; }
+      ta.value = text.slice(0, i); i++;
+      if (i <= text.length) timer = setTimeout(tick, 48);
+      else { ta.classList.remove("type-cursor"); timer = setTimeout(() => { ta.value = ""; done && done(); }, 400); }
+    })();
+  }
+  function showUserBubble(s){
+    const u = userMsgs(); const t = s.toConsole ? u[0] : (s.user != null ? u[s.user] : null);
+    if (t) { const b = t.querySelector(".bubble"); if (b) b.textContent = tx(s.say); showAnim(t); scrollTo(t); }
+  }
+  function effects(s){
+    if (s.view) setView(s.view);
+    if (s.audit && typeof render === "function") render(s.audit);
+    if (s.progress) tickProgress(s.progress);
+    if (s.reveal) { s.reveal.forEach(showAnim); scrollTo(last(s.reveal)); }
+    if (s.stagger) s.stagger.forEach((el,k) => setTimeout(() => { showAnim(el); scrollTo(el); }, k * 430));
+    if (s.end) { const e = $("demoEndMsg"); showAnim(e); scrollTo(e); }
+    setCap(s); updateProg();
+  }
+  function enter(i){
+    if (i < 0 || i >= steps.length) return; idx = i; const s = steps[i]; clearT();
+    const rest = () => { effects(s); if (playing) timer = setTimeout(() => { if (idx < steps.length - 1) enter(idx + 1); else { playing = false; updatePP(); } }, s.dwell || 2800); };
+    if (s.welcome) setView("welcome");
+    if (s.say) typeInto(tx(s.say), () => { if (s.toConsole) setView("console"); showUserBubble(s); rest(); });
+    else rest();
+  }
+  function seek(n){
+    clearT(); hideAll(); resetProgress();
+    for (let i = 0; i <= n; i++){ const s = steps[i];
+      if (s.welcome) setView("welcome");
+      if (s.say){ if (s.toConsole) setView("console"); const u = userMsgs(); const t = s.toConsole ? u[0] : u[s.user]; if (t){ const b = t.querySelector(".bubble"); if (b) b.textContent = tx(s.say); showNow(t); } }
+      if (s.view) setView(s.view);
+      if (s.audit && typeof render === "function") render(s.audit);
+      if (s.progress) tickProgress(s.progress);
+      if (s.reveal) s.reveal.forEach(showNow);
+      if (s.stagger) s.stagger.forEach(showNow);
+      if (s.end) showNow($("demoEndMsg"));
+    }
+    idx = n; setCap(steps[n]); updateProg(); scrollTo(thread() ? thread().lastElementChild : null);
+  }
+  function updateProg(){ const w = $("demoProg"); if (!w) return; [...w.children].forEach((d,i) => { d.className = i < idx ? "done" : (i === idx ? "on" : ""); }); }
+  function updatePP(){ const pp = $("demoPP"); if (pp) pp.textContent = playing ? "❚❚" : "▶"; }
+  function play(){ if (idx >= steps.length - 1) { seek(-1); idx = -1; } playing = true; updatePP(); enter(idx + 1); }
+  function pause(){ playing = false; clearT(); updatePP(); }
+  function toggle(){ playing ? pause() : play(); }
+  function exit(){ pause(); try { const u = new URL(location.href); u.searchParams.delete("demo"); location.href = u.toString(); } catch(e) { location.href = location.origin + location.pathname; } }
+
+  function injectChrome(){
+    if ($("demoCap")) return;
+    const cap = document.createElement("div"); cap.className = "demo-cap"; cap.id = "demoCap"; body.appendChild(cap);
+    const ctl = document.createElement("div"); ctl.className = "demo-ctl";
+    ctl.innerHTML = '<button id="demoPrev" title="上一步">◀</button><button class="pp" id="demoPP" title="播放/暂停">❚❚</button><button id="demoNext" title="下一步">▶</button><span class="demo-prog" id="demoProg"></span><button id="demoExit" title="退出">✕</button>';
+    body.appendChild(ctl);
+    const prog = ctl.querySelector("#demoProg");
+    steps.forEach((_, i) => { const d = document.createElement("i"); d.onclick = () => { pause(); seek(i); }; prog.appendChild(d); });
+    const tin = thread();
+    if (tin && !$("demoEndMsg")){
+      const e = document.createElement("div"); e.className = "msg bot"; e.id = "demoEndMsg";
+      e.innerHTML = '<div class="content"><div class="demo-end"><h3>' + tx(C("Drip — 增长操盘台 · 规则决定、可审计","Drip — the growth console · rules decide, fully auditable")) + '</h3><div class="ds">' + tx(C("8 信号决策引擎 · 跨平台预算再分配 · 每个动作可回放可审计 · 开源自托管。平台只在自己围墙内优化,Drip 优化「下一块钱跨平台去哪」。","8-signal decision engine · cross-platform budget reallocation · every action replayable & auditable · open-source and self-hostable. Platforms optimize inside their walls — Drip optimizes where the next dollar goes across them.")) + '</div><div class="dl"><span>⭐ Open-source</span><span>Self-hostable</span><span>8-signal engine</span><span>Replayable audit</span><span class="gh">github.com/YunyueLi/Drip</span></div></div></div>';
+      tin.appendChild(e);
+    }
+    $("demoPP").onclick = toggle; $("demoNext").onclick = () => { pause(); idx < steps.length - 1 && enter(idx + 1); };
+    $("demoPrev").onclick = () => { pause(); seek(Math.max(0, idx - 1)); };
+    $("demoExit").onclick = exit;
+    document.addEventListener("keydown", e => {
+      if (!body.classList.contains("demo-on")) return;
+      if (e.code === "Space") { e.preventDefault(); toggle(); }
+      else if (e.code === "ArrowRight") { pause(); idx < steps.length - 1 && enter(idx + 1); }
+      else if (e.code === "ArrowLeft") { pause(); seek(Math.max(0, idx - 1)); }
+      else if (e.key === "r" || e.key === "R") { seek(-1); idx = -1; play(); }
+      else if (e.code === "Escape") exit();
+    });
+  }
+  function start(){
+    if (started) { return; } started = true;
+    build(); body.classList.add("demo-on");
+    const pill = $("demoPill"); if (pill) pill.style.display = "none";
+    injectChrome(); hideAll(); setView("welcome");
+    playing = true; updatePP(); idx = -1; enter(0);
+  }
+  const pill = document.createElement("button"); pill.className = "demo-pill"; pill.id = "demoPill";
+  pill.innerHTML = '<span>▶</span><span>' + (isEN() ? "Watch demo" : "看演示") + '</span>'; pill.onclick = start; body.appendChild(pill);
+  try { if (new URLSearchParams(location.search).get("demo") === "1") setTimeout(start, 450); } catch(e){}
 })();
 </script>
 </body>
