@@ -43,9 +43,18 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:
 button{font-family:var(--font)}
 
 .app{display:grid;grid-template-columns:56px 1fr;grid-template-rows:100vh;height:100vh;overflow:hidden}
-.app.chatmode{grid-template-columns:56px 1fr 348px}
+.app.chatctx{grid-template-columns:56px 240px 1fr}
+.app.chatctx.chatmode{grid-template-columns:56px 240px 1fr 348px}
+.app:not(.chatctx) .chatlist{display:none}
 .app:not(.chatmode) .rrail{display:none}
-.app.welcome{grid-template-columns:56px 1fr}
+.chatlist{border-right:1px solid var(--border);background:var(--surface);display:flex;flex-direction:column;min-height:0;overflow:hidden}
+.cl-new{display:flex;align-items:center;justify-content:center;gap:8px;margin:12px 12px 6px;padding:9px 12px;border:1px solid var(--border-strong);border-radius:9px;background:var(--bg);color:var(--text);font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer}
+.cl-new:hover{border-color:var(--accent);color:var(--accent)}
+.cl-scroll{flex:1;min-height:0;overflow-y:auto;padding:6px 8px 12px}
+.cl-grp{font-size:10.5px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;padding:10px 8px 5px}
+.cl-item{display:block;padding:8px 10px;border-radius:8px;font-size:12.5px;color:var(--text-2);cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-decoration:none}
+.cl-item:hover{background:var(--surface-2);color:var(--text)}
+.cl-item.on{background:var(--accent-subtle);color:var(--accent);font-weight:550}
 .app.welcome .rrail{display:none}
 
 /* left rail */
@@ -230,7 +239,7 @@ button{font-family:var(--font)}
 .lang-menu button .nat{color:var(--text-3);font-size:11px}
 .lang-menu button.on{color:var(--accent);font-weight:600}
 .lang-menu button.on::after{content:"✓";color:var(--accent);font-size:11px}
-.app.rr-hidden{grid-template-columns:56px 1fr}
+.app.chatctx.rr-hidden{grid-template-columns:56px 240px 1fr}
 .app.rr-hidden .rrail{display:none}
 button.pressed{transform:scale(.97);opacity:.85;transition:transform .08s,opacity .08s}
 .rp{background:var(--bg);border:1px solid var(--border);border-radius:10px;margin-bottom:10px;box-shadow:0 1px 2px rgba(16,24,40,.04);overflow:hidden}
@@ -292,7 +301,8 @@ button.pressed{transform:scale(.97);opacity:.85;transition:transform .08s,opacit
 .scene:hover .ic{color:var(--accent)}
 .scene .t{font-size:13px;font-weight:600}.scene .d{font-size:11.5px;color:var(--text-2);margin:4px 0 9px;line-height:1.45}.scene .tag{font-size:10px;font-weight:550;color:var(--text-3);background:var(--surface-2);padding:2px 8px;border-radius:10px}
 
-@media(max-width:1180px){.app,.app.welcome,.app.chatmode{grid-template-columns:56px 1fr}.rrail{display:none}}
+@media(max-width:1180px){.app.chatctx.chatmode{grid-template-columns:56px 240px 1fr}.rrail{display:none}}
+@media(max-width:860px){.app.chatctx,.app.chatctx.chatmode{grid-template-columns:56px 1fr}.chatlist{display:none}}
 @media(max-width:1000px){.scenes{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:760px){.thread-in,.composer-in,.screen-in{padding-left:18px;padding-right:18px}.wv-in{padding:30px 18px}.wv-in h1{font-size:25px}.kpis{grid-template-columns:repeat(3,1fr)}.card .body{grid-template-columns:1fr}.card .vdiv{display:none}}
 @media(max-width:600px){.scenes{grid-template-columns:1fr}.wv-in h1{font-size:22px}.wv-in .sub{font-size:13.5px}.kpis,.kpis-4{grid-template-columns:repeat(2,1fr)}.topbar .ttl .meta{display:none}.topbar{padding:0 12px;gap:8px}.topbar .ttl{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.chip{display:none}.composer .bar,.wv-composer .bar{flex-wrap:wrap}.thread-in,.composer-in,.screen-in{padding-left:14px;padding-right:14px}.composer-wrap{padding:10px 14px 12px}.scrn-head h2{font-size:16px}.card .head{flex-wrap:wrap;row-gap:6px}.card .title{order:-1;flex-basis:100%}.dqrow{flex-wrap:wrap;row-gap:6px}}
@@ -544,6 +554,22 @@ button{cursor:pointer}
           <button class="btn primary" id="signIn" style="width:100%;justify-content:center;display:flex">登录 Drip</button>
         </div>
       </div>
+    </div>
+  </aside>
+
+  <aside class="chatlist" id="chatList">
+    <button class="cl-new" id="clNew"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><span data-i18n="cl.new">新对话</span></button>
+    <div class="cl-scroll">
+      <div class="cl-grp" data-i18n="cl.today">今天</div>
+      <a class="cl-item on" data-i18n="cl.c1">今日预算诊断 · 4 账户</a>
+      <a class="cl-item" data-i18n="cl.c2">OiOi Live 冷启策略</a>
+      <div class="cl-grp" data-i18n="cl.week">本周</div>
+      <a class="cl-item" data-i18n="cl.c3">DTC 再营销换素材</a>
+      <a class="cl-item" data-i18n="cl.c4">Casual Game 止损复盘</a>
+      <a class="cl-item" data-i18n="cl.c5">GMV Max · 越南选品</a>
+      <div class="cl-grp" data-i18n="cl.earlier">更早</div>
+      <a class="cl-item" data-i18n="cl.c6">Q2 跨平台预算规划</a>
+      <a class="cl-item" data-i18n="cl.c7">归因对账 · AppsFlyer</a>
     </div>
   </aside>
 
@@ -1223,8 +1249,8 @@ const I18N_FIX = {
 for (const _l in I18N_FIX) { if (I18N[_l]) Object.assign(I18N[_l], I18N_FIX[_l]); }
 // ---- restructure: inline guardrails gate + post-hoc diagnosis (zh-CN base + en; other langs fall back to zh until backfilled) ----
 const I18N_RESTRUCT = {
-"zh-CN":{"tip.dark":"切换到夜间","tip.light":"切换到日间","wel.h1":"今天,想推动什么增长?","wel.sub":"规则决定 · 可审计 · 跨平台 —— 动钱之前,你拍板。","ck.spend":"今日花费","ck.pace":"92% · 略快于节奏","ck.roas":"综合 ROAS","ck.wk":"vs 上周","ck.conv":"转化","ck.pending":"待批决策","ck.alerts":"3 条告警","ck.accounts":"账户 · 平台","ck.account":"账户","ck.plat":"平台","ck.spendcap":"花费 / 上限","ck.trend":"近 7 天","ck.status":"状态","ck.ok":"健康","ck.watch":"观察","ck.risk":"风险","ck.alertsh":"告警","ck.pendingh":"待批决策 · 6","ck.review":"逐条复核 →","ck.a1":"Casual Game · SEA — ROAS 1.4×,单位经济已崩,建议止损","ck.a2":"Retarget · US — 频次 3.1 超 2.5 上限,建议换素材","ck.a3":"今日 pacing 92%,午后或触顶,关注超投","ck.alloch":"跨平台预算分配","ck.paused":"已暂停","ck.freq":"频次 <b class='r'>3.1</b>","cr.h":"创意库","cr.sub":"所有素材 · 按表现排序 · 点选加入测试","cr.foot":"已选 <b>3</b> 个 · 可加入下一轮测试","cr.upload":"↑ 上传","cr.gen":"✦ 生成新素材 →","sg.h":"增长策略","sg.sub":"项目看板 · 选一个查看完整方案","pj.1m":"马来西亚 · 直播社交 · $10k/月","pj.2m":"Meta + TikTok · ROAS 3.2×","pj.3m":"止损后重启 · 待方案","pj.live":"进行中","pj.plan":"规划中","pj.draft":"草稿","g.h":"护栏 · 批准前设定","g.sub":"这些就是规则引擎的阈值 · 改这里，每条决策都会重新推导","g.cpa":"目标 CPA","g.cpah":"超过即自动暂停","g.cap":"日预算上限","g.caph":"放量永不越过","g.perday":"/ 天","g.sample":"最小成交样本","g.sampleh":"低于此数置信度降级","g.orders":"单","g.freq":"频次上限","g.freqh":"超过判素材饱和","g.revert":"自动撤回","g.reverth":"CPP 超标或 CTR 跌 &gt;15% 自动回滚","g.boost":"大促自动加投","g.boosth":"平台大促期上限内提量","g.audit":"⛨ 6 条决策都会带上这套护栏 · 全部写进<b>可回放审计</b>","g.cancel":"取消","g.publish":"确认护栏并发布 6 项 →","g.published":"✓ 已发布 · 护栏已生效","g.toast":"已发布 6 项改动 · 护栏已生效 · 48h 后自动复盘","r.s5done":"已发布 6 项 · 护栏已写入审计","ph.q":"上一轮批准的 6 项改动跑了 48 小时，复盘一下效果。","ph.intro":"上一轮 6 项改动已跑满 <strong>48 小时</strong>，整体兑现了预测：综合 ROAS <strong>3.6× → 3.9×</strong>、CPA 降 <strong>$2.4</strong>，全程<strong>没有触发任何自动撤回护栏</strong>。下面是逐条「预测 vs 实际」，外加一条规则引擎新生成、待你批准的建议。","ph.h":"投后诊断 · 上一轮 6 项","ph.sub":"预测 vs 实际 · 48h 窗口","ph.k1":"综合 ROAS","ph.k1d":"↑ 预测 3.8×","ph.k2":"新增成交","ph.k4":"护栏触发","ph.k4d":"全程阈值内","ph.thact":"上轮动作","ph.thpred":"预测","ph.threal":"实际","ph.thv":"判定","ph.win":"兑现","ph.part":"部分","ph.p2":"11→稳住","ph.p3":"CTR 回升","ph.p4":"频次降","ph.stop":"止血","ph.s160":"省 $160/天","ph.s240":"省 $240/天","ph.r2real":"26 单","ph.rc":"<strong>根因 & 下一步：</strong>Retargeting_7d 换素材后频次回落但仍偏高（2.7），根因是<strong>受众过窄</strong>，不是素材问题。规则引擎据此生成 1 条新建议——<strong>扩 1% 相似受众</strong>，预计频次回到 2.3。已排进下一轮决策，等你下次批准。"},
-"en":{"tip.dark":"Switch to dark","tip.light":"Switch to light","wel.h1":"What growth are we driving today?","wel.sub":"Rules decide · auditable · cross-platform — you approve before any spend.","ck.spend":"Spend today","ck.pace":"92% · slightly ahead of pace","ck.roas":"Blended ROAS","ck.wk":"vs last wk","ck.conv":"Conversions","ck.pending":"Decisions pending","ck.alerts":"3 alerts","ck.accounts":"Accounts · platforms","ck.account":"Account","ck.plat":"Platform","ck.spendcap":"Spend / cap","ck.trend":"7-day","ck.status":"Status","ck.ok":"Healthy","ck.watch":"Watch","ck.risk":"At risk","ck.alertsh":"Alerts","ck.pendingh":"Pending · 6","ck.review":"Review each →","ck.a1":"Casual Game · SEA — ROAS 1.4×, unit economics broken, stop-loss advised","ck.a2":"Retarget · US — frequency 3.1 over the 2.5 cap, refresh creative","ck.a3":"Pacing 92% today — may hit cap this afternoon, watch overspend","ck.alloch":"Cross-platform allocation","ck.paused":"Paused","ck.freq":"Freq <b class='r'>3.1</b>","cr.h":"Creative library","cr.sub":"All assets · sorted by performance · pick to test","cr.foot":"<b>3</b> selected · ready for the next test","cr.upload":"↑ Upload","cr.gen":"✦ Generate new →","sg.h":"Growth strategy","sg.sub":"Project board · open one for the full plan","pj.1m":"Malaysia · live-social · $10k/mo","pj.2m":"Meta + TikTok · ROAS 3.2×","pj.3m":"restart after stop-loss · plan pending","pj.live":"Active","pj.plan":"Planning","pj.draft":"Draft","g.h":"Guardrails · set before approving","g.sub":"These are the rule-engine thresholds · change them and every decision re-derives","g.cpa":"Target CPA","g.cpah":"auto-pause above this","g.cap":"Daily budget cap","g.caph":"scaling never crosses it","g.perday":"/ day","g.sample":"Min purchase sample","g.sampleh":"below this, confidence is downgraded","g.orders":"orders","g.freq":"Frequency cap","g.freqh":"above this = creative saturation","g.revert":"Auto-revert","g.reverth":"rolls back if CPP over or CTR drop &gt;15%","g.boost":"Boost during sales","g.boosth":"raise within cap during platform sales","g.audit":"⛨ all 6 decisions carry these guardrails · written into the <b>replayable audit</b>","g.cancel":"Cancel","g.publish":"Confirm guardrails & publish 6 →","g.published":"✓ Published · guardrails live","g.toast":"6 changes published · guardrails live · auto-review in 48h","r.s5done":"6 changes published · guardrails in audit","ph.q":"The 6 changes I approved last cycle have run 48h — review how they did.","ph.intro":"Last cycle's 6 changes have run a full <strong>48 hours</strong> and broadly hit forecast: blended ROAS <strong>3.6× → 3.9×</strong>, CPA down <strong>$2.4</strong>, and <strong>no auto-revert guardrail fired</strong>. Below: predicted vs actual per campaign, plus one new rule-engine suggestion awaiting approval.","ph.h":"Post-hoc diagnosis · last 6","ph.sub":"predicted vs actual · 48h window","ph.k1":"Blended ROAS","ph.k1d":"↑ forecast 3.8×","ph.k2":"New purchases","ph.k4":"Guardrails fired","ph.k4d":"all within threshold","ph.thact":"Last action","ph.thpred":"Predicted","ph.threal":"Actual","ph.thv":"Verdict","ph.win":"Hit","ph.part":"Partial","ph.p2":"11→hold","ph.p3":"CTR recovers","ph.p4":"freq down","ph.stop":"stop loss","ph.s160":"saved $160/day","ph.s240":"saved $240/day","ph.r2real":"26 orders","ph.rc":"<strong>Root cause & next:</strong> Retargeting_7d's frequency fell after the refresh but is still high (2.7) — the root cause is an <strong>audience too narrow</strong>, not the creative. The rule engine generated one new suggestion — <strong>expand to 1% lookalike</strong>, projected to bring frequency back to 2.3. It's queued for your next approval."}
+"zh-CN":{"tip.dark":"切换到夜间","tip.light":"切换到日间","wel.h1":"今天,想推动什么增长?","wel.sub":"规则决定 · 可审计 · 跨平台 —— 动钱之前,你拍板。","ck.spend":"今日花费","ck.pace":"92% · 略快于节奏","ck.roas":"综合 ROAS","ck.wk":"vs 上周","ck.conv":"转化","ck.pending":"待批决策","ck.alerts":"3 条告警","ck.accounts":"账户 · 平台","ck.account":"账户","ck.plat":"平台","ck.spendcap":"花费 / 上限","ck.trend":"近 7 天","ck.status":"状态","ck.ok":"健康","ck.watch":"观察","ck.risk":"风险","ck.alertsh":"告警","ck.pendingh":"待批决策 · 6","ck.review":"逐条复核 →","ck.a1":"Casual Game · SEA — ROAS 1.4×,单位经济已崩,建议止损","ck.a2":"Retarget · US — 频次 3.1 超 2.5 上限,建议换素材","ck.a3":"今日 pacing 92%,午后或触顶,关注超投","ck.alloch":"跨平台预算分配","ck.paused":"已暂停","ck.freq":"频次 <b class='r'>3.1</b>","cl.new":"新对话","cl.today":"今天","cl.week":"本周","cl.earlier":"更早","cl.c1":"今日预算诊断 · 4 账户","cl.c2":"OiOi Live 冷启策略","cl.c3":"DTC 再营销换素材","cl.c4":"Casual Game 止损复盘","cl.c5":"GMV Max · 越南选品","cl.c6":"Q2 跨平台预算规划","cl.c7":"归因对账 · AppsFlyer","cr.h":"创意库","cr.sub":"所有素材 · 按表现排序 · 点选加入测试","cr.foot":"已选 <b>3</b> 个 · 可加入下一轮测试","cr.upload":"↑ 上传","cr.gen":"✦ 生成新素材 →","sg.h":"增长策略","sg.sub":"项目看板 · 选一个查看完整方案","pj.1m":"马来西亚 · 直播社交 · $10k/月","pj.2m":"Meta + TikTok · ROAS 3.2×","pj.3m":"止损后重启 · 待方案","pj.live":"进行中","pj.plan":"规划中","pj.draft":"草稿","g.h":"护栏 · 批准前设定","g.sub":"这些就是规则引擎的阈值 · 改这里，每条决策都会重新推导","g.cpa":"目标 CPA","g.cpah":"超过即自动暂停","g.cap":"日预算上限","g.caph":"放量永不越过","g.perday":"/ 天","g.sample":"最小成交样本","g.sampleh":"低于此数置信度降级","g.orders":"单","g.freq":"频次上限","g.freqh":"超过判素材饱和","g.revert":"自动撤回","g.reverth":"CPP 超标或 CTR 跌 &gt;15% 自动回滚","g.boost":"大促自动加投","g.boosth":"平台大促期上限内提量","g.audit":"⛨ 6 条决策都会带上这套护栏 · 全部写进<b>可回放审计</b>","g.cancel":"取消","g.publish":"确认护栏并发布 6 项 →","g.published":"✓ 已发布 · 护栏已生效","g.toast":"已发布 6 项改动 · 护栏已生效 · 48h 后自动复盘","r.s5done":"已发布 6 项 · 护栏已写入审计","ph.q":"上一轮批准的 6 项改动跑了 48 小时，复盘一下效果。","ph.intro":"上一轮 6 项改动已跑满 <strong>48 小时</strong>，整体兑现了预测：综合 ROAS <strong>3.6× → 3.9×</strong>、CPA 降 <strong>$2.4</strong>，全程<strong>没有触发任何自动撤回护栏</strong>。下面是逐条「预测 vs 实际」，外加一条规则引擎新生成、待你批准的建议。","ph.h":"投后诊断 · 上一轮 6 项","ph.sub":"预测 vs 实际 · 48h 窗口","ph.k1":"综合 ROAS","ph.k1d":"↑ 预测 3.8×","ph.k2":"新增成交","ph.k4":"护栏触发","ph.k4d":"全程阈值内","ph.thact":"上轮动作","ph.thpred":"预测","ph.threal":"实际","ph.thv":"判定","ph.win":"兑现","ph.part":"部分","ph.p2":"11→稳住","ph.p3":"CTR 回升","ph.p4":"频次降","ph.stop":"止血","ph.s160":"省 $160/天","ph.s240":"省 $240/天","ph.r2real":"26 单","ph.rc":"<strong>根因 & 下一步：</strong>Retargeting_7d 换素材后频次回落但仍偏高（2.7），根因是<strong>受众过窄</strong>，不是素材问题。规则引擎据此生成 1 条新建议——<strong>扩 1% 相似受众</strong>，预计频次回到 2.3。已排进下一轮决策，等你下次批准。"},
+"en":{"tip.dark":"Switch to dark","tip.light":"Switch to light","wel.h1":"What growth are we driving today?","wel.sub":"Rules decide · auditable · cross-platform — you approve before any spend.","ck.spend":"Spend today","ck.pace":"92% · slightly ahead of pace","ck.roas":"Blended ROAS","ck.wk":"vs last wk","ck.conv":"Conversions","ck.pending":"Decisions pending","ck.alerts":"3 alerts","ck.accounts":"Accounts · platforms","ck.account":"Account","ck.plat":"Platform","ck.spendcap":"Spend / cap","ck.trend":"7-day","ck.status":"Status","ck.ok":"Healthy","ck.watch":"Watch","ck.risk":"At risk","ck.alertsh":"Alerts","ck.pendingh":"Pending · 6","ck.review":"Review each →","ck.a1":"Casual Game · SEA — ROAS 1.4×, unit economics broken, stop-loss advised","ck.a2":"Retarget · US — frequency 3.1 over the 2.5 cap, refresh creative","ck.a3":"Pacing 92% today — may hit cap this afternoon, watch overspend","ck.alloch":"Cross-platform allocation","ck.paused":"Paused","ck.freq":"Freq <b class='r'>3.1</b>","cl.new":"New chat","cl.today":"Today","cl.week":"This week","cl.earlier":"Earlier","cl.c1":"Today's budget diagnosis · 4 accounts","cl.c2":"OiOi Live cold-start","cl.c3":"DTC retargeting refresh","cl.c4":"Casual Game stop-loss review","cl.c5":"GMV Max · Vietnam SKUs","cl.c6":"Q2 cross-platform plan","cl.c7":"Attribution reconcile · AppsFlyer","cr.h":"Creative library","cr.sub":"All assets · sorted by performance · pick to test","cr.foot":"<b>3</b> selected · ready for the next test","cr.upload":"↑ Upload","cr.gen":"✦ Generate new →","sg.h":"Growth strategy","sg.sub":"Project board · open one for the full plan","pj.1m":"Malaysia · live-social · $10k/mo","pj.2m":"Meta + TikTok · ROAS 3.2×","pj.3m":"restart after stop-loss · plan pending","pj.live":"Active","pj.plan":"Planning","pj.draft":"Draft","g.h":"Guardrails · set before approving","g.sub":"These are the rule-engine thresholds · change them and every decision re-derives","g.cpa":"Target CPA","g.cpah":"auto-pause above this","g.cap":"Daily budget cap","g.caph":"scaling never crosses it","g.perday":"/ day","g.sample":"Min purchase sample","g.sampleh":"below this, confidence is downgraded","g.orders":"orders","g.freq":"Frequency cap","g.freqh":"above this = creative saturation","g.revert":"Auto-revert","g.reverth":"rolls back if CPP over or CTR drop &gt;15%","g.boost":"Boost during sales","g.boosth":"raise within cap during platform sales","g.audit":"⛨ all 6 decisions carry these guardrails · written into the <b>replayable audit</b>","g.cancel":"Cancel","g.publish":"Confirm guardrails & publish 6 →","g.published":"✓ Published · guardrails live","g.toast":"6 changes published · guardrails live · auto-review in 48h","r.s5done":"6 changes published · guardrails in audit","ph.q":"The 6 changes I approved last cycle have run 48h — review how they did.","ph.intro":"Last cycle's 6 changes have run a full <strong>48 hours</strong> and broadly hit forecast: blended ROAS <strong>3.6× → 3.9×</strong>, CPA down <strong>$2.4</strong>, and <strong>no auto-revert guardrail fired</strong>. Below: predicted vs actual per campaign, plus one new rule-engine suggestion awaiting approval.","ph.h":"Post-hoc diagnosis · last 6","ph.sub":"predicted vs actual · 48h window","ph.k1":"Blended ROAS","ph.k1d":"↑ forecast 3.8×","ph.k2":"New purchases","ph.k4":"Guardrails fired","ph.k4d":"all within threshold","ph.thact":"Last action","ph.thpred":"Predicted","ph.threal":"Actual","ph.thv":"Verdict","ph.win":"Hit","ph.part":"Partial","ph.p2":"11→hold","ph.p3":"CTR recovers","ph.p4":"freq down","ph.stop":"stop loss","ph.s160":"saved $160/day","ph.s240":"saved $240/day","ph.r2real":"26 orders","ph.rc":"<strong>Root cause & next:</strong> Retargeting_7d's frequency fell after the refresh but is still high (2.7) — the root cause is an <strong>audience too narrow</strong>, not the creative. The rule engine generated one new suggestion — <strong>expand to 1% lookalike</strong>, projected to bring frequency back to 2.3. It's queued for your next approval."}
 };
 for (const _l in I18N_RESTRUCT) { if (I18N[_l]) Object.assign(I18N[_l], I18N_RESTRUCT[_l]); }
 function setLang(code){
@@ -1281,7 +1307,7 @@ function refreshTopbar(){
 function setView(v){
   _curView = v;
   if (v === "welcome") {
-    app.classList.add("welcome"); app.classList.remove("chatmode");
+    app.classList.add("welcome", "chatctx"); app.classList.remove("chatmode");
     document.querySelectorAll(".screen").forEach(s => s.classList.remove("on"));
     document.querySelector(".thread").style.display = "";
     document.querySelector(".composer-wrap").style.display = "";
@@ -1290,7 +1316,7 @@ function setView(v){
   }
   app.classList.remove("welcome");
   const isC = v === "console";
-  app.classList.toggle("chatmode", isC);
+  app.classList.toggle("chatmode", isC); app.classList.toggle("chatctx", isC);
   document.querySelector(".thread").style.display = isC ? "" : "none";
   document.querySelector(".composer-wrap").style.display = isC ? "" : "none";
   document.querySelectorAll(".screen").forEach(s => s.classList.remove("on"));
@@ -1311,6 +1337,8 @@ document.querySelectorAll("#view-cockpit .chipf").forEach(c => c.addEventListene
   const pf = c.getAttribute("data-pf");
   document.querySelectorAll("#view-cockpit .acct-card").forEach(card => { card.style.display = (pf === "all" || card.getAttribute("data-pf") === pf) ? "" : "none"; });
 }));
+const clNew = $("clNew"); if (clNew) clNew.addEventListener("click", () => setView("welcome"));
+document.querySelectorAll(".cl-item").forEach(it => it.addEventListener("click", () => { document.querySelectorAll(".cl-item").forEach(x => x.classList.remove("on")); it.classList.add("on"); setView("console"); }));
 // card approve → confirmed state
 document.querySelectorAll(".card .mini.approve").forEach(b => {
   b.addEventListener("click", e => {
