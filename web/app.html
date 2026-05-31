@@ -271,13 +271,15 @@ button.pressed{transform:scale(.97);opacity:.85;transition:transform .08s,opacit
 .app.welcome .welcome-view{display:flex;flex-direction:column;align-items:center;justify-content:center}
 .app.welcome .thread,.app.welcome .composer-wrap{display:none}
 .wv-in{max-width:768px;margin:auto;padding:40px 28px;width:100%}
-.wv-logo{width:46px;height:46px;border-radius:13px;background:var(--accent);color:#fff;display:grid;place-items:center;font-weight:700;font-size:23px;margin-bottom:20px}
-.wv-in h1{font-size:29px;font-weight:680;letter-spacing:-.035em;line-height:1.15}
-.wv-in .sub{font-size:14.5px;color:var(--text-2);margin:11px 0 24px;line-height:1.55;max-width:580px}
-.wv-composer{border:1px solid var(--border-strong);border-radius:var(--radius-lg);padding:11px 11px 8px;margin-bottom:30px;background:var(--bg);box-shadow:0 1px 3px rgba(16,24,40,.05)}
+.wv-hero{margin-bottom:18px;line-height:0}
+.wv-in h1{font-size:34px;font-weight:680;letter-spacing:-.035em;line-height:1.12}
+.wv-in .sub{font-size:15px;color:var(--text-2);margin:12px 0 28px;line-height:1.55;max-width:600px}
+.wv-composer{border:1px solid var(--border-strong);border-radius:16px;padding:15px 16px 11px;margin-bottom:32px;background:var(--bg);box-shadow:0 2px 12px rgba(16,24,40,.06)}
 .wv-composer:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-subtle)}
-.wv-composer textarea{width:100%;border:none;outline:none;resize:none;font-family:var(--font);font-size:14.5px;background:none;color:var(--text)}
+.wv-composer textarea{width:100%;border:none;outline:none;resize:none;font-family:var(--font);font-size:15.5px;line-height:1.5;background:none;color:var(--text);min-height:46px}
 .wv-composer textarea::placeholder{color:var(--text-3)}
+.wv-composer .send{width:36px;height:36px;font-size:17px;border-radius:11px}
+.wv-composer .cbtn{height:32px}
 .scene-lab{font-size:11.5px;font-weight:600;color:var(--text-3);text-align:center;margin-bottom:14px}
 .scenes{display:grid;grid-template-columns:repeat(3,1fr);gap:11px}
 .scene{border:1px solid var(--border);border-radius:var(--radius-lg);padding:15px;cursor:pointer;transition:border-color .15s,transform .1s;background:var(--bg)}
@@ -546,11 +548,11 @@ button{cursor:pointer}
     </div>
 
     <div class="welcome-view"><div class="wv-in">
-      <div class="wv-logo">D</div>
+      <div class="wv-hero"><svg width="78" height="78" viewBox="0 0 80 80" fill="none"><path d="M16 37h48v25a3 3 0 0 1-3 3H19a3 3 0 0 1-3-3z" fill="var(--surface-2)" stroke="var(--text-3)" stroke-width="2" stroke-linejoin="round"/><path d="M13 31h54v6H13z" fill="var(--surface)" stroke="var(--text-3)" stroke-width="2" stroke-linejoin="round"/><path d="M40 37v28" stroke="var(--text-3)" stroke-width="1.3"/><circle cx="40" cy="15" r="4.4" fill="var(--accent)"/><circle cx="26" cy="22" r="2.8" fill="var(--green)"/><circle cx="54" cy="21" r="2.8" fill="var(--amber)"/></svg></div>
       <h1 data-i18n="wel.h1">今天，预算该投向哪里？</h1>
       <p class="sub" data-i18n="wel.sub">诊断 campaign、跨平台再分配、规划下一个测试 —— 每个决策都由规则给出、可审计，动钱之前先过你这关。</p>
       <div class="wv-composer">
-        <textarea rows="2" placeholder="问 Drip，或描述你想做什么…" data-i18n-ph="comp.ph" id="welInput"></textarea>
+        <textarea rows="3" placeholder="问 Drip，或描述你想做什么…" data-i18n-ph="comp.ph" id="welInput"></textarea>
         <div class="bar" style="display:flex;align-items:center;gap:6px;margin-top:4px">
           <button class="cbtn"><span class="ic">⇪</span> <span data-i18n="comp.upload">上传</span></button>
           <button class="cbtn"><span class="ic">✦</span> AI Creatives</button>
@@ -1388,7 +1390,7 @@ document.addEventListener("mousedown", e => {
 render("c1");
 setLang(localStorage.getItem("drip-lang") || (function(){ const n = (navigator.language || "zh").toLowerCase(); if (n.indexOf("zh") === 0) return (n.indexOf("tw") > -1 || n.indexOf("hk") > -1) ? "zh-TW" : "zh-CN"; const m = ["en","ja","ko","es","pt","vi","fr","de"].find(x => n.indexOf(x) === 0); return m || "zh-CN"; })());
 // URL params (deep-link / screenshots): ?view=bench&lang=en
-(function(){ const p = new URLSearchParams(location.search); const pl = p.get("lang"); if (pl && I18N[pl]) setLang(pl); const pv = p.get("view"); if (pv) setView(pv); else if (p.get("demo") !== "1") setView("cockpit"); })();
+(function(){ const p = new URLSearchParams(location.search); const pl = p.get("lang"); if (pl && I18N[pl]) setLang(pl); const pv = p.get("view"); if (pv) setView(pv); else if (p.get("demo") !== "1") setView("welcome"); })();
 // account menu + sign in/out
 (function(){
   const ctl = $("acctCtl"), av = $("avBtn");
