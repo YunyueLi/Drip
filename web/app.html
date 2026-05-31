@@ -42,12 +42,20 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:
 ::-webkit-scrollbar-thumb{background:var(--border-strong);border-radius:6px;border:3px solid var(--bg)}
 button{font-family:var(--font)}
 
+:root{--clw:248px;--rrw:348px}
 .app{display:grid;grid-template-columns:56px 1fr;grid-template-rows:100vh;height:100vh;overflow:hidden}
-.app.chatctx{grid-template-columns:56px 240px 1fr}
-.app.chatctx.chatmode{grid-template-columns:56px 240px 1fr 348px}
+.chatlist,.rrail{transition:opacity .16s ease}
+.app.cl-hidden .chatlist,.app.rr-hidden .rrail{opacity:0}
+.app.chatctx{grid-template-columns:56px var(--clw) 1fr}
+.app.chatctx.chatmode{grid-template-columns:56px var(--clw) 1fr var(--rrw)}
+.app.chatctx.chatmode.rr-hidden{grid-template-columns:56px var(--clw) 1fr 0}
+.app.chatctx.cl-hidden{grid-template-columns:56px 0 1fr}
+.app.chatctx.chatmode.cl-hidden{grid-template-columns:56px 0 1fr var(--rrw)}
+.app.chatctx.chatmode.cl-hidden.rr-hidden{grid-template-columns:56px 0 1fr 0}
 .app:not(.chatctx) .chatlist{display:none}
+.app.cl-hidden .chatlist{border-right-color:transparent;pointer-events:none}
 .app:not(.chatmode) .rrail{display:none}
-.chatlist{border-right:1px solid var(--border);background:var(--surface);display:flex;flex-direction:column;min-height:0;overflow:hidden}
+.chatlist{border-right:1px solid var(--border);background:var(--surface);display:flex;flex-direction:column;min-height:0;min-width:0;overflow:hidden;position:relative}
 .cl-new{display:flex;align-items:center;justify-content:center;gap:8px;margin:12px 12px 6px;padding:9px 12px;border:1px solid var(--border-strong);border-radius:9px;background:var(--bg);color:var(--text);font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer}
 .cl-new:hover{border-color:var(--accent);color:var(--accent)}
 .cl-scroll{flex:1;min-height:0;overflow-y:auto;padding:6px 8px 12px}
@@ -55,6 +63,24 @@ button{font-family:var(--font)}
 .cl-item{display:block;padding:8px 10px;border-radius:8px;font-size:12.5px;color:var(--text-2);cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-decoration:none}
 .cl-item:hover{background:var(--surface-2);color:var(--text)}
 .cl-item.on{background:var(--accent-subtle);color:var(--accent);font-weight:550}
+.cl-grip{position:absolute;right:-3px;top:0;bottom:0;width:7px;cursor:col-resize;z-index:32}
+.cl-grip::after{content:"";position:absolute;right:3px;top:0;bottom:0;width:1px;background:transparent;transition:background .12s}
+.cl-grip:hover::after,.cl-grip.drag::after{background:var(--accent)}
+.cl-head{padding:8px 12px 2px}
+.cl-search{display:flex;align-items:center;gap:7px;height:32px;padding:0 10px;border:1px solid var(--border);border-radius:8px;background:var(--bg);transition:border-color .12s}
+.cl-search:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-subtle)}
+.cl-search svg{color:var(--text-3);flex-shrink:0}
+.cl-search input{border:none;background:none;outline:none;font-family:var(--font);font-size:12.5px;color:var(--text);width:100%;min-width:0}
+.cl-search input::placeholder{color:var(--text-3)}
+.cl-grp{display:flex;align-items:center;gap:5px;font-size:10.5px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;padding:10px 8px 5px;cursor:pointer;user-select:none;border-radius:6px}
+.cl-grp:hover{color:var(--text-2);background:var(--surface-2)}
+.cl-grp .gtw{font-size:8px;transition:transform .18s ease;display:inline-block}
+.cl-grp.col .gtw{transform:rotate(-90deg)}
+.cl-grp .gn{margin-left:auto;font-weight:600;color:var(--text-3);font-variant-numeric:tabular-nums}
+.cl-item.hide,.cl-item.gcol{display:none}
+.cl-grp.ghide{display:none}
+.cl-empty{font-size:12px;color:var(--text-3);padding:16px 10px;text-align:center;display:none}
+.cl-empty.on{display:block}
 .pb-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap}
 .pb-filters{display:flex;gap:6px}.pb-right{display:flex;align-items:center;gap:8px}
 .pb-sort{height:30px;padding:0 9px;font-size:12px;cursor:pointer}
@@ -245,9 +271,10 @@ button{font-family:var(--font)}
 .disclaim{text-align:center;font-size:10.5px;color:var(--text-3);margin-top:8px}
 
 /* right rail */
-.rrail{border-left:1px solid var(--border);background:var(--canvas);overflow-y:auto;min-height:0;display:flex;flex-direction:column;position:relative;padding:10px}
-.rr-grip{position:absolute;left:0;top:0;bottom:0;width:6px;cursor:col-resize;z-index:30}
-.rr-grip:hover,.rr-grip.drag{background:var(--accent-subtle)}
+.rrail{border-left:1px solid var(--border);background:var(--canvas);overflow-y:auto;overflow-x:hidden;min-height:0;min-width:0;display:flex;flex-direction:column;position:relative;padding:10px}
+.rr-grip{position:absolute;left:-3px;top:0;bottom:0;width:7px;cursor:col-resize;z-index:32}
+.rr-grip::after{content:"";position:absolute;left:3px;top:0;bottom:0;width:1px;background:transparent;transition:background .12s}
+.rr-grip:hover::after,.rr-grip.drag::after{background:var(--accent)}
 .rrail .rp-audit{background:linear-gradient(180deg,#f7f8fb,var(--bg) 140px)}
 .panel-toggle{width:30px;height:30px;border-radius:8px;border:none;background:none;color:var(--text-3);cursor:pointer;display:grid;place-items:center;transition:background .12s,color .12s}
 .panel-toggle:hover{background:var(--surface-2);color:var(--text)}
@@ -255,6 +282,12 @@ button{font-family:var(--font)}
 .panel-toggle .fill{fill:none}
 .panel-toggle.off{color:var(--accent)}
 .panel-toggle.off .fill{fill:var(--accent-subtle)}
+.side-toggle{width:30px;height:30px;margin-right:2px;border-radius:8px;border:none;background:none;color:var(--text-3);cursor:pointer;display:grid;place-items:center;flex-shrink:0;transition:background .12s,color .12s}
+.side-toggle:hover{background:var(--surface-2);color:var(--text)}
+.side-toggle svg{display:block;transition:transform .2s ease}
+.app.cl-hidden .side-toggle svg{transform:scaleX(-1)}
+.app:not(.chatctx) .side-toggle{display:none}
+.app:not(.chatmode) #auditToggle{display:none}
 /* language selector */
 .langsel{position:relative}
 .lang-btn{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 9px;border:1px solid var(--border-strong);border-radius:8px;background:var(--bg);color:var(--text-2);cursor:pointer;font-family:var(--font);font-size:12.5px;font-weight:500;white-space:nowrap;flex-shrink:0}
@@ -269,8 +302,7 @@ button{font-family:var(--font)}
 .lang-menu button .nat{color:var(--text-3);font-size:11px}
 .lang-menu button.on{color:var(--accent);font-weight:600}
 .lang-menu button.on::after{content:"✓";color:var(--accent);font-size:11px}
-.app.chatctx.rr-hidden{grid-template-columns:56px 240px 1fr}
-.app.rr-hidden .rrail{display:none}
+.app.rr-hidden .rrail{border-left-color:transparent;pointer-events:none}
 button.pressed{transform:scale(.97);opacity:.85;transition:transform .08s,opacity .08s}
 .rp{background:var(--bg);border:1px solid var(--border);border-radius:10px;margin-bottom:10px;box-shadow:0 1px 2px rgba(16,24,40,.04);overflow:hidden}
 .rp>summary{list-style:none;cursor:pointer;padding:13px 16px;font-size:12px;font-weight:600;display:flex;align-items:center;gap:8px}
@@ -331,7 +363,7 @@ button.pressed{transform:scale(.97);opacity:.85;transition:transform .08s,opacit
 .scene:hover .ic{color:var(--accent)}
 .scene .t{font-size:13px;font-weight:600}.scene .d{font-size:11.5px;color:var(--text-2);margin:4px 0 9px;line-height:1.45}.scene .tag{font-size:10px;font-weight:550;color:var(--text-3);background:var(--surface-2);padding:2px 8px;border-radius:10px}
 
-@media(max-width:1180px){.app.chatctx.chatmode{grid-template-columns:56px 240px 1fr}.rrail{display:none}}
+@media(max-width:1180px){.app.chatctx.chatmode,.app.chatctx.chatmode.rr-hidden{grid-template-columns:56px var(--clw) 1fr}.app.chatctx.chatmode.cl-hidden{grid-template-columns:56px 0 1fr}.rrail{display:none}}
 @media(max-width:860px){.app.chatctx,.app.chatctx.chatmode{grid-template-columns:56px 1fr}.chatlist{display:none}}
 @media(max-width:1000px){.scenes{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:760px){.thread-in,.composer-in,.screen-in{padding-left:18px;padding-right:18px}.wv-in{padding:30px 18px}.wv-in h1{font-size:25px}.kpis{grid-template-columns:repeat(3,1fr)}.card .body{grid-template-columns:1fr}.card .vdiv{display:none}}
@@ -537,6 +569,29 @@ button{cursor:pointer}
 .demo-end .dl{display:flex;flex-wrap:wrap;gap:8px}
 .demo-end .dl span{font-size:11.5px;font-weight:600;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:5px 11px}
 .demo-end .dl .gh{color:var(--accent);border-color:var(--accent)}
+/* demo v2 — roadshow pacing & effects */
+.demo-think .dt-body{display:inline-flex;align-items:center;gap:11px;background:var(--bg);border:1px solid var(--border);border-radius:22px;padding:9px 16px 9px 14px;position:relative;overflow:hidden;box-shadow:0 1px 3px rgba(16,24,40,.05)}
+.demo-think .dt-body::after{content:"";position:absolute;inset:0;background:linear-gradient(100deg,transparent 25%,var(--accent-subtle) 50%,transparent 75%);transform:translateX(-100%);animation:dtSweep 1.6s ease-in-out infinite}
+@keyframes dtSweep{to{transform:translateX(100%)}}
+.demo-think .dt-dots{display:inline-flex;gap:4px;position:relative;z-index:1}
+.demo-think .dt-dots i{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:dtDot 1.1s ease-in-out infinite}
+.demo-think .dt-dots i:nth-child(2){animation-delay:.16s}.demo-think .dt-dots i:nth-child(3){animation-delay:.32s}
+@keyframes dtDot{0%,100%{opacity:.3;transform:translateY(0)}50%{opacity:1;transform:translateY(-3px)}}
+.demo-think .dt-tx{position:relative;z-index:1;font-size:13px;font-weight:550;color:var(--text-2);transition:opacity .22s ease}
+.demo-think .dt-tx.fade{opacity:0}
+.demo-spot{position:relative;z-index:6;border-radius:13px;animation:dSpot 1.9s ease-in-out infinite}
+@keyframes dSpot{0%,100%{box-shadow:0 0 0 2px var(--accent),0 0 0 8px var(--accent-subtle),0 20px 54px rgba(0,82,217,.20)}50%{box-shadow:0 0 0 2px var(--accent),0 0 0 12px transparent,0 14px 40px rgba(0,82,217,.10)}}
+.d-pop{animation:dPop .52s cubic-bezier(.22,.61,.36,1) both}
+@keyframes dPop{from{opacity:0;transform:translateY(9px) scale(.975)}to{opacity:1;transform:none}}
+.demo-press{animation:dPress .55s ease}
+@keyframes dPress{0%{box-shadow:0 0 0 0 var(--accent-subtle)}40%{box-shadow:0 0 0 7px var(--accent-subtle);transform:scale(.96)}100%{box-shadow:0 0 0 0 transparent;transform:none}}
+body.demo-on::before{content:"";position:fixed;left:0;right:0;bottom:0;height:210px;pointer-events:none;z-index:125;background:linear-gradient(to top,rgba(10,14,20,.30),transparent);opacity:0;transition:opacity .5s ease}
+body.demo-on.demo-cap-on::before{opacity:1}
+.demo-cap .act{display:flex;align-items:center;justify-content:center;gap:7px}
+.demo-cap .act::before{content:"";width:5px;height:5px;border-radius:50%;background:#7fb0ff;box-shadow:0 0 0 0 rgba(127,176,255,.6);animation:capPip 1.8s ease-out infinite}
+@keyframes capPip{0%{box-shadow:0 0 0 0 rgba(127,176,255,.55)}70%{box-shadow:0 0 0 7px rgba(127,176,255,0)}100%{box-shadow:0 0 0 0 rgba(127,176,255,0)}}
+.demo-chap{font-size:11px;font-weight:650;color:var(--text-3);padding:0 10px 0 4px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.demo-chap b{color:var(--text-2);font-weight:650}
 /* approval gate · inline guardrails */
 .gate .bhead .ic{background:var(--accent-subtle);color:var(--accent)}
 .grows{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);border-bottom:1px solid var(--border)}
@@ -591,24 +646,27 @@ button{cursor:pointer}
   </aside>
 
   <aside class="chatlist" id="chatList">
+    <div class="cl-grip" id="clGrip"></div>
     <button class="cl-new" id="clNew"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><span data-i18n="cl.new">新对话</span></button>
-    <div class="cl-scroll">
-      <div class="cl-grp" data-i18n="cl.today">今天</div>
+    <div class="cl-head"><div class="cl-search"><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="7" cy="7" r="4.5"/><path d="M14 14l-3.2-3.2" stroke-linecap="round"/></svg><input id="clSearch" type="text" data-i18n-ph="cl.search" placeholder="搜索对话"></div></div>
+    <div class="cl-scroll" id="clScroll">
+      <div class="cl-grp"><span class="gtw">▾</span><span data-i18n="cl.today">今天</span><span class="gn"></span></div>
       <a class="cl-item on" data-i18n="cl.c1">今日预算诊断 · 4 账户</a>
       <a class="cl-item" data-i18n="cl.c2">OiOi Live 冷启策略</a>
-      <div class="cl-grp" data-i18n="cl.week">本周</div>
+      <div class="cl-grp"><span class="gtw">▾</span><span data-i18n="cl.week">本周</span><span class="gn"></span></div>
       <a class="cl-item" data-i18n="cl.c3">DTC 再营销换素材</a>
       <a class="cl-item" data-i18n="cl.c4">Casual Game 止损复盘</a>
       <a class="cl-item" data-i18n="cl.c5">GMV Max · 越南选品</a>
-      <div class="cl-grp" data-i18n="cl.earlier">更早</div>
+      <div class="cl-grp"><span class="gtw">▾</span><span data-i18n="cl.earlier">更早</span><span class="gn"></span></div>
       <a class="cl-item" data-i18n="cl.c6">Q2 跨平台预算规划</a>
       <a class="cl-item" data-i18n="cl.c7">归因对账 · AppsFlyer</a>
+      <div class="cl-empty" id="clEmpty" data-i18n="cl.none">没有匹配的对话</div>
     </div>
   </aside>
 
   <main class="center">
     <div class="topbar">
-      <div class="ttl"><span id="tbTitle">操盘台</span><span class="meta" id="tbMeta">· 4 账户 · 32 campaign</span></div>
+      <div class="ttl"><button class="side-toggle" id="sideToggle" title="折叠对话栏" aria-label="折叠对话栏"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/></svg></button><span id="tbTitle">操盘台</span><span class="meta" id="tbMeta">· 4 账户 · 32 campaign</span></div>
       <div class="right">
         <span class="chip"><span class="pip"></span><span data-i18n="top.mode">Copilot · 上限 $3,500/天</span></span>
         <button class="tb-demo" id="demoPill" title="看演示"><svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" stroke="none"><path d="M8 5v14l11-7z"/></svg><span id="demoPillTx">演示</span></button>
@@ -627,6 +685,7 @@ button{cursor:pointer}
             <button data-lang="de">Deutsch</button>
           </div>
         </div>
+        <button class="panel-toggle" id="auditToggle" title="审计栏" aria-label="切换审计栏"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><rect class="fill" x="3" y="4" width="18" height="16" rx="2"/><path d="M15 4v16"/></svg></button>
         <button class="panel-toggle" id="themeToggle" title="切换夜间" aria-label="切换主题"></button>
       </div>
     </div>
@@ -1334,8 +1393,8 @@ const I18N_FIX = {
 for (const _l in I18N_FIX) { if (I18N[_l]) Object.assign(I18N[_l], I18N_FIX[_l]); }
 // ---- restructure: inline guardrails gate + post-hoc diagnosis (zh-CN base + en; other langs fall back to zh until backfilled) ----
 const I18N_RESTRUCT = {
-"zh-CN":{"tip.dark":"切换到夜间","tip.light":"切换到日间","wel.h1":"今天,想推动什么增长?","wel.sub":"规则决定 · 可审计 · 跨平台 —— 动钱之前,你拍板。","ck.spend":"今日花费","ck.pace":"92% · 略快于节奏","ck.roas":"综合 ROAS","ck.wk":"vs 上周","ck.conv":"转化","ck.pending":"待批决策","ck.alerts":"3 条告警","ck.accounts":"账户 · 平台","ck.account":"账户","ck.plat":"平台","ck.spendcap":"花费 / 上限","ck.trend":"近 7 天","ck.status":"状态","ck.ok":"健康","ck.watch":"观察","ck.risk":"风险","ck.alertsh":"告警","ck.pendingh":"待批决策 · 6","ck.review":"逐条复核 →","ck.a1":"Casual Game · SEA — ROAS 1.4×,单位经济已崩,建议止损","ck.a2":"Retarget · US — 频次 3.1 超 2.5 上限,建议换素材","ck.a3":"今日 pacing 92%,午后或触顶,关注超投","ck.alloch":"跨平台预算分配","ck.paused":"已暂停","ck.freq":"频次 <b class='r'>3.1</b>","cl.new":"新对话","cl.today":"今天","cl.week":"本周","cl.earlier":"更早","cl.c1":"今日预算诊断 · 4 账户","cl.c2":"OiOi Live 冷启策略","cl.c3":"DTC 再营销换素材","cl.c4":"Casual Game 止损复盘","cl.c5":"GMV Max · 越南选品","cl.c6":"Q2 跨平台预算规划","cl.c7":"归因对账 · AppsFlyer","cr.h":"创意库","cr.sub":"方向 → 生成 → 回流 · 不只是存量,更是产能","cr.t.dir":"创意方向","cr.t.gen":"生成工作台","cr.t.lib":"素材库","cr.d.all":"全部","cr.d.mine":"我的赢家","cr.d.ind":"竞品 · 行业","cr.d.hint":"方向来自你的赢家 + 行业发现 · 点「生成」即喂给 AI 模型","cr.hook":"Hook 型","cr.act":"Act 型","cr.proof":"Proof 型","cr.ugc":"UGC 型","cr.demo":"Demo 型","cr.d1":"主播亲和力","cr.d1e":"Hina_hook_v3 · CTR 1.58%(基线 2.1×)· 你的赢家","cr.d2":"派对 FOMO","cr.d2e":"9 宫格「大家都在玩」· CVR +18% · 你的赢家","cr.d3":"问题-解决 · 3 秒开","cr.d3e":"前 3 秒抛痛点 · 完播 +22% · 行业高频","cr.d4":"社会证明 · 测评","cr.d4e":"真实用户口播 + 数据 · Bigo Live 在投 · 竞品","cr.d5":"达人 GRWM","cr.d5e":"达人第一人称日常 · 信任门槛低 · 你的赢家","cr.d6":"功能演示 · 对比","cr.d6e":"界面录屏 + 前后对比 · 转化稳 · 行业高频","cr.v3":"3 条素材验证","cr.v2":"2 条素材验证","cr.ind":"竞品 · 行业发现","cr.usegen":"用此方向生成 →","cr.g.dir":"创意方向","cr.g.brief":"brief 已自动带出:受众 / 信息点 / 合规声明 / 品牌调性 / 版式","cr.g.prod":"产品","cr.g.fmt":"格式","cr.g.model":"AI 模型","cr.g.qty":"数量","cr.g.qtyhint":"测 50 个变体而不是 5 个 —— 多出的测试面积才是赢家来源","cr.g.foot":"规则引擎会按 8 信号筛出赢家方向,自动建议下一轮多生成","cr.g.run":"生成 50 个变体 →","cr.g.done":"已生成 · 待你挑选投放","cr.l.gen":"生成","cr.l.up":"上传","cr.l.comp":"竞品","cr.comp":"竞品 · 收藏自 Ad Library","cr.gtoast":"已生成变体 · 规则引擎将按 8 信号筛出赢家","l.why2":"依据","cr.foot":"已选 <b>3</b> 个 · 可加入下一轮测试","cr.upload":"↑ 上传","cr.gen":"✦ 生成新素材 →","sg.h":"增长策略","sg.sub":"项目看板 · 选一个查看完整方案","pj.1m":"马来西亚 · 直播社交 · $10k/月","pj.2m":"Meta + TikTok · ROAS 3.2×","pj.3m":"止损后重启 · 待方案","pj.live":"进行中","pj.plan":"规划中","pj.draft":"草稿","pj.all":"全部","pj.supd":"最近更新","pj.sbud":"按预算","pj.sroas":"按 ROAS","pj.kbud":"月预算","pj.open":"查看方案 →","pj.allstrat":"全部策略","pj.today":"今天","pj.yst":"昨天","pj.s1":"马来西亚 · 直播社交","pj.s2":"北美 · DTC 电商","pj.s3":"日本 · 直播秀场","pj.s4":"越南 · TikTok Shop GMV","pj.s5":"北美 · 再营销扩量","pj.s6":"东南亚 · 休闲手游(止损重启)","pj.s7":"多市场 · 全平台规划","pj.tnm":"项目","pj.tmkt":"市场","pj.tpf":"平台","pj.tst":"状态","pj.tupd":"更新","sg.back":"返回看板","g.h":"护栏 · 批准前设定","g.sub":"这些就是规则引擎的阈值 · 改这里，每条决策都会重新推导","g.cpa":"目标 CPA","g.cpah":"超过即自动暂停","g.cap":"日预算上限","g.caph":"放量永不越过","g.perday":"/ 天","g.sample":"最小成交样本","g.sampleh":"低于此数置信度降级","g.orders":"单","g.freq":"频次上限","g.freqh":"超过判素材饱和","g.revert":"自动撤回","g.reverth":"CPP 超标或 CTR 跌 &gt;15% 自动回滚","g.boost":"大促自动加投","g.boosth":"平台大促期上限内提量","g.audit":"⛨ 6 条决策都会带上这套护栏 · 全部写进<b>可回放审计</b>","g.cancel":"取消","g.publish":"确认护栏并发布 6 项 →","g.published":"✓ 已发布 · 护栏已生效","g.toast":"已发布 6 项改动 · 护栏已生效 · 48h 后自动复盘","r.s5done":"已发布 6 项 · 护栏已写入审计","ph.q":"上一轮批准的 6 项改动跑了 48 小时，复盘一下效果。","ph.intro":"上一轮 6 项改动已跑满 <strong>48 小时</strong>，整体兑现了预测：综合 ROAS <strong>3.6× → 3.9×</strong>、CPA 降 <strong>$2.4</strong>，全程<strong>没有触发任何自动撤回护栏</strong>。下面是逐条「预测 vs 实际」，外加一条规则引擎新生成、待你批准的建议。","ph.h":"投后诊断 · 上一轮 6 项","ph.sub":"预测 vs 实际 · 48h 窗口","ph.k1":"综合 ROAS","ph.k1d":"↑ 预测 3.8×","ph.k2":"新增成交","ph.k4":"护栏触发","ph.k4d":"全程阈值内","ph.thact":"上轮动作","ph.thpred":"预测","ph.threal":"实际","ph.thv":"判定","ph.win":"兑现","ph.part":"部分","ph.p2":"11→稳住","ph.p3":"CTR 回升","ph.p4":"频次降","ph.stop":"止血","ph.s160":"省 $160/天","ph.s240":"省 $240/天","ph.r2real":"26 单","ph.rc":"<strong>根因 & 下一步：</strong>Retargeting_7d 换素材后频次回落但仍偏高（2.7），根因是<strong>受众过窄</strong>，不是素材问题。规则引擎据此生成 1 条新建议——<strong>扩 1% 相似受众</strong>，预计频次回到 2.3。已排进下一轮决策，等你下次批准。"},
-"en":{"tip.dark":"Switch to dark","tip.light":"Switch to light","wel.h1":"What growth are we driving today?","wel.sub":"Rules decide · auditable · cross-platform — you approve before any spend.","ck.spend":"Spend today","ck.pace":"92% · slightly ahead of pace","ck.roas":"Blended ROAS","ck.wk":"vs last wk","ck.conv":"Conversions","ck.pending":"Decisions pending","ck.alerts":"3 alerts","ck.accounts":"Accounts · platforms","ck.account":"Account","ck.plat":"Platform","ck.spendcap":"Spend / cap","ck.trend":"7-day","ck.status":"Status","ck.ok":"Healthy","ck.watch":"Watch","ck.risk":"At risk","ck.alertsh":"Alerts","ck.pendingh":"Pending · 6","ck.review":"Review each →","ck.a1":"Casual Game · SEA — ROAS 1.4×, unit economics broken, stop-loss advised","ck.a2":"Retarget · US — frequency 3.1 over the 2.5 cap, refresh creative","ck.a3":"Pacing 92% today — may hit cap this afternoon, watch overspend","ck.alloch":"Cross-platform allocation","ck.paused":"Paused","ck.freq":"Freq <b class='r'>3.1</b>","cl.new":"New chat","cl.today":"Today","cl.week":"This week","cl.earlier":"Earlier","cl.c1":"Today's budget diagnosis · 4 accounts","cl.c2":"OiOi Live cold-start","cl.c3":"DTC retargeting refresh","cl.c4":"Casual Game stop-loss review","cl.c5":"GMV Max · Vietnam SKUs","cl.c6":"Q2 cross-platform plan","cl.c7":"Attribution reconcile · AppsFlyer","cr.h":"Creative library","cr.sub":"Direction → generate → learn · not a vault, an engine","cr.t.dir":"Directions","cr.t.gen":"Generate","cr.t.lib":"Assets","cr.d.all":"All","cr.d.mine":"My winners","cr.d.ind":"Competitor · industry","cr.d.hint":"Directions distilled from your winners + industry · click Generate to feed an AI model","cr.hook":"Hook","cr.act":"Act","cr.proof":"Proof","cr.ugc":"UGC","cr.demo":"Demo","cr.d1":"Host warmth","cr.d1e":"Hina_hook_v3 · CTR 1.58% (2.1× baseline) · your winner","cr.d2":"Party FOMO","cr.d2e":"9-grid 'everyone's here' · CVR +18% · your winner","cr.d3":"Problem-solution · 3s open","cr.d3e":"pain point in first 3s · completion +22% · industry-common","cr.d4":"Social proof · review","cr.d4e":"real-user VO + data · Bigo Live running · competitor","cr.d5":"Creator GRWM","cr.d5e":"creator first-person daily · low trust barrier · your winner","cr.d6":"Feature demo · before/after","cr.d6e":"screen recording + before/after · steady CVR · industry-common","cr.v3":"3 assets validate","cr.v2":"2 assets validate","cr.ind":"Competitor · industry","cr.usegen":"Generate from this →","cr.g.dir":"Direction","cr.g.brief":"brief auto-filled: audience / message / claims / brand voice / format","cr.g.prod":"Product","cr.g.fmt":"Format","cr.g.model":"AI model","cr.g.qty":"Count","cr.g.qtyhint":"Test 50 variants, not 5 — the extra surface area is where winners come from","cr.g.foot":"The rule engine surfaces winning directions by the 8 signals and suggests generating more","cr.g.run":"Generate 50 variants →","cr.g.done":"Generated · pick which to ship","cr.l.gen":"Generated","cr.l.up":"Uploaded","cr.l.comp":"Competitor","cr.comp":"Competitor · saved from Ad Library","cr.gtoast":"Variants generated · the rule engine will surface winners by the 8 signals","l.why2":"Why","cr.foot":"<b>3</b> selected · ready for the next test","cr.upload":"↑ Upload","cr.gen":"✦ Generate new →","sg.h":"Growth strategy","sg.sub":"Project board · open one for the full plan","pj.1m":"Malaysia · live-social · $10k/mo","pj.2m":"Meta + TikTok · ROAS 3.2×","pj.3m":"restart after stop-loss · plan pending","pj.live":"Active","pj.plan":"Planning","pj.draft":"Draft","pj.all":"All","pj.supd":"Recent","pj.sbud":"By budget","pj.sroas":"By ROAS","pj.kbud":"Monthly","pj.open":"View plan →","pj.allstrat":"All strategies","pj.today":"Today","pj.yst":"Yesterday","pj.s1":"Malaysia · live social","pj.s2":"US · DTC commerce","pj.s3":"Japan · live streaming","pj.s4":"Vietnam · TikTok Shop GMV","pj.s5":"US · retargeting scale","pj.s6":"SEA · casual game (stop-loss restart)","pj.s7":"Multi-market · all-platform plan","pj.tnm":"Project","pj.tmkt":"Market","pj.tpf":"Platform","pj.tst":"Status","pj.tupd":"Updated","sg.back":"Back to board","g.h":"Guardrails · set before approving","g.sub":"These are the rule-engine thresholds · change them and every decision re-derives","g.cpa":"Target CPA","g.cpah":"auto-pause above this","g.cap":"Daily budget cap","g.caph":"scaling never crosses it","g.perday":"/ day","g.sample":"Min purchase sample","g.sampleh":"below this, confidence is downgraded","g.orders":"orders","g.freq":"Frequency cap","g.freqh":"above this = creative saturation","g.revert":"Auto-revert","g.reverth":"rolls back if CPP over or CTR drop &gt;15%","g.boost":"Boost during sales","g.boosth":"raise within cap during platform sales","g.audit":"⛨ all 6 decisions carry these guardrails · written into the <b>replayable audit</b>","g.cancel":"Cancel","g.publish":"Confirm guardrails & publish 6 →","g.published":"✓ Published · guardrails live","g.toast":"6 changes published · guardrails live · auto-review in 48h","r.s5done":"6 changes published · guardrails in audit","ph.q":"The 6 changes I approved last cycle have run 48h — review how they did.","ph.intro":"Last cycle's 6 changes have run a full <strong>48 hours</strong> and broadly hit forecast: blended ROAS <strong>3.6× → 3.9×</strong>, CPA down <strong>$2.4</strong>, and <strong>no auto-revert guardrail fired</strong>. Below: predicted vs actual per campaign, plus one new rule-engine suggestion awaiting approval.","ph.h":"Post-hoc diagnosis · last 6","ph.sub":"predicted vs actual · 48h window","ph.k1":"Blended ROAS","ph.k1d":"↑ forecast 3.8×","ph.k2":"New purchases","ph.k4":"Guardrails fired","ph.k4d":"all within threshold","ph.thact":"Last action","ph.thpred":"Predicted","ph.threal":"Actual","ph.thv":"Verdict","ph.win":"Hit","ph.part":"Partial","ph.p2":"11→hold","ph.p3":"CTR recovers","ph.p4":"freq down","ph.stop":"stop loss","ph.s160":"saved $160/day","ph.s240":"saved $240/day","ph.r2real":"26 orders","ph.rc":"<strong>Root cause & next:</strong> Retargeting_7d's frequency fell after the refresh but is still high (2.7) — the root cause is an <strong>audience too narrow</strong>, not the creative. The rule engine generated one new suggestion — <strong>expand to 1% lookalike</strong>, projected to bring frequency back to 2.3. It's queued for your next approval."}
+"zh-CN":{"tip.dark":"切换到夜间","tip.light":"切换到日间","wel.h1":"今天,想推动什么增长?","wel.sub":"规则决定 · 可审计 · 跨平台 —— 动钱之前,你拍板。","ck.spend":"今日花费","ck.pace":"92% · 略快于节奏","ck.roas":"综合 ROAS","ck.wk":"vs 上周","ck.conv":"转化","ck.pending":"待批决策","ck.alerts":"3 条告警","ck.accounts":"账户 · 平台","ck.account":"账户","ck.plat":"平台","ck.spendcap":"花费 / 上限","ck.trend":"近 7 天","ck.status":"状态","ck.ok":"健康","ck.watch":"观察","ck.risk":"风险","ck.alertsh":"告警","ck.pendingh":"待批决策 · 6","ck.review":"逐条复核 →","ck.a1":"Casual Game · SEA — ROAS 1.4×,单位经济已崩,建议止损","ck.a2":"Retarget · US — 频次 3.1 超 2.5 上限,建议换素材","ck.a3":"今日 pacing 92%,午后或触顶,关注超投","ck.alloch":"跨平台预算分配","ck.paused":"已暂停","ck.freq":"频次 <b class='r'>3.1</b>","cl.new":"新对话","cl.today":"今天","cl.week":"本周","cl.earlier":"更早","cl.search":"搜索对话","cl.none":"没有匹配的对话","cl.c1":"今日预算诊断 · 4 账户","cl.c2":"OiOi Live 冷启策略","cl.c3":"DTC 再营销换素材","cl.c4":"Casual Game 止损复盘","cl.c5":"GMV Max · 越南选品","cl.c6":"Q2 跨平台预算规划","cl.c7":"归因对账 · AppsFlyer","cr.h":"创意库","cr.sub":"方向 → 生成 → 回流 · 不只是存量,更是产能","cr.t.dir":"创意方向","cr.t.gen":"生成工作台","cr.t.lib":"素材库","cr.d.all":"全部","cr.d.mine":"我的赢家","cr.d.ind":"竞品 · 行业","cr.d.hint":"方向来自你的赢家 + 行业发现 · 点「生成」即喂给 AI 模型","cr.hook":"Hook 型","cr.act":"Act 型","cr.proof":"Proof 型","cr.ugc":"UGC 型","cr.demo":"Demo 型","cr.d1":"主播亲和力","cr.d1e":"Hina_hook_v3 · CTR 1.58%(基线 2.1×)· 你的赢家","cr.d2":"派对 FOMO","cr.d2e":"9 宫格「大家都在玩」· CVR +18% · 你的赢家","cr.d3":"问题-解决 · 3 秒开","cr.d3e":"前 3 秒抛痛点 · 完播 +22% · 行业高频","cr.d4":"社会证明 · 测评","cr.d4e":"真实用户口播 + 数据 · Bigo Live 在投 · 竞品","cr.d5":"达人 GRWM","cr.d5e":"达人第一人称日常 · 信任门槛低 · 你的赢家","cr.d6":"功能演示 · 对比","cr.d6e":"界面录屏 + 前后对比 · 转化稳 · 行业高频","cr.v3":"3 条素材验证","cr.v2":"2 条素材验证","cr.ind":"竞品 · 行业发现","cr.usegen":"用此方向生成 →","cr.g.dir":"创意方向","cr.g.brief":"brief 已自动带出:受众 / 信息点 / 合规声明 / 品牌调性 / 版式","cr.g.prod":"产品","cr.g.fmt":"格式","cr.g.model":"AI 模型","cr.g.qty":"数量","cr.g.qtyhint":"测 50 个变体而不是 5 个 —— 多出的测试面积才是赢家来源","cr.g.foot":"规则引擎会按 8 信号筛出赢家方向,自动建议下一轮多生成","cr.g.run":"生成 50 个变体 →","cr.g.done":"已生成 · 待你挑选投放","cr.l.gen":"生成","cr.l.up":"上传","cr.l.comp":"竞品","cr.comp":"竞品 · 收藏自 Ad Library","cr.gtoast":"已生成变体 · 规则引擎将按 8 信号筛出赢家","l.why2":"依据","cr.foot":"已选 <b>3</b> 个 · 可加入下一轮测试","cr.upload":"↑ 上传","cr.gen":"✦ 生成新素材 →","sg.h":"增长策略","sg.sub":"项目看板 · 选一个查看完整方案","pj.1m":"马来西亚 · 直播社交 · $10k/月","pj.2m":"Meta + TikTok · ROAS 3.2×","pj.3m":"止损后重启 · 待方案","pj.live":"进行中","pj.plan":"规划中","pj.draft":"草稿","pj.all":"全部","pj.supd":"最近更新","pj.sbud":"按预算","pj.sroas":"按 ROAS","pj.kbud":"月预算","pj.open":"查看方案 →","pj.allstrat":"全部策略","pj.today":"今天","pj.yst":"昨天","pj.s1":"马来西亚 · 直播社交","pj.s2":"北美 · DTC 电商","pj.s3":"日本 · 直播秀场","pj.s4":"越南 · TikTok Shop GMV","pj.s5":"北美 · 再营销扩量","pj.s6":"东南亚 · 休闲手游(止损重启)","pj.s7":"多市场 · 全平台规划","pj.tnm":"项目","pj.tmkt":"市场","pj.tpf":"平台","pj.tst":"状态","pj.tupd":"更新","sg.back":"返回看板","g.h":"护栏 · 批准前设定","g.sub":"这些就是规则引擎的阈值 · 改这里，每条决策都会重新推导","g.cpa":"目标 CPA","g.cpah":"超过即自动暂停","g.cap":"日预算上限","g.caph":"放量永不越过","g.perday":"/ 天","g.sample":"最小成交样本","g.sampleh":"低于此数置信度降级","g.orders":"单","g.freq":"频次上限","g.freqh":"超过判素材饱和","g.revert":"自动撤回","g.reverth":"CPP 超标或 CTR 跌 &gt;15% 自动回滚","g.boost":"大促自动加投","g.boosth":"平台大促期上限内提量","g.audit":"⛨ 6 条决策都会带上这套护栏 · 全部写进<b>可回放审计</b>","g.cancel":"取消","g.publish":"确认护栏并发布 6 项 →","g.published":"✓ 已发布 · 护栏已生效","g.toast":"已发布 6 项改动 · 护栏已生效 · 48h 后自动复盘","r.s5done":"已发布 6 项 · 护栏已写入审计","ph.q":"上一轮批准的 6 项改动跑了 48 小时，复盘一下效果。","ph.intro":"上一轮 6 项改动已跑满 <strong>48 小时</strong>，整体兑现了预测：综合 ROAS <strong>3.6× → 3.9×</strong>、CPA 降 <strong>$2.4</strong>，全程<strong>没有触发任何自动撤回护栏</strong>。下面是逐条「预测 vs 实际」，外加一条规则引擎新生成、待你批准的建议。","ph.h":"投后诊断 · 上一轮 6 项","ph.sub":"预测 vs 实际 · 48h 窗口","ph.k1":"综合 ROAS","ph.k1d":"↑ 预测 3.8×","ph.k2":"新增成交","ph.k4":"护栏触发","ph.k4d":"全程阈值内","ph.thact":"上轮动作","ph.thpred":"预测","ph.threal":"实际","ph.thv":"判定","ph.win":"兑现","ph.part":"部分","ph.p2":"11→稳住","ph.p3":"CTR 回升","ph.p4":"频次降","ph.stop":"止血","ph.s160":"省 $160/天","ph.s240":"省 $240/天","ph.r2real":"26 单","ph.rc":"<strong>根因 & 下一步：</strong>Retargeting_7d 换素材后频次回落但仍偏高（2.7），根因是<strong>受众过窄</strong>，不是素材问题。规则引擎据此生成 1 条新建议——<strong>扩 1% 相似受众</strong>，预计频次回到 2.3。已排进下一轮决策，等你下次批准。"},
+"en":{"tip.dark":"Switch to dark","tip.light":"Switch to light","wel.h1":"What growth are we driving today?","wel.sub":"Rules decide · auditable · cross-platform — you approve before any spend.","ck.spend":"Spend today","ck.pace":"92% · slightly ahead of pace","ck.roas":"Blended ROAS","ck.wk":"vs last wk","ck.conv":"Conversions","ck.pending":"Decisions pending","ck.alerts":"3 alerts","ck.accounts":"Accounts · platforms","ck.account":"Account","ck.plat":"Platform","ck.spendcap":"Spend / cap","ck.trend":"7-day","ck.status":"Status","ck.ok":"Healthy","ck.watch":"Watch","ck.risk":"At risk","ck.alertsh":"Alerts","ck.pendingh":"Pending · 6","ck.review":"Review each →","ck.a1":"Casual Game · SEA — ROAS 1.4×, unit economics broken, stop-loss advised","ck.a2":"Retarget · US — frequency 3.1 over the 2.5 cap, refresh creative","ck.a3":"Pacing 92% today — may hit cap this afternoon, watch overspend","ck.alloch":"Cross-platform allocation","ck.paused":"Paused","ck.freq":"Freq <b class='r'>3.1</b>","cl.new":"New chat","cl.today":"Today","cl.week":"This week","cl.earlier":"Earlier","cl.search":"Search chats","cl.none":"No matching chats","cl.c1":"Today's budget diagnosis · 4 accounts","cl.c2":"OiOi Live cold-start","cl.c3":"DTC retargeting refresh","cl.c4":"Casual Game stop-loss review","cl.c5":"GMV Max · Vietnam SKUs","cl.c6":"Q2 cross-platform plan","cl.c7":"Attribution reconcile · AppsFlyer","cr.h":"Creative library","cr.sub":"Direction → generate → learn · not a vault, an engine","cr.t.dir":"Directions","cr.t.gen":"Generate","cr.t.lib":"Assets","cr.d.all":"All","cr.d.mine":"My winners","cr.d.ind":"Competitor · industry","cr.d.hint":"Directions distilled from your winners + industry · click Generate to feed an AI model","cr.hook":"Hook","cr.act":"Act","cr.proof":"Proof","cr.ugc":"UGC","cr.demo":"Demo","cr.d1":"Host warmth","cr.d1e":"Hina_hook_v3 · CTR 1.58% (2.1× baseline) · your winner","cr.d2":"Party FOMO","cr.d2e":"9-grid 'everyone's here' · CVR +18% · your winner","cr.d3":"Problem-solution · 3s open","cr.d3e":"pain point in first 3s · completion +22% · industry-common","cr.d4":"Social proof · review","cr.d4e":"real-user VO + data · Bigo Live running · competitor","cr.d5":"Creator GRWM","cr.d5e":"creator first-person daily · low trust barrier · your winner","cr.d6":"Feature demo · before/after","cr.d6e":"screen recording + before/after · steady CVR · industry-common","cr.v3":"3 assets validate","cr.v2":"2 assets validate","cr.ind":"Competitor · industry","cr.usegen":"Generate from this →","cr.g.dir":"Direction","cr.g.brief":"brief auto-filled: audience / message / claims / brand voice / format","cr.g.prod":"Product","cr.g.fmt":"Format","cr.g.model":"AI model","cr.g.qty":"Count","cr.g.qtyhint":"Test 50 variants, not 5 — the extra surface area is where winners come from","cr.g.foot":"The rule engine surfaces winning directions by the 8 signals and suggests generating more","cr.g.run":"Generate 50 variants →","cr.g.done":"Generated · pick which to ship","cr.l.gen":"Generated","cr.l.up":"Uploaded","cr.l.comp":"Competitor","cr.comp":"Competitor · saved from Ad Library","cr.gtoast":"Variants generated · the rule engine will surface winners by the 8 signals","l.why2":"Why","cr.foot":"<b>3</b> selected · ready for the next test","cr.upload":"↑ Upload","cr.gen":"✦ Generate new →","sg.h":"Growth strategy","sg.sub":"Project board · open one for the full plan","pj.1m":"Malaysia · live-social · $10k/mo","pj.2m":"Meta + TikTok · ROAS 3.2×","pj.3m":"restart after stop-loss · plan pending","pj.live":"Active","pj.plan":"Planning","pj.draft":"Draft","pj.all":"All","pj.supd":"Recent","pj.sbud":"By budget","pj.sroas":"By ROAS","pj.kbud":"Monthly","pj.open":"View plan →","pj.allstrat":"All strategies","pj.today":"Today","pj.yst":"Yesterday","pj.s1":"Malaysia · live social","pj.s2":"US · DTC commerce","pj.s3":"Japan · live streaming","pj.s4":"Vietnam · TikTok Shop GMV","pj.s5":"US · retargeting scale","pj.s6":"SEA · casual game (stop-loss restart)","pj.s7":"Multi-market · all-platform plan","pj.tnm":"Project","pj.tmkt":"Market","pj.tpf":"Platform","pj.tst":"Status","pj.tupd":"Updated","sg.back":"Back to board","g.h":"Guardrails · set before approving","g.sub":"These are the rule-engine thresholds · change them and every decision re-derives","g.cpa":"Target CPA","g.cpah":"auto-pause above this","g.cap":"Daily budget cap","g.caph":"scaling never crosses it","g.perday":"/ day","g.sample":"Min purchase sample","g.sampleh":"below this, confidence is downgraded","g.orders":"orders","g.freq":"Frequency cap","g.freqh":"above this = creative saturation","g.revert":"Auto-revert","g.reverth":"rolls back if CPP over or CTR drop &gt;15%","g.boost":"Boost during sales","g.boosth":"raise within cap during platform sales","g.audit":"⛨ all 6 decisions carry these guardrails · written into the <b>replayable audit</b>","g.cancel":"Cancel","g.publish":"Confirm guardrails & publish 6 →","g.published":"✓ Published · guardrails live","g.toast":"6 changes published · guardrails live · auto-review in 48h","r.s5done":"6 changes published · guardrails in audit","ph.q":"The 6 changes I approved last cycle have run 48h — review how they did.","ph.intro":"Last cycle's 6 changes have run a full <strong>48 hours</strong> and broadly hit forecast: blended ROAS <strong>3.6× → 3.9×</strong>, CPA down <strong>$2.4</strong>, and <strong>no auto-revert guardrail fired</strong>. Below: predicted vs actual per campaign, plus one new rule-engine suggestion awaiting approval.","ph.h":"Post-hoc diagnosis · last 6","ph.sub":"predicted vs actual · 48h window","ph.k1":"Blended ROAS","ph.k1d":"↑ forecast 3.8×","ph.k2":"New purchases","ph.k4":"Guardrails fired","ph.k4d":"all within threshold","ph.thact":"Last action","ph.thpred":"Predicted","ph.threal":"Actual","ph.thv":"Verdict","ph.win":"Hit","ph.part":"Partial","ph.p2":"11→hold","ph.p3":"CTR recovers","ph.p4":"freq down","ph.stop":"stop loss","ph.s160":"saved $160/day","ph.s240":"saved $240/day","ph.r2real":"26 orders","ph.rc":"<strong>Root cause & next:</strong> Retargeting_7d's frequency fell after the refresh but is still high (2.7) — the root cause is an <strong>audience too narrow</strong>, not the creative. The rule engine generated one new suggestion — <strong>expand to 1% lookalike</strong>, projected to bring frequency back to 2.3. It's queued for your next approval."}
 };
 for (const _l in I18N_RESTRUCT) { if (I18N[_l]) Object.assign(I18N[_l], I18N_RESTRUCT[_l]); }
 function setLang(code){
@@ -1548,24 +1607,48 @@ document.querySelectorAll(".lang button").forEach(b => b.addEventListener("click
   document.querySelectorAll(".lang button").forEach(x => x.classList.remove("on")); b.classList.add("on");
 }));
 // right rail: hide / show
-const rrBtn = $("rrToggle");
-if (rrBtn) rrBtn.addEventListener("click", () => {
-  const hidden = app.classList.toggle("rr-hidden");
-  if (hidden) app.style.gridTemplateColumns = "";
-  rrBtn.classList.toggle("off", hidden);
-  rrBtn.title = hidden ? (I18N[curLang]&&I18N[curLang]["tip.show"]||"显示侧栏") : (I18N[curLang]&&I18N[curLang]["tip.hide"]||"隐藏侧栏");
-});
-// right rail: drag edge to resize
-const grip = $("rrGrip"); let dragging = false;
-if (grip) {
-  grip.addEventListener("mousedown", e => { dragging = true; grip.classList.add("drag"); document.body.style.userSelect = "none"; e.preventDefault(); });
-  window.addEventListener("mousemove", e => {
-    if (!dragging || app.classList.contains("rr-hidden")) return;
-    const w = Math.max(300, Math.min(560, window.innerWidth - e.clientX));
-    app.style.gridTemplateColumns = "56px 1fr " + w + "px";
+// ===== panels: collapse · drag-resize · search · persist (Claude-style) =====
+(function(){
+  const root = document.documentElement;
+  const LS = { get(k){ try { return localStorage.getItem(k); } catch(e){ return null; } }, set(k,v){ try { localStorage.setItem(k,v); } catch(e){} } };
+  // restore widths + collapse state
+  const clw = parseInt(LS.get("drip-clw"), 10), rrw = parseInt(LS.get("drip-rrw"), 10);
+  if (clw >= 180 && clw <= 420) root.style.setProperty("--clw", clw + "px");
+  if (rrw >= 280 && rrw <= 600) root.style.setProperty("--rrw", rrw + "px");
+  if (LS.get("drip-cl-hidden") === "1") app.classList.add("cl-hidden");
+  if (LS.get("drip-rr-hidden") === "1") app.classList.add("rr-hidden");
+  const syncAudit = () => { const b = $("auditToggle"); if (b) b.classList.toggle("off", app.classList.contains("rr-hidden")); };
+  syncAudit();
+  // collapse toggles
+  const side = $("sideToggle");
+  if (side) side.addEventListener("click", () => { LS.set("drip-cl-hidden", app.classList.toggle("cl-hidden") ? "1" : "0"); });
+  const at = $("auditToggle");
+  if (at) at.addEventListener("click", () => { LS.set("drip-rr-hidden", app.classList.toggle("rr-hidden") ? "1" : "0"); syncAudit(); });
+  // drag-resize through CSS vars — composes cleanly with every column layout
+  function makeResize(grip, varName, lsKey, min, max, fromRight){
+    if (!grip) return; let on = false;
+    grip.addEventListener("mousedown", e => { on = true; grip.classList.add("drag"); app.classList.add("resizing"); document.body.style.userSelect = "none"; e.preventDefault(); });
+    window.addEventListener("mousemove", e => { if (!on) return; let w = fromRight ? (window.innerWidth - e.clientX) : (e.clientX - 56); w = Math.max(min, Math.min(max, w)); root.style.setProperty(varName, w + "px"); });
+    window.addEventListener("mouseup", () => { if (!on) return; on = false; grip.classList.remove("drag"); app.classList.remove("resizing"); document.body.style.userSelect = ""; const cur = parseInt(getComputedStyle(root).getPropertyValue(varName), 10); if (cur) LS.set(lsKey, cur); });
+  }
+  makeResize($("clGrip"), "--clw", "drip-clw", 180, 420, false);
+  makeResize($("rrGrip"), "--rrw", "drip-rrw", 280, 600, true);
+  // chat search + collapsible date groups (hierarchy navigation)
+  const scroll = $("clScroll"), search = $("clSearch"), empty = $("clEmpty");
+  const groupItems = g => { const a = []; let n = g.nextElementSibling; while (n && !n.classList.contains("cl-grp")){ if (n.classList.contains("cl-item")) a.push(n); n = n.nextElementSibling; } return a; };
+  if (scroll) scroll.querySelectorAll(".cl-grp").forEach(g => {
+    const items = groupItems(g), gn = g.querySelector(".gn"); if (gn) gn.textContent = items.length;
+    g.addEventListener("click", () => { const col = g.classList.toggle("col"); items.forEach(it => it.classList.toggle("gcol", col)); });
   });
-  window.addEventListener("mouseup", () => { if (!dragging) return; dragging = false; grip.classList.remove("drag"); document.body.style.userSelect = ""; });
-}
+  if (search) search.addEventListener("input", () => {
+    const q = search.value.trim().toLowerCase();
+    if (q) scroll.querySelectorAll(".cl-grp").forEach(g => g.classList.remove("col"));
+    scroll.querySelectorAll(".cl-item").forEach(it => { if (q) it.classList.remove("gcol"); it.classList.toggle("hide", !!q && it.textContent.toLowerCase().indexOf(q) === -1); });
+    let total = 0;
+    scroll.querySelectorAll(".cl-grp").forEach(g => { const vis = groupItems(g).filter(it => !it.classList.contains("hide")); total += vis.length; g.classList.toggle("ghide", !!q && vis.length === 0); });
+    if (empty) empty.classList.toggle("on", !!q && total === 0);
+  });
+})();
 // every button gives tactile feedback so nothing feels dead
 document.addEventListener("mousedown", e => {
   const b = e.target.closest("button");
@@ -1626,22 +1709,43 @@ setLang(localStorage.getItem("drip-lang") || (function(){ const n = (navigator.l
   function build(){
     const b = botMsgs(), b1 = b[0], a2 = b[1], posthoc = b[2];
     const q = (el, s) => el ? el.querySelector(s) : null;
-    const intro = q(b1, ".intro"), mantra = q(b1, ".mantra"), cot = q(b1, ".cot");
     const diag = q(b1, ".block"), editor = q(b1, ".editor"), gate = $("gateCard"), alloc = q(b1, ".alloc");
     const cards = b1 ? [...b1.querySelectorAll(".card[data-card]")] : [];
     steps = [
-      { welcome:1, act:C("问题","The problem"), cap:C("操盘手每天第一件事:把跨平台、上百条 campaign 的数据拉到一起","Every operator's day starts the same way — pulling scattered cross-platform data together"), dwell:2800 },
-      { say:C("诊断我这 4 个账户,该加该停?","Diagnose my 4 accounts — scale or cut?"), toConsole:1, act:C("诊断","Diagnose"), cap:C("一句话——它不给建议,直接开始干活","One line — it doesn't advise, it goes to work"), dwell:1000 },
-      { reveal:[intro, mantra, cot], progress:[0,1], act:C("诊断","Diagnose"), cap:C("先把 4 个账户拉齐、归一到统一口径","First it pulls & normalizes all 4 accounts into one schema"), dwell:2800 },
-      { reveal:[diag], progress:[2], act:C("诊断","Diagnose"), cap:C("用 8 个确定性信号给每条 campaign 打分","Then scores every campaign on 8 deterministic signals"), dwell:2800 },
-      { stagger:cards, progress:[3], audit:"c1", act:C("护城河","The moat"), cap:C("规则决定该扩 / 换 / 停,LLM 只解释——右栏每条都可审计、可回放","Rules decide scale/refresh/cut; the LLM only explains — every call is auditable & replayable"), dwell:4200 },
-      { say:C("DTC 为什么只 +10%?","Why is DTC only +10%?"), user:1, reveal:[a2], act:C("信任","Trust"), cap:C("每个决定都能质询:样本太薄 → 自动从 +20% 压到 +10%","You can interrogate any call: thin sample → auto-capped from +20% to +10%"), dwell:3800 },
-      { reveal:[editor], act:C("执行","Execute"), cap:C("汇成一张可直接批的改动表","It all rolls up into one ready-to-approve change sheet"), dwell:2600 },
-      { reveal:[gate], act:C("信任","Trust"), cap:C("动钱之前先过你这关——护栏就是引擎阈值,改这里每条决策重推导","Nothing writes until you approve — the guardrails ARE the engine thresholds"), dwell:3800 },
-      { reveal:[alloc], progress:"done", act:C("赛道","The lane"), cap:C("止损腾出的钱跨 Meta / TikTok / Google 回流赢家——平台内没人做的'下一块钱去哪'","Freed budget flows across Meta/TikTok/Google to the winners — the cross-platform gap nobody fills"), dwell:4000 },
-      { say:C("上一轮咋样?","How did last cycle go?"), user:2, reveal:[posthoc], act:C("复利","Compounding"), cap:C("投后闭环:预测 vs 实际,护栏 0 触发,自动排出下一条建议","The loop closes — predicted vs actual, 0 guardrails fired, next move auto-queued"), dwell:4200 },
-      { view:"bench", act:C("可防御","Defensible"), cap:C("决策质量可被基准化、开放可复现——规则引擎把任何模型的分都抬高","Decision quality is benchmarked & reproducible — the engine lifts any model's score"), dwell:3800 },
-      { view:"console", end:1, act:"Drip", cap:C("开源 · 自托管 · 可审计——你现在就能 fork 跑起来","Open-source · self-hostable · auditable — fork it and run today"), dwell:7000 }
+      { view:"welcome", act:C("问题","The problem"),
+        cap:C("每天开盘第一件事都一样:几十个看板、上百条 campaign,数据散在 Meta、TikTok、Google","Every operator's morning is the same — dozens of dashboards, hundreds of campaigns, data scattered across Meta, TikTok and Google"), dwell:3400 },
+      { view:"cockpit", spot:"#view-cockpit .ck-alloc", spotDelay:1200, act:C("盘面","The board"),
+        cap:C("Drip 先把它们收成一块盘面 —— 跨平台拉齐、按健康度排序,该看的异常自己浮上来","Drip pulls it all into one board first — cross-platform, ranked by health, the anomalies surface themselves"), dwell:4800 },
+      { say:C("诊断我这 4 个账户,该扩该停?","Diagnose my 4 accounts — scale or cut?"), viewBefore:"console", user:0,
+        think:[C("连接 4 个广告账户…","Connecting 4 ad accounts…"), C("拉取 32 条 campaign insights","Pulling insights for 32 campaigns"), C("按 8 信号逐条评估","Scoring all 8 signals, per campaign"), C("跑规则引擎 → 6 项决策","Running the rule engine → 6 decisions")],
+        reveal:[b1], progress:[0,1], act:C("开口","One line"),
+        cap:C("在盘面上点一条待批,或直接一句话 —— Drip 不给建议,它直接开干","Tap a pending call, or just say it in one line — Drip doesn't advise, it gets to work"), dwell:2600 },
+      { reveal:[diag], progress:[2], act:C("打分","Score it"),
+        cap:C("4 个账户拉齐、归一到同一口径,再用 8 个确定性信号给每条 campaign 打分","It aligns all 4 accounts to one schema, then scores every campaign on 8 deterministic signals"), dwell:3000 },
+      { stagger:cards, staggerMs:340, progress:[3], audit:"c1", spot:".rrail", spotDelay:1800, act:C("护城河","The moat"),
+        cap:C("规则决定扩 / 换 / 停,LLM 只负责解释 —— 右栏每条决策都可审计、可回放","Rules decide scale / refresh / cut — the LLM only explains. Every call on the right is auditable and replayable"), dwell:4800 },
+      { say:C("DTC 为什么只 +10%?","Why is DTC only +10%?"), user:1,
+        think:[C("回放 DTC 这条的规则链","Replaying DTC's rule chain"), C("定位样本量信号…","Tracing the sample-size signal…")],
+        reveal:[a2], spot:a2, spotDelay:650, act:C("质询","Interrogate"),
+        cap:C("任何一条都能当面追问:样本太薄 → 引擎自动把 +20% 压到 +10%,和老操盘手一个判断","Interrogate any call: thin sample → the engine auto-caps +20% down to +10%, exactly like a seasoned buyer would"), dwell:4200 },
+      { reveal:[editor], act:C("执行","Execute"),
+        cap:C("六条改动汇成一张表,差异、护栏、影响一目了然,等你一键批","Six changes roll into one sheet — diffs, guardrails, impact — ready for one tap"), dwell:2800 },
+      { reveal:[gate], spot:gate, spotDelay:550, act:C("批准","You approve"),
+        cap:C("动钱之前先过你这关 —— 护栏就是引擎阈值,改一个数,所有决策当场重新推导","Nothing spends until you sign off — the guardrails ARE the engine's thresholds; change one and every decision re-derives"), dwell:4200 },
+      { reveal:[alloc], progress:"done", spot:alloc, spotDelay:550, act:C("赛道","The open lane"),
+        cap:C("止损腾出的钱,跨 Meta / TikTok / Google 回流给赢家 —— 平台只在自家围墙内优化,这一步没人替你做","Freed budget flows across Meta / TikTok / Google to the winners — platforms optimize inside their walls; nobody owns this lane"), dwell:4600 },
+      { view:"creative", spot:"#view-creative .dir-card", spotDelay:950, act:C("产能 · 方向","Directions"),
+        cap:C("停掉的素材谁来补?方向不是凭空想的 —— 来自你的赢家钩子 + 竞品行业在投","Who refills the cut creatives? Directions aren't guessed — they're distilled from your winning hooks and what competitors are running"), dwell:3800 },
+      { view:"creative", cgen:1, act:C("产能 · 生成","The factory"),
+        cap:C("一键带出 brief,挑 AI 模型,一次测 50 个变体不是 5 个 —— 这是产能引擎,不是素材仓库","One click fills the brief, pick an AI model, test 50 variants not 5 — this is a creative factory, not a vault"), dwell:5800 },
+      { say:C("上一轮那 6 项,跑得咋样?","Those 6 changes — how did they do?"), viewBefore:"console", user:2,
+        think:[C("拉取 48 小时实际数据","Pulling 48h of actuals"), C("对齐预测 vs 实际","Aligning predicted vs actual"), C("核对护栏触发记录","Checking the guardrail log")],
+        reveal:[posthoc], spot:posthoc, spotDelay:700, act:C("复利","Compounding"),
+        cap:C("48 小时后自动复盘:预测 vs 实际、护栏 0 触发,下一条建议已经排好队","48 hours later it self-reviews — predicted vs actual, zero guardrails fired, the next move already queued"), dwell:4600 },
+      { view:"bench", act:C("可防御","Defensible"),
+        cap:C("决策质量开放可复现:同一个模型,套上规则引擎,分数显著抬高 —— 这是能被基准化的护城河","Decision quality is open and reproducible — the same model scores far higher with the engine on. A moat you can benchmark"), dwell:4000 },
+      { view:"console", end:1, act:"Drip",
+        cap:C("开源 · 自托管 · 全程可审计 —— fork 下来,今天就能跑起来","Open-source · self-hostable · fully auditable — fork it and run it today"), dwell:7500 }
     ];
   }
   function resetProgress(){
@@ -1660,52 +1764,112 @@ setLang(localStorage.getItem("drip-lang") || (function(){ const n = (navigator.l
     userMsgs().forEach(u => t.push(u)); const e = $("demoEndMsg"); if (e) t.push(e); return t.filter(Boolean);
   }
   function hideAll(){ allTargets().forEach(hideNow); resetProgress(); }
+  // ---- v2 roadshow helpers ----
+  let _spotEl = null;
+  function clearSpot(){ if (_spotEl) { _spotEl.classList.remove("demo-spot"); _spotEl = null; } }
+  function spot(el){ clearSpot(); if (el) { el.classList.add("demo-spot"); _spotEl = el; } }
+  function clearThink(){ const t = $("demoThink"); if (t) t.remove(); }
+  function thinkChip(lines, done){
+    clearThink(); const tin = thread(); if (!tin || !lines || !lines.length) { done && done(); return; }
+    const el = document.createElement("div"); el.className = "msg bot demo-think d-in"; el.id = "demoThink";
+    el.innerHTML = '<div class="ava">D</div><div class="dt-body"><span class="dt-dots"><i></i><i></i><i></i></span><span class="dt-tx"></span></div>';
+    tin.appendChild(el); const txEl = el.querySelector(".dt-tx"); txEl.textContent = tx(lines[0]); scrollTo(el);
+    let li = 0; const STEP = 760;
+    function adv(){
+      if (!playing) { timer = setTimeout(adv, 150); return; }
+      li++;
+      if (li < lines.length) { txEl.classList.add("fade"); timer = setTimeout(() => { txEl.textContent = tx(lines[li]); txEl.classList.remove("fade"); timer = setTimeout(adv, STEP); }, 220); }
+      else timer = setTimeout(() => { clearThink(); done && done(); }, 520);
+    }
+    timer = setTimeout(adv, STEP);
+  }
+  function fillBars(scope){
+    if (!scope) return;
+    scope.querySelectorAll(".ck-bar2 i, .pace i, .ac-pace i").forEach(b => {
+      if (!b.dataset.w) b.dataset.w = b.style.width || ""; if (!b.dataset.w) return;
+      b.style.transition = "none"; b.style.width = "0"; void b.offsetWidth;
+      b.style.transition = "width .9s cubic-bezier(.22,.61,.36,1)"; b.style.width = b.dataset.w;
+    });
+  }
+  function revealCockpit(){
+    const cv = $("view-cockpit"); if (!cv) return;
+    cv.querySelectorAll(".ck-stat").forEach((s,i) => { s.classList.remove("d-pop"); void s.offsetWidth; setTimeout(() => s.classList.add("d-pop"), i * 70); });
+    setTimeout(() => fillBars(cv), 150);
+    cv.querySelectorAll(".acct-card").forEach((c,i) => { c.classList.remove("d-in"); void c.offsetWidth; setTimeout(() => c.classList.add("d-in"), 360 + i * 110); });
+    cv.querySelectorAll(".ck-panel").forEach((p,i) => { p.classList.remove("d-in"); void p.offsetWidth; setTimeout(() => p.classList.add("d-in"), 320 + i * 150); });
+  }
+  function revealCreativeDir(){
+    const cr = $("view-creative"); if (!cr) return;
+    const dt = cr.querySelector('.crt[data-crt="dir"]'); if (dt && !dt.classList.contains("on")) dt.click();
+    cr.querySelectorAll('[data-crp="dir"] .dir-card').forEach((c,i) => { c.classList.remove("d-in"); void c.offsetWidth; setTimeout(() => c.classList.add("d-in"), i * 90); });
+  }
+  function creativeGen(){
+    const cr = $("view-creative"); if (!cr) return;
+    const w = cr.querySelector('.dir-card .gen-from');
+    if (w) { w.classList.add("demo-press"); w.click(); setTimeout(() => w.classList.remove("demo-press"), 600); }
+    setTimeout(() => cr.querySelectorAll('[data-crp="gen"] .gen-form .frow').forEach((r,i) => { r.classList.remove("d-in"); void r.offsetWidth; setTimeout(() => r.classList.add("d-in"), i * 110); }), 300);
+    setTimeout(() => { const m = cr.querySelector('[data-crp="gen"] .gen-form .frow:nth-child(4)'); if (m) spot(m); }, 1250);
+    setTimeout(() => {
+      clearSpot();
+      const run = $("genRun"); if (run) { run.classList.add("demo-press"); run.click(); setTimeout(() => run.classList.remove("demo-press"), 600); }
+      setTimeout(() => document.querySelectorAll("#genGrid .vcard").forEach((c,i) => { c.classList.remove("d-in"); void c.offsetWidth; setTimeout(() => c.classList.add("d-in"), i * 75); }), 240);
+    }, 2800);
+  }
   function setCap(s){
-    const cap = $("demoCap"); if (!cap) return;
-    if (!s || !s.cap) { cap.classList.remove("show"); return; }
+    const cap = $("demoCap"), chap = $("demoChap");
+    if (chap) chap.innerHTML = (idx + 1) + " / " + steps.length + (s && s.act ? ' · <b>' + tx(typeof s.act === "string" ? {zh:s.act,en:s.act} : s.act) + '</b>' : "");
+    if (!cap) return;
+    if (!s || !s.cap) { cap.classList.remove("show"); body.classList.remove("demo-cap-on"); return; }
     cap.innerHTML = '<span class="act">' + (s.act ? tx(typeof s.act === "string" ? {zh:s.act,en:s.act} : s.act) : "") + '</span>' + tx(s.cap);
-    cap.classList.add("show");
+    cap.classList.add("show"); body.classList.add("demo-cap-on");
   }
   function activeTextarea(){
     return appEl.classList.contains("welcome") ? $("welInput") : document.querySelector(".composer-wrap .composer textarea");
   }
   function typeInto(text, done){
     const ta = activeTextarea(); if (!ta) { done && done(); return; }
-    ta.classList.add("type-cursor"); ta.value = ""; let i = 0;
+    ta.classList.add("type-cursor"); ta.value = ""; let i = 0; const BASE = 46;
     (function tick(){
       if (!playing) { timer = setTimeout(tick, 150); return; }
       ta.value = text.slice(0, i); i++;
-      if (i <= text.length) timer = setTimeout(tick, 48);
-      else { ta.classList.remove("type-cursor"); timer = setTimeout(() => { ta.value = ""; done && done(); }, 400); }
+      if (i <= text.length) { const ch = text[i - 2] || ""; const pause = ",，?？。!！".indexOf(ch) > -1 ? 180 : (ch === " " ? 55 : 0); timer = setTimeout(tick, BASE + pause + (i % 3) * 12); }
+      else { ta.classList.remove("type-cursor"); timer = setTimeout(() => { ta.value = ""; done && done(); }, 460); }
     })();
   }
   function showUserBubble(s){
-    const u = userMsgs(); const t = s.toConsole ? u[0] : (s.user != null ? u[s.user] : null);
+    const u = userMsgs(); const t = u[s.user != null ? s.user : 0];
     if (t) { const b = t.querySelector(".bubble"); if (b) b.textContent = tx(s.say); showAnim(t); scrollTo(t); }
   }
   function effects(s){
     if (s.view) setView(s.view);
-    if (s.audit && typeof render === "function") render(s.audit);
+    if (s.view === "cockpit") revealCockpit();
+    if (s.view === "creative") { if (s.cgen) creativeGen(); else revealCreativeDir(); }
+    if (s.audit && typeof render === "function") { appEl.classList.remove("rr-hidden"); render(s.audit); }
     if (s.progress) tickProgress(s.progress);
     if (s.reveal) { s.reveal.forEach(showAnim); scrollTo(last(s.reveal)); }
-    if (s.stagger) s.stagger.forEach((el,k) => setTimeout(() => { showAnim(el); scrollTo(el); }, k * 430));
+    if (s.stagger) s.stagger.forEach((el,k) => setTimeout(() => { showAnim(el); scrollTo(el); }, k * (s.staggerMs || 320)));
     if (s.end) { const e = $("demoEndMsg"); showAnim(e); scrollTo(e); }
+    if (s.spot) setTimeout(() => { const t = (typeof s.spot === "string") ? document.querySelector(s.spot) : s.spot; if (t) spot(t); }, s.spotDelay || 500);
     setCap(s); updateProg();
   }
   function enter(i){
-    if (i < 0 || i >= steps.length) return; idx = i; const s = steps[i]; clearT();
-    const rest = () => { effects(s); if (playing) timer = setTimeout(() => { if (idx < steps.length - 1) enter(idx + 1); else { playing = false; updatePP(); } }, s.dwell || 2800); };
-    if (s.welcome) setView("welcome");
-    if (s.say) typeInto(tx(s.say), () => { if (s.toConsole) setView("console"); showUserBubble(s); rest(); });
-    else rest();
+    if (i < 0 || i >= steps.length) return; idx = i; const s = steps[i]; clearT(); clearThink(); clearSpot();
+    const advance = () => { if (playing) timer = setTimeout(() => { if (idx < steps.length - 1) enter(idx + 1); else { playing = false; updatePP(); } }, s.dwell || 3000); };
+    const doReveal = () => { effects(s); advance(); };
+    const afterUser = () => { if (s.think && s.think.length) thinkChip(s.think, doReveal); else doReveal(); };
+    const afterType = () => { if (s.user != null) showUserBubble(s); afterUser(); };
+    if (s.viewBefore) setView(s.viewBefore);
+    if (s.say) typeInto(tx(s.say), afterType);
+    else afterUser();
   }
   function seek(n){
-    clearT(); hideAll(); resetProgress();
+    clearT(); clearThink(); clearSpot(); hideAll(); resetProgress();
     for (let i = 0; i <= n; i++){ const s = steps[i];
-      if (s.welcome) setView("welcome");
-      if (s.say){ if (s.toConsole) setView("console"); const u = userMsgs(); const t = s.toConsole ? u[0] : u[s.user]; if (t){ const b = t.querySelector(".bubble"); if (b) b.textContent = tx(s.say); showNow(t); } }
+      if (s.viewBefore) setView(s.viewBefore);
+      if (s.say){ const u = userMsgs(); const t = u[s.user != null ? s.user : 0]; if (t){ const b = t.querySelector(".bubble"); if (b) b.textContent = tx(s.say); showNow(t); } }
       if (s.view) setView(s.view);
-      if (s.audit && typeof render === "function") render(s.audit);
+      if (s.view === "creative") { const cr = $("view-creative"); if (cr) { if (s.cgen) { const w = cr.querySelector('.dir-card .gen-from'); if (w) w.click(); const r = $("genRun"); if (r) r.click(); } else { const dt = cr.querySelector('.crt[data-crt="dir"]'); if (dt) dt.click(); } } }
+      if (s.audit && typeof render === "function") { appEl.classList.remove("rr-hidden"); render(s.audit); }
       if (s.progress) tickProgress(s.progress);
       if (s.reveal) s.reveal.forEach(showNow);
       if (s.stagger) s.stagger.forEach(showNow);
@@ -1724,7 +1888,7 @@ setLang(localStorage.getItem("drip-lang") || (function(){ const n = (navigator.l
     if ($("demoCap")) return;
     const cap = document.createElement("div"); cap.className = "demo-cap"; cap.id = "demoCap"; body.appendChild(cap);
     const ctl = document.createElement("div"); ctl.className = "demo-ctl";
-    ctl.innerHTML = '<button id="demoPrev" title="上一步">◀</button><button class="pp" id="demoPP" title="播放/暂停">❚❚</button><button id="demoNext" title="下一步">▶</button><span class="demo-prog" id="demoProg"></span><button id="demoExit" title="退出">✕</button>';
+    ctl.innerHTML = '<button id="demoPrev" title="上一步">◀</button><button class="pp" id="demoPP" title="播放/暂停">❚❚</button><button id="demoNext" title="下一步">▶</button><span class="demo-chap" id="demoChap"></span><span class="demo-prog" id="demoProg"></span><button id="demoExit" title="退出">✕</button>';
     body.appendChild(ctl);
     const prog = ctl.querySelector("#demoProg");
     steps.forEach((_, i) => { const d = document.createElement("i"); d.onclick = () => { pause(); seek(i); }; prog.appendChild(d); });
@@ -1749,6 +1913,7 @@ setLang(localStorage.getItem("drip-lang") || (function(){ const n = (navigator.l
   function start(){
     if (started) { return; } started = true;
     build(); body.classList.add("demo-on");
+    appEl.classList.remove("cl-hidden", "rr-hidden");
     const pill = $("demoPill"); if (pill) pill.style.display = "none";
     injectChrome(); hideAll(); setView("welcome");
     playing = true; updatePP(); idx = -1; enter(0);
