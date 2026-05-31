@@ -6,16 +6,33 @@
 <title>Drip · Console</title>
 <style>
 :root{
-  --bg:#fff; --surface:#fafbfc; --surface-2:#f2f3f5; --surface-3:#e9ebf0;
+  --bg:#fff; --canvas:#f5f6f8; --surface:#fafbfc; --surface-2:#f2f3f5; --surface-3:#e9ebf0;
   --text:#1a1a1a; --text-2:#5f6368; --text-3:#9aa0a6;
   --border:#ebecf0; --border-strong:#dcdee3;
   --accent:#0052d9; --accent-hover:#0046b8; --accent-subtle:#eaf1fd; --accent-2:#5b8def;
   --green:#16a34a; --green-subtle:#ecfdf3; --red:#dc2626; --red-subtle:#fef2f2;
   --amber:#d97706; --amber-subtle:#fffbeb; --gray-badge:#6b7280;
-  --radius:8px; --radius-lg:12px;
+  --radius:8px; --radius-lg:10px;
   --font:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans","Microsoft YaHei",system-ui,sans-serif;
   --mono:ui-monospace,"SF Mono","Geist Mono",Menlo,monospace;
 }
+:root{color-scheme:light}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#1b1f27; --canvas:#101319; --surface:#232831; --surface-2:#2b313b; --surface-3:#353c48;
+  --text:#e8eaef; --text-2:#a4aab5; --text-3:#6d7480;
+  --border:#2a2f39; --border-strong:#3b4250;
+  --accent:#5b8cff; --accent-hover:#79a1ff; --accent-subtle:#1c2840; --accent-2:#6f9bf0;
+  --green:#3ddc97; --green-subtle:#102a20; --red:#f87171; --red-subtle:#2c1719;
+  --amber:#fbbf24; --amber-subtle:#2a2010; --gray-badge:#9aa0ab;
+}
+:root[data-theme="dark"] .rrail .rp-audit{background:linear-gradient(180deg,#1d2536,var(--bg) 140px)}
+:root[data-theme="dark"] .toast{background:#2b313b;border:1px solid var(--border-strong)}
+:root[data-theme="dark"] .toast .tk{color:#3ddc97}
+:root[data-theme="dark"] .lang-menu,:root[data-theme="dark"] .acct-menu{box-shadow:0 16px 46px rgba(0,0,0,.6);border-color:var(--border-strong)}
+:root[data-theme="dark"] .lg.tt{background:#0a0a0a;border:1px solid var(--border-strong)}
+:root[data-theme="dark"] .block,:root[data-theme="dark"] .card,:root[data-theme="dark"] .alloc,:root[data-theme="dark"] .fcard,:root[data-theme="dark"] .dqrow,:root[data-theme="dark"] .rp{box-shadow:0 1px 2px rgba(0,0,0,.3)}
+.theming,.theming *{transition:background-color .3s ease,border-color .3s ease,color .25s ease,fill .25s ease,stroke .25s ease!important}
 *{box-sizing:border-box;margin:0;padding:0}
 html{font-size:14px}
 body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:1.5;-webkit-font-smoothing:antialiased;letter-spacing:-.003em}
@@ -45,19 +62,19 @@ button{font-family:var(--font)}
 .topbar .ttl .meta{color:var(--text-3);font-weight:450;font-size:12px}
 .topbar .right{display:flex;align-items:center;gap:9px}
 .chip{font-size:11.5px;font-weight:600;color:var(--green);background:var(--green-subtle);padding:3px 9px;border-radius:20px;display:inline-flex;align-items:center;gap:5px}
-.chip .pip{width:6px;height:6px;border-radius:50%;background:var(--green)}
+.chip .pip{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pipPulse 2.4s ease-out infinite}
 .lang{display:flex;gap:1px;border:1px solid var(--border-strong);border-radius:7px;overflow:hidden}
 .lang button{font-size:11.5px;font-weight:500;padding:5px 8px;border:none;background:var(--bg);color:var(--text-2);cursor:pointer}
 .lang button:hover{background:var(--surface-2)}
 .lang button.on{background:var(--accent);color:#fff}
 
-.thread{flex:1;min-height:0;overflow-y:auto;padding:24px 0}
+.thread{flex:1;min-height:0;overflow-y:auto;padding:24px 0;background:var(--canvas)}
 .thread-in{max-width:880px;margin:0 auto;padding:0 28px}
 .msg{margin-bottom:22px}
 .msg.user{display:flex;justify-content:flex-end}
 .msg.user .bubble{background:var(--accent-subtle);border:1px solid #d7e5fb;padding:9px 14px;border-radius:13px 13px 4px 13px;font-size:13px;max-width:78%}
 .msg.bot{display:flex;gap:12px}
-.msg.bot .ava{width:27px;height:27px;border-radius:8px;background:var(--accent);color:#fff;display:grid;place-items:center;font-weight:700;font-size:12px;flex-shrink:0}
+.msg.bot .ava{width:27px;height:27px;border-radius:8px;background:var(--accent);color:#fff;display:none;place-items:center;font-weight:700;font-size:12px;flex-shrink:0}
 .msg.bot .content{min-width:0;flex:1}
 .intro{font-size:13.5px;line-height:1.6;margin-bottom:12px}
 .intro strong{font-weight:650}
@@ -65,20 +82,20 @@ button{font-family:var(--font)}
 .mantra b{color:var(--accent);font-weight:600}
 
 /* CoT */
-.cot{border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);margin-bottom:14px}
+.cot{border:1px solid var(--border);border-radius:var(--radius);background:var(--bg);margin-bottom:14px}
 .cot summary{list-style:none;cursor:pointer;padding:10px 13px;font-size:12px;font-weight:600;color:var(--text-2);display:flex;align-items:center;gap:8px}
 .cot summary::-webkit-details-marker{display:none}
 .cot summary .tw{transition:transform .15s;color:var(--text-3);font-size:10px}
 .cot[open] summary .tw{transform:rotate(90deg)}
-.cot summary .seal{margin-left:auto;font-size:10px;font-weight:600;color:var(--accent);background:var(--accent-subtle);padding:2px 8px;border-radius:10px}
+.cot summary .seal{margin-left:auto;font-size:10px;font-weight:600;color:var(--text-2);background:var(--surface-2);padding:2px 8px;border-radius:10px}
 .cot ol{margin:0;padding:0 16px 12px 38px}
 .cot li{font-size:12px;color:var(--text-2);line-height:1.5;margin-bottom:5px}
 .cot li .mono{color:var(--text)}
 
 /* generic block card */
-.block{border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:14px;overflow:hidden;box-shadow:0 1px 2px rgba(16,24,40,.04)}
+.block{border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:14px;overflow:hidden;background:var(--bg);box-shadow:0 1px 2px rgba(16,24,40,.04)}
 .block .bhead{display:flex;align-items:center;gap:9px;padding:12px 15px;border-bottom:1px solid var(--border)}
-.block .bhead .ic{width:24px;height:24px;border-radius:7px;background:var(--accent-subtle);color:var(--accent);display:grid;place-items:center;font-size:13px}
+.block .bhead .ic{width:24px;height:24px;border-radius:7px;background:var(--surface-2);color:var(--text-2);display:grid;place-items:center;font-size:13px}
 .block .bhead .h{font-size:13.5px;font-weight:600}
 .block .bhead .sub{font-size:11.5px;color:var(--text-3);margin-left:auto}
 
@@ -99,8 +116,8 @@ button{font-family:var(--font)}
 .chart{width:100%;height:104px;display:block}
 
 /* data table */
-.dt{width:100%;border-collapse:collapse;font-size:12px}
-.dt th{text-align:left;font-size:10.5px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.04em;padding:8px 12px;border-bottom:1px solid var(--border);white-space:nowrap}
+.dt{width:100%;border-collapse:collapse;font-size:12px;background:var(--bg)}
+.dt th{text-align:left;font-size:10.5px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.04em;padding:8px 12px;background:var(--surface);border-bottom:1px solid var(--border);white-space:nowrap}
 .dt td{padding:9px 12px;border-bottom:1px solid var(--border);white-space:nowrap}
 .dt tr:last-child td{border-bottom:none}
 .dt tr:hover td{background:var(--surface)}
@@ -119,7 +136,7 @@ button{font-family:var(--font)}
 .narr strong{color:var(--text);font-weight:600}
 
 /* decision card */
-.card{border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:11px;overflow:hidden;cursor:pointer;transition:border-color .15s,box-shadow .15s;box-shadow:0 1px 2px rgba(16,24,40,.04)}
+.card{border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:11px;overflow:hidden;cursor:pointer;background:var(--bg);transition:border-color .15s,box-shadow .15s;box-shadow:0 1px 2px rgba(16,24,40,.04)}
 .card:hover{border-color:var(--border-strong)}
 .card.sel{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-subtle)}
 .card .head{display:flex;align-items:center;gap:10px;padding:12px 14px}
@@ -160,8 +177,8 @@ button{font-family:var(--font)}
 .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}.btn.primary:hover{background:var(--accent-hover)}
 
 /* allocation */
-.alloc{border:1px solid var(--border);border-radius:var(--radius-lg);padding:15px;margin-bottom:11px;box-shadow:0 1px 2px rgba(16,24,40,.04)}
-.alloc .h{font-size:13px;font-weight:600;margin-bottom:13px;display:flex;align-items:center;gap:8px}.alloc .h .ic{color:var(--accent)}
+.alloc{border:1px solid var(--border);border-radius:var(--radius-lg);padding:15px;margin-bottom:11px;background:var(--bg);box-shadow:0 1px 2px rgba(16,24,40,.04)}
+.alloc .h{font-size:13px;font-weight:600;margin-bottom:13px;display:flex;align-items:center;gap:8px}.alloc .h .ic{color:var(--text-3)}
 .alloc .grid{display:grid;grid-template-columns:128px 1fr;gap:18px;align-items:center}
 .donut{width:124px;height:124px;border-radius:50%;margin:0 auto;background:conic-gradient(var(--accent) 0 52%,var(--accent-2) 52% 88%,#c7d9f7 88% 100%);display:grid;place-items:center;position:relative}
 .donut::after{content:"";width:82px;height:82px;background:var(--bg);border-radius:50%}
@@ -171,9 +188,9 @@ button{font-family:var(--font)}
 .alloc .note{margin-top:12px;padding-top:11px;border-top:1px solid var(--border);font-size:11.5px;color:var(--text-2);line-height:1.5}.alloc .note .mono{color:var(--text)}
 
 /* composer */
-.composer-wrap{border-top:1px solid var(--border);padding:13px 28px 15px;flex-shrink:0;background:var(--bg)}
+.composer-wrap{border-top:1px solid var(--border);padding:13px 28px 15px;flex-shrink:0;background:var(--canvas)}
 .composer-in{max-width:880px;margin:0 auto}
-.composer{border:1px solid var(--border-strong);border-radius:var(--radius-lg);padding:9px 9px 7px;transition:border-color .15s,box-shadow .15s}
+.composer{border:1px solid var(--border-strong);border-radius:var(--radius-lg);padding:9px 9px 7px;background:var(--bg);box-shadow:0 1px 3px rgba(16,24,40,.05);transition:border-color .15s,box-shadow .15s}
 .composer:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-subtle)}
 .composer textarea{width:100%;border:none;outline:none;resize:none;font-family:var(--font);font-size:13.5px;line-height:1.5;background:none;color:var(--text);max-height:120px}
 .composer textarea::placeholder{color:var(--text-3)}
@@ -185,10 +202,10 @@ button{font-family:var(--font)}
 .disclaim{text-align:center;font-size:10.5px;color:var(--text-3);margin-top:8px}
 
 /* right rail */
-.rrail{border-left:1px solid var(--border);background:var(--surface);overflow-y:auto;min-height:0;display:flex;flex-direction:column;position:relative}
+.rrail{border-left:1px solid var(--border);background:var(--canvas);overflow-y:auto;min-height:0;display:flex;flex-direction:column;position:relative;padding:10px}
 .rr-grip{position:absolute;left:0;top:0;bottom:0;width:6px;cursor:col-resize;z-index:30}
 .rr-grip:hover,.rr-grip.drag{background:var(--accent-subtle)}
-.rp-audit{background:linear-gradient(180deg,#f4f8ff,var(--surface) 150px)}
+.rrail .rp-audit{background:linear-gradient(180deg,#f7f8fb,var(--bg) 140px)}
 .panel-toggle{width:30px;height:30px;border-radius:8px;border:none;background:none;color:var(--text-3);cursor:pointer;display:grid;place-items:center;transition:background .12s,color .12s}
 .panel-toggle:hover{background:var(--surface-2);color:var(--text)}
 .panel-toggle svg{display:block}
@@ -197,7 +214,7 @@ button{font-family:var(--font)}
 .panel-toggle.off .fill{fill:var(--accent-subtle)}
 /* language selector */
 .langsel{position:relative}
-.lang-btn{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 9px;border:1px solid var(--border-strong);border-radius:8px;background:var(--bg);color:var(--text-2);cursor:pointer;font-family:var(--font);font-size:12.5px;font-weight:500}
+.lang-btn{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 9px;border:1px solid var(--border-strong);border-radius:8px;background:var(--bg);color:var(--text-2);cursor:pointer;font-family:var(--font);font-size:12.5px;font-weight:500;white-space:nowrap;flex-shrink:0}
 .lang-btn:hover{background:var(--surface-2);color:var(--text)}
 .lang-btn .caret{font-size:9px;color:var(--text-3);transition:transform .15s}
 .langsel.open .lang-btn .caret{transform:rotate(180deg)}
@@ -212,16 +229,18 @@ button{font-family:var(--font)}
 .app.rr-hidden{grid-template-columns:56px 1fr}
 .app.rr-hidden .rrail{display:none}
 button.pressed{transform:scale(.97);opacity:.85;transition:transform .08s,opacity .08s}
-.rp{border-bottom:1px solid var(--border)}
+.rp{background:var(--bg);border:1px solid var(--border);border-radius:10px;margin-bottom:10px;box-shadow:0 1px 2px rgba(16,24,40,.04);overflow:hidden}
 .rp>summary{list-style:none;cursor:pointer;padding:13px 16px;font-size:12px;font-weight:600;display:flex;align-items:center;gap:8px}
 .rp>summary::-webkit-details-marker{display:none}
 .rp>summary .tw{color:var(--text-3);font-size:10px;transition:transform .15s}.rp[open]>summary .tw{transform:rotate(90deg)}
 .rp>summary .ct{margin-left:auto;font-size:10.5px;color:var(--text-3);font-weight:500}
 .rp .pbody{padding:2px 16px 15px}
 /* progress steps */
+@keyframes pstepPulse{0%{box-shadow:0 0 0 0 rgba(0,82,217,.40)}70%{box-shadow:0 0 0 6px rgba(0,82,217,0)}100%{box-shadow:0 0 0 0 rgba(0,82,217,0)}}
+@keyframes pipPulse{0%{box-shadow:0 0 0 0 rgba(22,163,74,.45)}70%{box-shadow:0 0 0 5px rgba(22,163,74,0)}100%{box-shadow:0 0 0 0 rgba(22,163,74,0)}}
 .pstep{display:flex;gap:10px;margin-bottom:11px;position:relative}
 .pstep .n{width:18px;height:18px;border-radius:50%;display:grid;place-items:center;font-size:10px;font-weight:700;flex-shrink:0;z-index:1}
-.pstep.done .n{background:var(--green);color:#fff}.pstep.now .n{background:var(--accent);color:#fff;box-shadow:0 0 0 3px var(--accent-subtle)}.pstep.wait .n{background:var(--surface-2);border:1px solid var(--border-strong);color:var(--text-3)}
+.pstep.done .n{background:var(--green);color:#fff}.pstep.now .n{background:var(--accent);color:#fff;animation:pstepPulse 2s ease-out infinite}.pstep.wait .n{background:var(--surface-2);border:1px solid var(--border-strong);color:var(--text-3)}
 .pstep::before{content:"";position:absolute;left:8.5px;top:18px;bottom:-11px;width:1px;background:var(--border-strong)}.pstep:last-child::before{display:none}
 .pstep .tx{font-size:11.5px;color:var(--text-2);padding-top:1px}.pstep.now .tx{color:var(--text);font-weight:550}.pstep.wait .tx{color:var(--text-3)}
 /* why/audit */
@@ -246,14 +265,14 @@ button.pressed{transform:scale(.97);opacity:.85;transition:transform .08s,opacit
 .crow .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500}.crow .sp{font-family:var(--mono);font-size:11px;color:var(--text-2)}
 
 /* welcome */
-.welcome-view{display:none;flex:1;overflow-y:auto}
-.app.welcome .welcome-view{display:flex;flex-direction:column}
+.welcome-view{display:none;flex:1;overflow-y:auto;background:var(--canvas)}
+.app.welcome .welcome-view{display:flex;flex-direction:column;align-items:center;justify-content:center}
 .app.welcome .thread,.app.welcome .composer-wrap{display:none}
-.wv-in{max-width:720px;margin:auto;padding:36px 28px;width:100%}
+.wv-in{max-width:768px;margin:auto;padding:40px 28px;width:100%}
 .wv-logo{width:46px;height:46px;border-radius:13px;background:var(--accent);color:#fff;display:grid;place-items:center;font-weight:700;font-size:23px;margin-bottom:20px}
 .wv-in h1{font-size:29px;font-weight:680;letter-spacing:-.035em;line-height:1.15}
 .wv-in .sub{font-size:14.5px;color:var(--text-2);margin:11px 0 24px;line-height:1.55;max-width:580px}
-.wv-composer{border:1px solid var(--border-strong);border-radius:var(--radius-lg);padding:11px 11px 8px;margin-bottom:30px}
+.wv-composer{border:1px solid var(--border-strong);border-radius:var(--radius-lg);padding:11px 11px 8px;margin-bottom:30px;background:var(--bg);box-shadow:0 1px 3px rgba(16,24,40,.05)}
 .wv-composer:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-subtle)}
 .wv-composer textarea{width:100%;border:none;outline:none;resize:none;font-family:var(--font);font-size:14.5px;background:none;color:var(--text)}
 .wv-composer textarea::placeholder{color:var(--text-3)}
@@ -261,20 +280,24 @@ button.pressed{transform:scale(.97);opacity:.85;transition:transform .08s,opacit
 .scenes{display:grid;grid-template-columns:repeat(3,1fr);gap:11px}
 .scene{border:1px solid var(--border);border-radius:var(--radius-lg);padding:15px;cursor:pointer;transition:border-color .15s,transform .1s;background:var(--bg)}
 .scene:hover{border-color:var(--accent);transform:translateY(-2px)}
-.scene .ic{width:29px;height:29px;border-radius:8px;background:var(--accent-subtle);color:var(--accent);display:grid;place-items:center;font-size:14px;margin-bottom:10px}
+.scene .ic{color:var(--text-3);margin-bottom:12px;height:22px;display:flex;align-items:center}
+.scene:hover .ic{color:var(--accent)}
 .scene .t{font-size:13px;font-weight:600}.scene .d{font-size:11.5px;color:var(--text-2);margin:4px 0 9px;line-height:1.45}.scene .tag{font-size:10px;font-weight:550;color:var(--text-3);background:var(--surface-2);padding:2px 8px;border-radius:10px}
 
 @media(max-width:1180px){.app,.app.welcome{grid-template-columns:56px 1fr}.rrail{display:none}}
-@media(max-width:720px){.scenes{grid-template-columns:1fr}.kpis{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:1000px){.scenes{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:760px){.thread-in,.composer-in,.screen-in{padding-left:18px;padding-right:18px}.wv-in{padding:30px 18px}.wv-in h1{font-size:25px}.kpis{grid-template-columns:repeat(3,1fr)}.card .body{grid-template-columns:1fr}.card .vdiv{display:none}}
+@media(max-width:600px){.scenes{grid-template-columns:1fr}.wv-in h1{font-size:22px}.wv-in .sub{font-size:13.5px}.kpis,.kpis-4{grid-template-columns:repeat(2,1fr)}.topbar .ttl .meta{display:none}.topbar{padding:0 12px;gap:8px}.topbar .ttl{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.chip{display:none}.composer .bar,.wv-composer .bar{flex-wrap:wrap}.thread-in,.composer-in,.screen-in{padding-left:14px;padding-right:14px}.composer-wrap{padding:10px 14px 12px}.scrn-head h2{font-size:16px}.card .head{flex-wrap:wrap;row-gap:6px}.card .title{order:-1;flex-basis:100%}.dqrow{flex-wrap:wrap;row-gap:6px}}
+@media(max-width:600px),(max-height:720px){.app.welcome .welcome-view{justify-content:flex-start}}
 
 /* ---------- multi-view screens ---------- */
-.screen{display:none;flex:1;overflow-y:auto;min-height:0}
+.screen{display:none;flex:1;overflow-y:auto;min-height:0;background:var(--canvas)}
 .screen.on{display:block}
 .screen-in{max-width:920px;margin:0 auto;padding:22px 28px 40px;width:100%}
 .scrn-head{display:flex;align-items:center;gap:11px;margin-bottom:18px}
 .scrn-head .bk{width:30px;height:30px;border-radius:8px;border:1px solid var(--border-strong);background:var(--bg);color:var(--text-2);cursor:pointer;display:grid;place-items:center;font-size:14px;flex-shrink:0}
 .scrn-head .bk:hover{background:var(--surface-2);color:var(--text)}
-.scrn-head .ic{width:30px;height:30px;border-radius:8px;background:var(--accent-subtle);color:var(--accent);display:grid;place-items:center;font-size:15px;flex-shrink:0}
+.scrn-head .ic{width:30px;height:30px;border-radius:8px;background:var(--surface-2);color:var(--text-2);display:grid;place-items:center;font-size:15px;flex-shrink:0}
 .scrn-head h2{font-size:18px;font-weight:680;letter-spacing:-.025em}
 .scrn-head .sub{font-size:12.5px;color:var(--text-3);margin-left:auto}
 .sect{font-size:11px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;margin:22px 0 11px}
@@ -288,7 +311,7 @@ button.pressed{transform:scale(.97);opacity:.85;transition:transform .08s,opacit
 .tabs button{padding:0 0 10px;border:none;background:none;font-size:13px;color:var(--text-2);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;font-family:var(--font)}
 .tabs button.on{color:var(--accent);border-bottom-color:var(--accent);font-weight:600}
 .vgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:13px}
-.vcard{border:1px solid var(--border);border-radius:10px;overflow:hidden;cursor:pointer;position:relative;transition:border-color .15s,box-shadow .15s}
+.vcard{border:1px solid var(--border);border-radius:10px;overflow:hidden;cursor:pointer;position:relative;background:var(--bg);transition:border-color .15s,box-shadow .15s}
 .vcard:hover{border-color:var(--border-strong)}
 .vcard.sel{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-subtle)}
 .vthumb{aspect-ratio:9/16;background:linear-gradient(150deg,#aab4c7,#6c7889);position:relative;display:grid;place-items:center}
@@ -301,7 +324,7 @@ button.pressed{transform:scale(.97);opacity:.85;transition:transform .08s,opacit
 .scrn-foot .info{font-size:12.5px;color:var(--text-2)}.scrn-foot .info b{color:var(--text)}
 
 /* publish form */
-.fcard{border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:0 1px 2px rgba(16,24,40,.04)}
+.fcard{border:1px solid var(--border);border-radius:var(--radius-lg);background:var(--bg);box-shadow:0 1px 2px rgba(16,24,40,.04)}
 .frow{display:flex;align-items:center;gap:14px;padding:14px 16px;border-bottom:1px solid var(--border)}
 .frow:last-child{border-bottom:none}
 .frow .fl{font-size:13px;font-weight:550;width:150px;flex-shrink:0}
@@ -320,15 +343,15 @@ select.inp{cursor:pointer}
 /* strategy report */
 .rpt p{font-size:13px;line-height:1.65;color:var(--text-2);margin-bottom:10px}.rpt p strong{color:var(--text);font-weight:600}
 .rpt .lead{font-size:13.5px;color:var(--text);background:var(--surface);border-left:3px solid var(--accent);padding:12px 14px;border-radius:0 8px 8px 0;margin-bottom:4px}
-.rtable{width:100%;border-collapse:collapse;font-size:12.5px;border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-top:4px}
+.rtable{width:100%;border-collapse:collapse;font-size:12.5px;border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-top:4px;background:var(--bg)}
 .rtable th{text-align:left;background:var(--surface-2);font-size:11px;font-weight:600;color:var(--text-2);padding:9px 12px;border-bottom:1px solid var(--border)}
 .rtable td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:top;line-height:1.5}
 .rtable tr:last-child td{border-bottom:none}
 .rtable td.k{font-weight:600;color:var(--text);white-space:nowrap}
-.pill{display:inline-block;font-size:10.5px;font-weight:600;padding:2px 8px;border-radius:20px;background:var(--accent-subtle);color:var(--accent)}
+.pill{display:inline-block;font-size:10.5px;font-weight:600;padding:2px 8px;border-radius:20px;background:var(--surface-2);color:var(--text-2)}
 /* decisions queue */
 .dq{display:flex;flex-direction:column;gap:9px}
-.dqrow{display:flex;align-items:center;gap:13px;border:1px solid var(--border);border-radius:11px;padding:12px 15px;box-shadow:0 1px 2px rgba(16,24,40,.03);transition:border-color .15s}
+.dqrow{display:flex;align-items:center;gap:13px;border:1px solid var(--border);border-radius:11px;padding:12px 15px;background:var(--bg);box-shadow:0 1px 2px rgba(16,24,40,.03);transition:border-color .15s}
 .dqrow:hover{border-color:var(--border-strong)}
 .dqrow .dqm{flex:1;min-width:0}.dqrow .dqm .nm{font-size:13px;font-weight:600}.dqrow .dqm .nm .plat{color:var(--text-3);font-weight:450;font-size:11.5px}
 .dqrow .dqm .rs{font-size:12px;color:var(--text-2);margin-top:3px}
@@ -365,20 +388,38 @@ select.inp{cursor:pointer}
 .btn:active,.mini:active,.cbtn:active,.lang-btn:active,.panel-toggle:active,.send:active,.am-item:active,.seg button:active,.tabs button:active,.scene:active,.vcard:active,.dqrow:active{transform:scale(.975)}
 .send:active{transform:scale(.92)}
 button{cursor:pointer}
+/* approval gate · inline guardrails */
+.gate .bhead .ic{background:var(--accent-subtle);color:var(--accent)}
+.grows{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);border-bottom:1px solid var(--border)}
+.grow{display:flex;align-items:center;gap:12px;padding:11px 15px;background:var(--bg)}
+.grow .gl{flex:1;min-width:0}
+.grow .gl>span:first-child{font-size:12.5px;font-weight:550}
+.grow .gh{font-size:10.5px;color:var(--text-3);margin-top:2px}
+.grow .gc{display:flex;align-items:center;gap:7px;flex-shrink:0}
+.gnum{width:74px;text-align:right;font-family:var(--mono);font-size:12.5px;padding:6px 9px}
+.grow .gu{font-size:11px;color:var(--text-3)}
+.gfoot{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 15px;flex-wrap:wrap}
+.gnote{font-size:11px;color:var(--text-2);display:flex;align-items:center;gap:6px}
+.gnote b{color:var(--accent);font-weight:600}
+.gate.flash{animation:gateFlash 1.3s ease-out}
+@keyframes gateFlash{0%{box-shadow:0 0 0 0 rgba(0,82,217,.30)}100%{box-shadow:0 0 0 9px rgba(0,82,217,0)}}
+.kpis-4{grid-template-columns:repeat(4,1fr)}
+/* audit = hero of the decision moment */
+.rrail .rp-audit{order:-1}
+@media(max-width:720px){.grows{grid-template-columns:1fr}.kpis-4{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
 <body>
 <div class="app" id="app">
   <aside class="rail">
     <div class="logo">D</div>
-    <button class="ri" id="newBtn" title="新建">＋</button>
-    <button class="ri on" data-view="console" title="操盘台">◆</button>
-    <button class="ri" data-view="decisions" title="决策">▤</button>
-    <button class="ri" data-view="allocation" title="分配">◑</button>
-    <button class="ri" data-view="creative" title="创意">✦</button>
-    <button class="ri" data-view="bench" title="Bench">⚑</button>
+    <button class="ri" id="newBtn" title="新建对话"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>
+    <button class="ri on" data-view="console" title="操盘台"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="5" rx="1.5"/><rect x="13" y="10" width="8" height="11" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/></svg></button>
+    <button class="ri" data-view="strategy" title="策略 · 洞察"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4v16h16"/><path d="M7 15l3.5-4 3 2.5L19 7"/></svg></button>
+    <button class="ri" data-view="creative" title="创意"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2.5"/><circle cx="8.5" cy="8.5" r="1.6"/><path d="M21 15l-5-5L4.5 21"/></svg></button>
+    <button class="ri" data-view="bench" title="Drip-Bench"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4"/><path d="M5 4h12l-2.2 3.5L17 11H5"/></svg></button>
     <div class="sp"></div>
-    <button class="ri" data-view="settings" title="设置">⚙</button>
+    <button class="ri" data-view="settings" title="设置"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h9"/><path d="M17 7h3"/><path d="M4 17h3"/><path d="M11 17h9"/><circle cx="15" cy="7" r="2.3"/><circle cx="9" cy="17" r="2.3"/></svg></button>
     <div class="acctctl" id="acctCtl">
       <button class="av" id="avBtn" title="账户">M</button>
       <div class="acct-menu" id="acctMenu">
@@ -420,6 +461,7 @@ button{cursor:pointer}
             <button data-lang="de">Deutsch</button>
           </div>
         </div>
+        <button class="panel-toggle" id="themeToggle" title="切换夜间" aria-label="切换主题"></button>
         <button class="panel-toggle" id="rrToggle" title="隐藏侧栏" aria-label="隐藏侧栏"><svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1.75" y="3" width="12.5" height="10" rx="2.5"/><rect class="fill" x="10.15" y="3.7" width="3.45" height="8.6" rx="1" stroke="none"/><line x1="10" y1="3" x2="10" y2="13"/></svg></button>
       </div>
     </div>
@@ -439,12 +481,12 @@ button{cursor:pointer}
       </div>
       <div class="scene-lab" data-i18n="wel.pick">选一个场景，直接开始</div>
       <div class="scenes">
-        <div class="scene" data-go><div class="ic">◎</div><div class="t" data-i18n="s1.t">诊断投放表现</div><div class="d" data-i18n="s1.d">用 8 个信号给每条 campaign 打分</div><span class="tag" data-i18n="s1.tag">连账户 · 或用样本</span></div>
-        <div class="scene" data-go><div class="ic">◑</div><div class="t" data-i18n="s2.t">再分配预算</div><div class="d" data-i18n="s2.d">把钱挪向赢家，饿死输家</div><span class="tag" data-i18n="s2.tag">核心循环</span></div>
-        <div class="scene" data-view="strategy"><div class="ic">✦</div><div class="t" data-i18n="s3.t">规划下一个测试</div><div class="d" data-i18n="s3.d">下一个创意角度该测什么</div><span class="tag" data-i18n="s3.tag">基于你的赢家</span></div>
-        <div class="scene" data-view="creative"><div class="ic">▣</div><div class="t" data-i18n="s4.t">生成创意</div><div class="d" data-i18n="s4.d">为赢的方向产出变体</div><span class="tag" data-i18n="s4.tag">gpt-image / Seedance</span></div>
-        <div class="scene" data-go><div class="ic">⇄</div><div class="t" data-i18n="s5.t">归因对账</div><div class="d" data-i18n="s5.d">平台口径 vs MMP 真值</div><span class="tag" data-i18n="s5.tag">AppsFlyer / Adjust</span></div>
-        <div class="scene" data-go><div class="ic">⟳</div><div class="t" data-i18n="s6.t">跑完整循环</div><div class="d" data-i18n="s6.d">收集 → 诊断 → 分配 → 复盘</div><span class="tag" data-i18n="s6.tag">一条命令</span></div>
+        <div class="scene" data-go><div class="ic"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h3.4l2.6-7 4.5 14 2.6-7H21"/></svg></div><div class="t" data-i18n="s1.t">诊断投放表现</div><div class="d" data-i18n="s1.d">用 8 个信号给每条 campaign 打分</div><span class="tag" data-i18n="s1.tag">连账户 · 或用样本</span></div>
+        <div class="scene" data-go><div class="ic"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4l3 3-3 3"/><path d="M19 7H8"/><path d="M8 20l-3-3 3-3"/><path d="M5 17h11"/></svg></div><div class="t" data-i18n="s2.t">再分配预算</div><div class="d" data-i18n="s2.d">把钱挪向赢家，饿死输家</div><span class="tag" data-i18n="s2.tag">核心循环</span></div>
+        <div class="scene" data-view="strategy"><div class="ic"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6"/><path d="M10 3v6.4L4.8 18A1.4 1.4 0 0 0 6 20.2h12A1.4 1.4 0 0 0 19.2 18L14 9.4V3"/><path d="M7.6 14h8.8"/></svg></div><div class="t" data-i18n="s3.t">规划下一个测试</div><div class="d" data-i18n="s3.d">下一个创意角度该测什么</div><span class="tag" data-i18n="s3.tag">基于你的赢家</span></div>
+        <div class="scene" data-view="creative"><div class="ic"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.7 4.6L18 9.3l-4.3 1.7L12 16l-1.7-4.6L6 9.3l4.3-1.7z"/><path d="M18.5 14.5l.7 1.9 1.9.7-1.9.7-.7 1.9-.7-1.9-1.9-.7 1.9-.7z"/></svg></div><div class="t" data-i18n="s4.t">生成创意</div><div class="d" data-i18n="s4.d">为赢的方向产出变体</div><span class="tag" data-i18n="s4.tag">gpt-image / Seedance</span></div>
+        <div class="scene" data-go><div class="ic"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18"/><path d="M7 21h10"/><path d="M5 7h14"/><path d="M5 7l-2.4 5.4a2.8 2.8 0 0 0 4.8 0L5 7"/><path d="M19 7l-2.4 5.4a2.8 2.8 0 0 0 4.8 0L19 7"/></svg></div><div class="t" data-i18n="s5.t">归因对账</div><div class="d" data-i18n="s5.d">平台口径 vs MMP 真值</div><span class="tag" data-i18n="s5.tag">AppsFlyer / Adjust</span></div>
+        <div class="scene" data-go><div class="ic"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 3v6h-6"/></svg></div><div class="t" data-i18n="s6.t">跑完整循环</div><div class="d" data-i18n="s6.d">收集 → 诊断 → 分配 → 复盘</div><span class="tag" data-i18n="s6.tag">一条命令</span></div>
       </div>
     </div></div>
 
@@ -588,7 +630,7 @@ button{cursor:pointer}
       </div>
       <div class="efoot">
         <div class="tags"><span class="tag" data-i18n="l.efready">6 就绪</span><span class="tag" data-i18n="l.mix">2 扩 · 2 换 · 2 停</span><span class="tag" data-i18n="l.efnet">净额 +$0/天 · 上限内</span></div>
-        <div style="display:flex;gap:8px"><button class="btn" data-i18n="l.bcancel">取消</button><button class="btn primary" data-view="publish" data-i18n="l.bapply6">应用 6 项改动 →</button></div>
+        <div style="display:flex;gap:8px"><button class="btn" data-i18n="l.bcancel">取消</button><button class="btn primary" id="applyBtn" data-i18n="l.bapply6">应用 6 项改动 →</button></div>
       </div>
     </div>
     <div class="alloc">
@@ -604,12 +646,55 @@ button{cursor:pointer}
       <div class="note" data-i18n="l.alnote">止损腾出 <span class="mono">$400</span> + 上限内扩量：TikTok JP <span class="mono">+¥6,000</span>、Meta US <span class="mono">+$40</span>。两条 SEA 归零。总额仍 ≤ <span class="mono">$3,500/天</span> 上限，不需额外预算。</div>
     </div>
 
+    <div class="block gate" id="gateCard">
+      <div class="bhead"><span class="ic">⛨</span><span class="h" data-i18n="g.h">护栏 · 批准前设定</span><span class="sub" data-i18n="g.sub">这些就是规则引擎的阈值 · 改这里，每条决策都会重新推导</span></div>
+      <div class="grows">
+        <div class="grow"><div class="gl"><span data-i18n="g.cpa">目标 CPA</span><div class="gh" data-i18n="g.cpah">超过即自动暂停</div></div><div class="gc"><input class="inp gnum" value="22"><span class="gu">USD</span></div></div>
+        <div class="grow"><div class="gl"><span data-i18n="g.cap">日预算上限</span><div class="gh" data-i18n="g.caph">放量永不越过</div></div><div class="gc"><input class="inp gnum" value="3,500"><span class="gu" data-i18n="g.perday">/ 天</span></div></div>
+        <div class="grow"><div class="gl"><span data-i18n="g.sample">最小成交样本</span><div class="gh" data-i18n="g.sampleh">低于此数置信度降级</div></div><div class="gc"><input class="inp gnum" value="30"><span class="gu" data-i18n="g.orders">单</span></div></div>
+        <div class="grow"><div class="gl"><span data-i18n="g.freq">频次上限</span><div class="gh" data-i18n="g.freqh">超过判素材饱和</div></div><div class="gc"><input class="inp gnum" value="2.5"></div></div>
+        <div class="grow"><div class="gl"><span data-i18n="g.revert">自动撤回</span><div class="gh" data-i18n="g.reverth">CPP 超标或 CTR 跌 &gt;15% 自动回滚</div></div><div class="gc"><div class="sw on" data-sw></div></div></div>
+        <div class="grow"><div class="gl"><span data-i18n="g.boost">大促自动加投</span><div class="gh" data-i18n="g.boosth">平台大促期上限内提量</div></div><div class="gc"><div class="sw" data-sw></div></div></div>
+      </div>
+      <div class="gfoot">
+        <span class="gnote" data-i18n="g.audit">⛨ 6 条决策都会带上这套护栏 · 全部写进<b>可回放审计</b></span>
+        <div style="display:flex;gap:8px"><button class="btn" data-i18n="g.cancel">取消</button><button class="btn primary" id="gatePublish" data-i18n="g.publish">确认护栏并发布 6 项 →</button></div>
+      </div>
+    </div>
+
   </div></div>
 
   <div class="msg user"><div class="bubble" data-i18n="l.q2">为什么 DTC 那条只 +10%，不跟 Hina 一样 +20%？</div></div>
 
   <div class="msg bot"><div class="ava">D</div><div class="content">
     <p class="intro" data-i18n="b.a2">因为它卡在「样本薄」这条规则上。它 8 个信号里 7 个绿，本来够格 +20%；但日成交只有 <strong>11 单</strong>（低于 30 的最小样本线），成交信号判黄。规则在薄样本上把置信度从 HIGH 压到 <strong>MEDIUM</strong>，扩量步长也随之从 +20% 收到 <strong>+10%</strong>——这正是资深操盘手在数据不足时会做的事：先小步加，等样本厚了再提速。右栏「为什么 · 审计」里规则链第 2、3 步就是这个判断，可点 DTC 那张卡查看完整链路。</p>
+  </div></div>
+
+  <div class="msg user"><div class="bubble" data-i18n="ph.q">上一轮批准的 6 项改动跑了 48 小时，复盘一下效果。</div></div>
+
+  <div class="msg bot"><div class="content">
+    <p class="intro" data-i18n="ph.intro">上一轮 6 项改动已跑满 <strong>48 小时</strong>，整体兑现了预测：综合 ROAS <strong>3.6× → 3.9×</strong>、CPA 降 <strong>$2.4</strong>，全程<strong>没有触发任何自动撤回护栏</strong>。下面是逐条「预测 vs 实际」，外加一条规则引擎新生成、待你批准的建议。</p>
+    <div class="block">
+      <div class="bhead"><span class="ic">◷</span><span class="h" data-i18n="ph.h">投后诊断 · 上一轮 6 项</span><span class="sub" data-i18n="ph.sub">预测 vs 实际 · 48h 窗口</span></div>
+      <div class="kpis kpis-4">
+        <div class="kpi"><div class="k" data-i18n="ph.k1">综合 ROAS</div><div class="v mono">3.9×</div><div class="d up" data-i18n="ph.k1d">↑ 预测 3.8×</div></div>
+        <div class="kpi"><div class="k" data-i18n="ph.k2">新增成交</div><div class="v mono">214</div><div class="d up">↑ 27%</div></div>
+        <div class="kpi"><div class="k">CPA</div><div class="v mono">$16.9</div><div class="d up">↓ $2.4</div></div>
+        <div class="kpi"><div class="k" data-i18n="ph.k4">护栏触发</div><div class="v mono">0</div><div class="d flat" data-i18n="ph.k4d">全程阈值内</div></div>
+      </div>
+      <table class="dt">
+        <thead><tr><th>Campaign</th><th data-i18n="ph.thact">上轮动作</th><th class="num" data-i18n="ph.thpred">预测</th><th class="num" data-i18n="ph.threal">实际</th><th data-i18n="ph.thv">判定</th></tr></thead>
+        <tbody>
+          <tr><td class="nm"><span class="thumb tg1"></span>AstralDrift · Hina</td><td class="plat">SCALE +20%</td><td class="num">ROAS 3.5×</td><td class="num g">3.8×</td><td><span class="bdg scale" data-i18n="ph.win">兑现</span></td></tr>
+          <tr><td class="nm"><span class="thumb tg2"></span>DTC_US_Prospecting_v3</td><td class="plat">SCALE +10%</td><td class="num" data-i18n="ph.p2">11→稳住</td><td class="num g" data-i18n="ph.r2real">26 单</td><td><span class="bdg scale" data-i18n="ph.win">兑现</span></td></tr>
+          <tr><td class="nm"><span class="thumb tg3"></span>IG_Reels_Hero</td><td class="plat">REFRESH</td><td class="num" data-i18n="ph.p3">CTR 回升</td><td class="num g">1.1%→1.6%</td><td><span class="bdg scale" data-i18n="ph.win">兑现</span></td></tr>
+          <tr><td class="nm"><span class="thumb tg7"></span>Retargeting_7d</td><td class="plat">REFRESH</td><td class="num" data-i18n="ph.p4">频次降</td><td class="num y">3.1→2.7</td><td><span class="bdg refresh" data-i18n="ph.part">部分</span></td></tr>
+          <tr><td class="nm"><span class="thumb tg4"></span>Broad_Interest_v4</td><td class="plat">PAUSE</td><td class="num" data-i18n="ph.stop">止血</td><td class="num g" data-i18n="ph.s160">省 $160/天</td><td><span class="bdg scale" data-i18n="ph.win">兑现</span></td></tr>
+          <tr><td class="nm"><span class="thumb tg8"></span>Casual_Game_Broad_v1</td><td class="plat">PAUSE</td><td class="num" data-i18n="ph.stop">止血</td><td class="num g" data-i18n="ph.s240">省 $240/天</td><td><span class="bdg scale" data-i18n="ph.win">兑现</span></td></tr>
+        </tbody>
+      </table>
+      <div class="narr" data-i18n="ph.rc"><strong>根因 & 下一步：</strong>Retargeting_7d 换素材后频次回落但仍偏高（2.7），根因是<strong>受众过窄</strong>，不是素材问题。规则引擎据此生成 1 条新建议——<strong>扩 1% 相似受众</strong>，预计频次回到 2.3。已排进下一轮决策，等你下次批准。</div>
+    </div>
   </div></div>
 
   </div></div>
@@ -671,30 +756,30 @@ button{cursor:pointer}
 
     <!-- 麦肯锡式策略报告 -->
     <div class="screen" id="view-strategy"><div class="screen-in">
-      <div class="scrn-head"><button class="bk" data-view="console">←</button><span class="ic">◇</span><h2>增长策略 · OiOi Live</h2><span class="sub">Strategist · claude-sonnet-4-6 生成</span></div>
-      <div class="sect">核心摘要</div>
-      <p class="lead">OiOi Live 是面向马来西亚华人的直播社交 App。下载量低、品牌认知近零,属于典型的「潜在需求」冷启动。建议以付费广告为主引擎、社媒 + KOL 为加速器,30 天内获取首批 1–3 万种子用户,打破「无内容 → 无用户」的循环。</p>
-      <div class="sect">核心用户画像</div>
-      <table class="rtable"><thead><tr><th>画像</th><th>特征</th><th>主要触达</th></tr></thead><tbody>
-        <tr><td class="k">A · 主力用户</td><td>18–28 岁,马来西亚华裔,城市地区,爱看直播、愿打赏</td><td>Meta 短视频、TikTok</td></tr>
-        <tr><td class="k">B · 社交向</td><td>20–32 岁,寻找华人社交圈,语音 / 视频聊天需求强</td><td>Meta 兴趣定向</td></tr>
-        <tr><td class="k">C · 内容消费</td><td>18–35 岁,碎片时间消费,可从 TikTok / Bigo 转化</td><td>TikTok、达人内容</td></tr>
+      <div class="scrn-head"><button class="bk" data-view="console">←</button><span class="ic">◇</span><h2 data-i18n="sg.h">增长策略 · OiOi Live</h2><span class="sub" data-i18n="sg.sub">Strategist · claude-sonnet-4-6 生成</span></div>
+      <div class="sect" data-i18n="sg.s1">核心摘要</div>
+      <p class="lead" data-i18n="sg.lead">OiOi Live 是面向马来西亚华人的直播社交 App。下载量低、品牌认知近零,属于典型的「潜在需求」冷启动。建议以付费广告为主引擎、社媒 + KOL 为加速器,30 天内获取首批 1–3 万种子用户,打破「无内容 → 无用户」的循环。</p>
+      <div class="sect" data-i18n="sg.s2">核心用户画像</div>
+      <table class="rtable"><thead><tr><th data-i18n="sg.ph1">画像</th><th data-i18n="sg.ph2">特征</th><th data-i18n="sg.ph3">主要触达</th></tr></thead><tbody>
+        <tr><td class="k" data-i18n="sg.pa">A · 主力用户</td><td data-i18n="sg.paf">18–28 岁,马来西亚华裔,城市地区,爱看直播、愿打赏</td><td data-i18n="sg.par">Meta 短视频、TikTok</td></tr>
+        <tr><td class="k" data-i18n="sg.pb">B · 社交向</td><td data-i18n="sg.pbf">20–32 岁,寻找华人社交圈,语音 / 视频聊天需求强</td><td data-i18n="sg.pbr">Meta 兴趣定向</td></tr>
+        <tr><td class="k" data-i18n="sg.pc">C · 内容消费</td><td data-i18n="sg.pcf">18–35 岁,碎片时间消费,可从 TikTok / Bigo 转化</td><td data-i18n="sg.pcr">TikTok、达人内容</td></tr>
       </tbody></table>
-      <div class="sect">竞品对比</div>
-      <table class="rtable"><thead><tr><th>竞品</th><th>规模</th><th>优势</th><th>对 OiOi 的机会</th></tr></thead><tbody>
-        <tr><td class="k">Bigo Live</td><td>5 亿+ 注册</td><td>品牌强、内容丰富</td><td>泛全球化,华人社交被稀释</td></tr>
-        <tr><td class="k">Mico</td><td>千万级</td><td>多人视频社交</td><td>非华语专属</td></tr>
-        <tr><td class="k">TikTok</td><td>10 亿+</td><td>时长最长</td><td>非 1v1 社交匹配</td></tr>
+      <div class="sect" data-i18n="sg.s3">竞品对比</div>
+      <table class="rtable"><thead><tr><th data-i18n="sg.ch1">竞品</th><th data-i18n="sg.ch2">规模</th><th data-i18n="sg.ch3">优势</th><th data-i18n="sg.ch4">对 OiOi 的机会</th></tr></thead><tbody>
+        <tr><td class="k">Bigo Live</td><td data-i18n="sg.bigos">5 亿+ 注册</td><td data-i18n="sg.bigoa">品牌强、内容丰富</td><td data-i18n="sg.bigoo">泛全球化,华人社交被稀释</td></tr>
+        <tr><td class="k">Mico</td><td data-i18n="sg.micos">千万级</td><td data-i18n="sg.micoa">多人视频社交</td><td data-i18n="sg.micoo">非华语专属</td></tr>
+        <tr><td class="k">TikTok</td><td data-i18n="sg.tts">10 亿+</td><td data-i18n="sg.tta">时长最长</td><td data-i18n="sg.tto">非 1v1 社交匹配</td></tr>
       </tbody></table>
-      <div class="sect">问题诊断</div>
-      <p>当前核心问题是<strong>冷启动</strong>:品牌认知为零,需快速获取第一批种子用户,打破「无内容 → 无用户 → 无内容」的循环。产品功能已具备(直播 / PK / 连麦 / 匹配),缺的是认知与首批内容供给。</p>
-      <div class="sect">渠道与预算分配</div>
-      <table class="rtable"><thead><tr><th>渠道</th><th>月预算</th><th>角色</th><th>理由</th></tr></thead><tbody>
-        <tr><td class="k">Meta Ads</td><td><span class="pill">50% · $5,000</span></td><td>主引擎</td><td>马来西亚覆盖约 2,235 万,定向精准、起量快</td></tr>
-        <tr><td class="k">TikTok Ads</td><td><span class="pill">30% · $3,000</span></td><td>规模放大</td><td>年轻华人聚集,达人内容带量</td></tr>
-        <tr><td class="k">KOL / 达人</td><td><span class="pill">20% · $2,000</span></td><td>信任加速</td><td>华人 KOL 背书,降低社交产品的信任门槛</td></tr>
+      <div class="sect" data-i18n="sg.s4">问题诊断</div>
+      <p data-i18n="sg.diag">当前核心问题是<strong>冷启动</strong>:品牌认知为零,需快速获取第一批种子用户,打破「无内容 → 无用户 → 无内容」的循环。产品功能已具备(直播 / PK / 连麦 / 匹配),缺的是认知与首批内容供给。</p>
+      <div class="sect" data-i18n="sg.s5">渠道与预算分配</div>
+      <table class="rtable"><thead><tr><th data-i18n="sg.ct1">渠道</th><th data-i18n="sg.ct2">月预算</th><th data-i18n="sg.ct3">角色</th><th data-i18n="sg.ct4">理由</th></tr></thead><tbody>
+        <tr><td class="k">Meta Ads</td><td><span class="pill">50% · $5,000</span></td><td data-i18n="sg.metar">主引擎</td><td data-i18n="sg.metare">马来西亚覆盖约 2,235 万,定向精准、起量快</td></tr>
+        <tr><td class="k">TikTok Ads</td><td><span class="pill">30% · $3,000</span></td><td data-i18n="sg.ttr">规模放大</td><td data-i18n="sg.ttre">年轻华人聚集,达人内容带量</td></tr>
+        <tr><td class="k" data-i18n="sg.kol">KOL / 达人</td><td><span class="pill">20% · $2,000</span></td><td data-i18n="sg.kolr">信任加速</td><td data-i18n="sg.kolre">华人 KOL 背书,降低社交产品的信任门槛</td></tr>
       </tbody></table>
-      <div class="scrn-foot"><div class="info">基于公开数据与行业基准 · 可一键转成 campaign 草稿</div><div style="display:flex;gap:8px"><button class="btn" data-view="console">返回</button><button class="btn primary">转成 campaign 草稿 →</button></div></div>
+      <div class="scrn-foot"><div class="info" data-i18n="sg.foot">基于公开数据与行业基准 · 可一键转成 campaign 草稿</div><div style="display:flex;gap:8px"><button class="btn" data-view="console" data-i18n="sg.back">返回</button><button class="btn primary" data-i18n="sg.draft">转成 campaign 草稿 →</button></div></div>
     </div></div>
 
     <!-- 决策队列 -->
@@ -704,7 +789,7 @@ button{cursor:pointer}
         <div class="dqrow"><span class="act scale">SCALE +20%</span><div class="dqm"><div class="nm">AstralDrift · Hina <span class="plat">· TikTok · JP</span></div><div class="rs" data-i18n="d.r1">8 信号全绿、未饱和 —— 明确扩量空间</div></div><span class="budget">¥12,000 → <span class="up">¥18,000</span></span><span class="conf high">HIGH</span><button class="mini approve" data-i18n="l.bapprove">批准</button></div>
         <div class="dqrow"><span class="act scale">SCALE +10%</span><div class="dqm"><div class="nm">DTC_US_Prospecting_v3 <span class="plat">· Meta · US</span></div><div class="rs" data-i18n="d.r2">信号好但样本薄(11 单)—— 保守加</div></div><span class="budget">$200 → <span class="up">$240</span></span><span class="conf med">MEDIUM</span><button class="mini approve" data-i18n="l.bapprove">批准</button></div>
         <div class="dqrow"><span class="act refresh">REFRESH</span><div class="dqm"><div class="nm">IG_Reels_Hero <span class="plat">· Meta · US</span></div><div class="rs" data-i18n="d.r3">频次 2.6 超上限、CTR 衰减 —— 先换素材</div></div><span class="budget" data-i18n="l.hold">保持 $300</span><span class="conf med">MEDIUM</span><button class="mini approve" data-i18n="l.baprefresh">批准换素材</button></div>
-        <div class="dqrow"><span class="act refresh">REFRESH</span><div class="dqm"><div class="nm">Retargeting_7d <span class="plat">· Meta · US</span></div><div class="rs" data-i18n="d.r4">ROAS 5.2× 但频次 3.1 过高 —— 扩受众 + 换素材</div></div><span class="budget">保持 $120</span><span class="conf med">MEDIUM</span><button class="mini approve" data-i18n="l.bapprove">批准</button></div>
+        <div class="dqrow"><span class="act refresh">REFRESH</span><div class="dqm"><div class="nm">Retargeting_7d <span class="plat">· Meta · US</span></div><div class="rs" data-i18n="d.r4">ROAS 5.2× 但频次 3.1 过高 —— 扩受众 + 换素材</div></div><span class="budget" data-i18n="l.hold120">保持 $120</span><span class="conf med">MEDIUM</span><button class="mini approve" data-i18n="l.bapprove">批准</button></div>
         <div class="dqrow"><span class="act pause">PAUSE</span><div class="dqm"><div class="nm">Broad_Interest_v4 <span class="plat">· TikTok · SEA</span></div><div class="rs" data-i18n="d.r5">ROAS 1.9×、CPA 翻倍 —— 止损</div></div><span class="budget">$160 → <span class="zero">$0</span></span><span class="conf high">HIGH</span><button class="mini approve" data-i18n="l.bappause">批准暂停</button></div>
         <div class="dqrow"><span class="act pause">PAUSE</span><div class="dqm"><div class="nm">Casual_Game_Broad_v1 <span class="plat">· TikTok · SEA</span></div><div class="rs" data-i18n="d.r6">CPP/ROAS 双红、样本足 —— 止损</div></div><span class="budget">$240 → <span class="zero">$0</span></span><span class="conf high">HIGH</span><button class="mini approve" data-i18n="l.bappause">批准暂停</button></div>
       </div>
@@ -744,8 +829,8 @@ button{cursor:pointer}
         <tr><td><span class="rk">2</span></td><td class="k">drip:gpt-4o</td><td><span class="scorebar"><i style="width:86%"></i></span>86</td><td>36/40</td><td>17/20</td><td>33/40</td><td>05-28</td></tr>
         <tr><td><span class="rk">3</span></td><td class="k">drip:gemini-2.5-pro</td><td><span class="scorebar"><i style="width:83%"></i></span>83</td><td>35/40</td><td>16/20</td><td>32/40</td><td>05-27</td></tr>
         <tr><td><span class="rk">4</span></td><td class="k">drip:deepseek-v3</td><td><span class="scorebar"><i style="width:79%"></i></span>79</td><td>33/40</td><td>16/20</td><td>30/40</td><td>05-27</td></tr>
-        <tr><td><span class="rk">5</span></td><td class="k">raw claude(无引擎)</td><td><span class="scorebar"><i style="width:64%"></i></span>64</td><td>26/40</td><td>13/20</td><td>25/40</td><td>05-26</td></tr>
-        <tr><td><span class="rk">6</span></td><td class="k">raw gpt-4o(无引擎)</td><td><span class="scorebar"><i style="width:61%"></i></span>61</td><td>25/40</td><td>12/20</td><td>24/40</td><td>05-26</td></tr>
+        <tr><td><span class="rk">5</span></td><td class="k" data-i18n="bn.raw1">raw claude(无引擎)</td><td><span class="scorebar"><i style="width:64%"></i></span>64</td><td>26/40</td><td>13/20</td><td>25/40</td><td>05-26</td></tr>
+        <tr><td><span class="rk">6</span></td><td class="k" data-i18n="bn.raw2">raw gpt-4o(无引擎)</td><td><span class="scorebar"><i style="width:61%"></i></span>61</td><td>25/40</td><td>12/20</td><td>24/40</td><td>05-26</td></tr>
       </tbody></table>
       <div class="scrn-foot"><div class="info" data-i18n="bn.foot">规则引擎把同一个模型的分数显著抬高 —— 这就是「规则决定、LLM 解释」的价值</div><div style="display:flex;gap:8px"><button class="btn" data-i18n="bn.cases">查看用例</button><button class="btn primary" data-i18n="bn.runmine">跑我的 agent →</button></div></div>
     </div></div>
@@ -766,7 +851,7 @@ button{cursor:pointer}
       </div>
       <div class="sect" data-i18n="st.sect3">模型与归因</div>
       <div class="fcard">
-        <div class="frow"><div class="fl"><span data-i18n="st.llm">LLM 提供方</span><div class="h" data-i18n="st.llmh">12 家 + OpenRouter 兜底</div></div><div class="fc"><select class="inp"><option>anthropic / claude-sonnet-4-6</option><option>openai / gpt-4o</option><option>google / gemini-2.5-pro</option><option>deepseek / deepseek-v3</option><option>本地 / ollama</option></select></div></div>
+        <div class="frow"><div class="fl"><span data-i18n="st.llm">LLM 提供方</span><div class="h" data-i18n="st.llmh">12 家 + OpenRouter 兜底</div></div><div class="fc"><select class="inp"><option>anthropic / claude-sonnet-4-6</option><option>openai / gpt-4o</option><option>google / gemini-2.5-pro</option><option>deepseek / deepseek-v3</option><option data-i18n="st.local">本地 / ollama</option></select></div></div>
         <div class="frow"><div class="fl" data-i18n="st.attr">归因来源</div><div class="fc"><select class="inp"><option>AppsFlyer</option><option>Adjust</option><option data-i18n="st.attrlast">平台口径(打折)</option></select></div></div>
       </div>
     </div></div>
@@ -809,9 +894,9 @@ button{cursor:pointer}
       <summary><span class="tw">▸</span><span data-i18n="r.lib">素材库</span><span class="ct">12</span></summary>
       <div class="pbody">
         <div class="litem"><span class="thumb tg1"></span><span class="nm">Hina_hook_v3.mp4</span><span class="meta">CTR 1.58%</span></div>
-        <div class="litem"><span class="thumb tg3"></span><span class="nm">IG_Reels_variant_A</span><span class="meta">QA 中</span></div>
+        <div class="litem"><span class="thumb tg3"></span><span class="nm">IG_Reels_variant_A</span><span class="meta" data-i18n="li.qa">QA 中</span></div>
         <div class="litem"><span class="thumb tg7"></span><span class="nm">Retarget_UGC_07.mp4</span><span class="meta">ROAS 5.2×</span></div>
-        <div class="litem"><span class="thumb tg2"></span><span class="nm">DTC_static_set.zip</span><span class="meta">6 张</span></div>
+        <div class="litem"><span class="thumb tg2"></span><span class="nm">DTC_static_set.zip</span><span class="meta" data-i18n="li.files">6 张</span></div>
       </div>
     </details>
 
@@ -957,6 +1042,40 @@ const I18N_SCR2 = {
 "de":{"cr.h":"Creatives wählen · IG_Reels_Hero","cr.sub":"Videos für die Erneuerung wählen · TikTok Spark","cr.mode":"Creative-Modus","cr.draft":"Strategist hat 3 Varianten zum Gewinner-Hook entworfen","cr.tab1":"Eigene Posts","cr.tab2":"Autorisierte Posts","cr.tab3":"Affiliate-Posts","cr.vs1":"CTR 1,58% · Gewinner-Hook","cr.aff":"Affiliate","cr.set":"Karussell · 6","cr.wip":"zu testen","cr.foot":"<b>3</b> ausgewählt · für die 3 Varianten von IG_Reels_Hero","cr.back":"Zurück","cr.gen":"Varianten aus Auswahl erzeugen →","pb.h":"Veröffentlichen · 6 Kampagnen","pb.sub":"Copilot · letzte Prüfung vor Veröffentlichung","pb.sect1":"Budget & Ziel","pb.sect2":"Erweitert","pb.budget":"Globales Tagesbudget","pb.budgeth":"auf 6 Kampagnen verteilt","pb.percap":"/ Tag · Konto-Limit","pb.troas":"Ziel-ROAS","pb.unified":"einheitlich","pb.perrow":"pro Zeile","pb.tmpl":"Kampagnennamen-Vorlage","pb.tz":"Zeitzone","pb.sched":"Zeitplan","pb.now":"Sofort starten, kein Ende","pb.timed":"Geplant","pb.boost":"Bei Sales automatisch erhöhen","pb.boosth":"Auslieferung während Plattform-Sales automatisch erhöhen","pb.foot":"<b>6</b> Kampagnen bereit · 2 skalieren · 2 erneuern · 2 stoppen · netto +0 $/Tag","pb.cancel":"Abbrechen","pb.publish":"6 Kampagnen veröffentlichen →","st.h":"Einstellungen","st.sub":"Sicherheitsleiter · deine Daten · selbst gehostet","st.sect1":"Ausführungsmodus (DRIP_MODE)","st.sect2":"Verbundene Konten","st.sect3":"Modell & Attribution","st.mode":"Modus","st.modeh":"Schreibrechte-Stufe","st.cap":"Budgetlimit","st.caph":"/ Tag · hartes Limit im autonomen Modus","st.connected":"● verbunden","st.notconn":"○ nicht verbunden","st.llm":"LLM-Anbieter","st.llmh":"12 Anbieter + OpenRouter-Fallback","st.attr":"Attributionsquelle","st.attrlast":"Plattform (Abschlag)"}
 };
 for (const _l in I18N_SCR2) { if (I18N[_l]) Object.assign(I18N[_l], I18N_SCR2[_l]); }
+// ---- strategy report ----
+const I18N_STRAT = {
+"zh-CN":{"sg.h":"增长策略 · OiOi Live","sg.sub":"Strategist · claude-sonnet-4-6 生成","sg.s1":"核心摘要","sg.lead":"OiOi Live 是面向马来西亚华人的直播社交 App。下载量低、品牌认知近零,属于典型的「潜在需求」冷启动。建议以付费广告为主引擎、社媒 + KOL 为加速器,30 天内获取首批 1–3 万种子用户,打破「无内容 → 无用户」的循环。","sg.s2":"核心用户画像","sg.ph1":"画像","sg.ph2":"特征","sg.ph3":"主要触达","sg.pa":"A · 主力用户","sg.paf":"18–28 岁,马来西亚华裔,城市地区,爱看直播、愿打赏","sg.par":"Meta 短视频、TikTok","sg.pb":"B · 社交向","sg.pbf":"20–32 岁,寻找华人社交圈,语音 / 视频聊天需求强","sg.pbr":"Meta 兴趣定向","sg.pc":"C · 内容消费","sg.pcf":"18–35 岁,碎片时间消费,可从 TikTok / Bigo 转化","sg.pcr":"TikTok、达人内容","sg.s3":"竞品对比","sg.ch1":"竞品","sg.ch2":"规模","sg.ch3":"优势","sg.ch4":"对 OiOi 的机会","sg.bigos":"5 亿+ 注册","sg.bigoa":"品牌强、内容丰富","sg.bigoo":"泛全球化,华人社交被稀释","sg.micos":"千万级","sg.micoa":"多人视频社交","sg.micoo":"非华语专属","sg.tts":"10 亿+","sg.tta":"时长最长","sg.tto":"非 1v1 社交匹配","sg.s4":"问题诊断","sg.diag":"当前核心问题是<strong>冷启动</strong>:品牌认知为零,需快速获取第一批种子用户,打破「无内容 → 无用户 → 无内容」的循环。产品功能已具备(直播 / PK / 连麦 / 匹配),缺的是认知与首批内容供给。","sg.s5":"渠道与预算分配","sg.ct1":"渠道","sg.ct2":"月预算","sg.ct3":"角色","sg.ct4":"理由","sg.metar":"主引擎","sg.metare":"马来西亚覆盖约 2,235 万,定向精准、起量快","sg.ttr":"规模放大","sg.ttre":"年轻华人聚集,达人内容带量","sg.kolr":"信任加速","sg.kolre":"华人 KOL 背书,降低社交产品的信任门槛","sg.foot":"基于公开数据与行业基准 · 可一键转成 campaign 草稿","sg.back":"返回","sg.draft":"转成 campaign 草稿 →"},
+"zh-TW":{"sg.h":"增長策略 · OiOi Live","sg.sub":"Strategist · claude-sonnet-4-6 生成","sg.s1":"核心摘要","sg.lead":"OiOi Live 是面向馬來西亞華人的直播社交 App。下載量低、品牌認知近零,屬於典型的「潛在需求」冷啟動。建議以付費廣告為主引擎、社媒 + KOL 為加速器,30 天內獲取首批 1–3 萬種子用戶,打破「無內容 → 無用戶」的循環。","sg.s2":"核心用戶畫像","sg.ph1":"畫像","sg.ph2":"特徵","sg.ph3":"主要觸達","sg.pa":"A · 主力用戶","sg.paf":"18–28 歲,馬來西亞華裔,城市地區,愛看直播、願打賞","sg.par":"Meta 短影片、TikTok","sg.pb":"B · 社交向","sg.pbf":"20–32 歲,尋找華人社交圈,語音 / 視訊聊天需求強","sg.pbr":"Meta 興趣定向","sg.pc":"C · 內容消費","sg.pcf":"18–35 歲,碎片時間消費,可從 TikTok / Bigo 轉化","sg.pcr":"TikTok、達人內容","sg.s3":"競品對比","sg.ch1":"競品","sg.ch2":"規模","sg.ch3":"優勢","sg.ch4":"對 OiOi 的機會","sg.bigos":"5 億+ 註冊","sg.bigoa":"品牌強、內容豐富","sg.bigoo":"泛全球化,華人社交被稀釋","sg.micos":"千萬級","sg.micoa":"多人視訊社交","sg.micoo":"非華語專屬","sg.tts":"10 億+","sg.tta":"時長最長","sg.tto":"非 1v1 社交匹配","sg.s4":"問題診斷","sg.diag":"當前核心問題是<strong>冷啟動</strong>:品牌認知為零,需快速獲取第一批種子用戶,打破「無內容 → 無用戶 → 無內容」的循環。產品功能已具備(直播 / PK / 連麥 / 匹配),缺的是認知與首批內容供給。","sg.s5":"渠道與預算分配","sg.ct1":"渠道","sg.ct2":"月預算","sg.ct3":"角色","sg.ct4":"理由","sg.metar":"主引擎","sg.metare":"馬來西亞覆蓋約 2,235 萬,定向精準、起量快","sg.ttr":"規模放大","sg.ttre":"年輕華人聚集,達人內容帶量","sg.kolr":"信任加速","sg.kolre":"華人 KOL 背書,降低社交產品的信任門檻","sg.foot":"基於公開數據與行業基準 · 可一鍵轉成 campaign 草稿","sg.back":"返回","sg.draft":"轉成 campaign 草稿 →"},
+"en":{"sg.h":"Growth strategy · OiOi Live","sg.sub":"generated by Strategist · claude-sonnet-4-6","sg.s1":"Executive summary","sg.lead":"OiOi Live is a live-streaming social app for Malaysian Chinese users. Low downloads, near-zero brand awareness — a classic latent-demand cold start. Recommended: paid ads as the main engine, social + KOL as accelerators, to win the first 10–30k seed users in 30 days and break the 'no content → no users' loop.","sg.s2":"Core personas","sg.ph1":"Persona","sg.ph2":"Traits","sg.ph3":"Main reach","sg.pa":"A · core","sg.paf":"18–28, Malaysian Chinese, urban, loves watching live, tips","sg.par":"Meta short video, TikTok","sg.pb":"B · social","sg.pbf":"20–32, seeking a Chinese social circle, strong voice/video chat need","sg.pbr":"Meta interest targeting","sg.pc":"C · content","sg.pcf":"18–35, snack-time viewing, convertible from TikTok / Bigo","sg.pcr":"TikTok, creators","sg.s3":"Competitive landscape","sg.ch1":"Competitor","sg.ch2":"Scale","sg.ch3":"Strength","sg.ch4":"Opening for OiOi","sg.bigos":"500M+ registered","sg.bigoa":"strong brand, rich content","sg.bigoo":"globally diluted, Chinese-social thinned","sg.micos":"tens of millions","sg.micoa":"group video social","sg.micoo":"not Chinese-exclusive","sg.tts":"1B+","sg.tta":"longest watch time","sg.tto":"not 1:1 social matching","sg.s4":"Problem diagnosis","sg.diag":"The core problem is the <strong>cold start</strong>: zero brand awareness, so you must win the first seed users fast and break the 'no content → no users → no content' loop. The product features exist (live / PK / co-host / matching); what's missing is awareness and the first content supply.","sg.s5":"Channels & budget split","sg.ct1":"Channel","sg.ct2":"Monthly budget","sg.ct3":"Role","sg.ct4":"Rationale","sg.metar":"main engine","sg.metare":"~22.35M reach in Malaysia, precise targeting, fast ramp","sg.ttr":"scale-up","sg.ttre":"young Chinese cluster, creators drive volume","sg.kolr":"trust accelerator","sg.kolre":"Chinese-KOL endorsement lowers the trust barrier for a social product","sg.foot":"based on public data & industry benchmarks · one-click to campaign drafts","sg.back":"Back","sg.draft":"Convert to campaign drafts →"},
+"ja":{"sg.h":"成長戦略 · OiOi Live","sg.sub":"Strategist · claude-sonnet-4-6 生成","sg.s1":"エグゼクティブサマリー","sg.lead":"OiOi Live はマレーシア華人向けのライブ配信ソーシャル App。ダウンロード少・ブランド認知ほぼ無し——典型的な潜在需要のコールドスタート。提案:有料広告を主エンジン、ソーシャル + KOL を加速器に、30 日で最初の 1〜3 万シード獲得、「コンテンツ無 → ユーザー無」の循環を断つ。","sg.s2":"コアペルソナ","sg.ph1":"ペルソナ","sg.ph2":"特徴","sg.ph3":"主な到達","sg.pa":"A · 主力","sg.paf":"18〜28 歳、マレーシア華人、都市部、ライブ視聴・投げ銭好き","sg.par":"Meta 短尺、TikTok","sg.pb":"B · ソーシャル","sg.pbf":"20〜32 歳、華人ソーシャル圏を探す、音声/動画チャット需要強","sg.pbr":"Meta 興味関心","sg.pc":"C · コンテンツ","sg.pcf":"18〜35 歳、スキマ時間視聴、TikTok / Bigo から転換可","sg.pcr":"TikTok、クリエイター","sg.s3":"競合状況","sg.ch1":"競合","sg.ch2":"規模","sg.ch3":"強み","sg.ch4":"OiOi の機会","sg.bigos":"5 億+ 登録","sg.bigoa":"ブランド強・コンテンツ豊富","sg.bigoo":"グローバルで希薄、華人ソーシャルが薄まる","sg.micos":"数千万","sg.micoa":"多人数ビデオソーシャル","sg.micoo":"華語専用でない","sg.tts":"10 億+","sg.tta":"視聴時間最長","sg.tto":"1:1 マッチングでない","sg.s4":"問題診断","sg.diag":"核心課題は<strong>コールドスタート</strong>:ブランド認知ゼロのため、最初のシードを素早く獲得し「コンテンツ無 → ユーザー無 → コンテンツ無」の循環を断つ必要がある。機能は揃っている(ライブ / PK / 連麦 / マッチング)が、欠けているのは認知と初期コンテンツ供給。","sg.s5":"チャネルと予算配分","sg.ct1":"チャネル","sg.ct2":"月予算","sg.ct3":"役割","sg.ct4":"理由","sg.metar":"主エンジン","sg.metare":"マレーシア約 2,235 万に到達、精緻なターゲ、立ち上がり速い","sg.ttr":"規模拡大","sg.ttre":"若い華人が集積、クリエイターが量を牽引","sg.kolr":"信頼の加速","sg.kolre":"華人 KOL の推薦がソーシャル製品の信頼障壁を下げる","sg.foot":"公開データと業界基準に基づく · ワンクリックで campaign 下書きへ","sg.back":"戻る","sg.draft":"campaign 下書きに変換 →"},
+"ko":{"sg.h":"성장 전략 · OiOi Live","sg.sub":"Strategist · claude-sonnet-4-6 생성","sg.s1":"핵심 요약","sg.lead":"OiOi Live는 말레이시아 화교 대상 라이브 소셜 앱. 다운로드 적고 브랜드 인지 거의 0 — 전형적인 잠재수요 콜드스타트. 제안: 유료 광고를 주 엔진, 소셜 + KOL을 가속기로, 30일 내 첫 1–3만 시드 확보, '콘텐츠 없음 → 사용자 없음' 루프 탈피.","sg.s2":"핵심 페르소나","sg.ph1":"페르소나","sg.ph2":"특징","sg.ph3":"주요 도달","sg.pa":"A · 주력","sg.paf":"18–28세, 말레이시아 화교, 도시, 라이브 시청·후원 선호","sg.par":"Meta 숏폼, TikTok","sg.pb":"B · 소셜","sg.pbf":"20–32세, 화교 소셜 서클 탐색, 음성/영상 채팅 수요 강함","sg.pbr":"Meta 관심사 타게팅","sg.pc":"C · 콘텐츠","sg.pcf":"18–35세, 자투리 시간 시청, TikTok / Bigo에서 전환 가능","sg.pcr":"TikTok, 크리에이터","sg.s3":"경쟁 구도","sg.ch1":"경쟁사","sg.ch2":"규모","sg.ch3":"강점","sg.ch4":"OiOi의 기회","sg.bigos":"5억+ 가입","sg.bigoa":"브랜드 강함·콘텐츠 풍부","sg.bigoo":"글로벌 희석, 화교 소셜 약화","sg.micos":"수천만","sg.micoa":"다인 영상 소셜","sg.micoo":"화어 전용 아님","sg.tts":"10억+","sg.tta":"시청 시간 최장","sg.tto":"1:1 매칭 아님","sg.s4":"문제 진단","sg.diag":"핵심 문제는 <strong>콜드스타트</strong>: 브랜드 인지 0이라 첫 시드를 빠르게 확보해 '콘텐츠 없음 → 사용자 없음 → 콘텐츠 없음' 루프를 깨야 함. 기능은 갖춤(라이브 / PK / 합방 / 매칭), 부족한 건 인지와 초기 콘텐츠 공급.","sg.s5":"채널 & 예산 배분","sg.ct1":"채널","sg.ct2":"월 예산","sg.ct3":"역할","sg.ct4":"근거","sg.metar":"주 엔진","sg.metare":"말레이시아 약 2,235만 도달, 정밀 타게팅, 빠른 램프업","sg.ttr":"규모 확대","sg.ttre":"젊은 화교 밀집, 크리에이터가 물량 견인","sg.kolr":"신뢰 가속","sg.kolre":"화교 KOL 보증이 소셜 제품의 신뢰 장벽을 낮춤","sg.foot":"공개 데이터·업계 기준 기반 · 원클릭으로 campaign 초안","sg.back":"뒤로","sg.draft":"campaign 초안으로 변환 →"},
+"es":{"sg.h":"Estrategia de crecimiento · OiOi Live","sg.sub":"generado por Strategist · claude-sonnet-4-6","sg.s1":"Resumen ejecutivo","sg.lead":"OiOi Live es una app social de streaming para chinos de Malasia. Pocas descargas, casi nula notoriedad — un arranque en frío de demanda latente clásico. Recomendación: anuncios pagados como motor principal, social + KOL como aceleradores, para ganar los primeros 10–30k usuarios semilla en 30 días y romper el bucle 'sin contenido → sin usuarios'.","sg.s2":"Perfiles clave","sg.ph1":"Perfil","sg.ph2":"Rasgos","sg.ph3":"Alcance principal","sg.pa":"A · núcleo","sg.paf":"18–28, chino-malayo, urbano, ve directos, hace propinas","sg.par":"video corto Meta, TikTok","sg.pb":"B · social","sg.pbf":"20–32, busca círculo social chino, fuerte necesidad de chat voz/video","sg.pbr":"segmentación por intereses Meta","sg.pc":"C · contenido","sg.pcf":"18–35, consumo en ratos, convertible desde TikTok / Bigo","sg.pcr":"TikTok, creadores","sg.s3":"Panorama competitivo","sg.ch1":"Competidor","sg.ch2":"Escala","sg.ch3":"Fortaleza","sg.ch4":"Oportunidad para OiOi","sg.bigos":"500M+ registrados","sg.bigoa":"marca fuerte, contenido rico","sg.bigoo":"diluido globalmente, lo social chino se adelgaza","sg.micos":"decenas de millones","sg.micoa":"social de video grupal","sg.micoo":"no exclusivo en chino","sg.tts":"1B+","sg.tta":"mayor tiempo de visión","sg.tto":"no es emparejamiento social 1:1","sg.s4":"Diagnóstico del problema","sg.diag":"El problema central es el <strong>arranque en frío</strong>: notoriedad cero, hay que ganar rápido los primeros usuarios semilla y romper el bucle 'sin contenido → sin usuarios → sin contenido'. Las funciones existen (directo / PK / co-host / emparejamiento); falta notoriedad y la primera oferta de contenido.","sg.s5":"Canales y reparto de presupuesto","sg.ct1":"Canal","sg.ct2":"Presupuesto mensual","sg.ct3":"Rol","sg.ct4":"Justificación","sg.metar":"motor principal","sg.metare":"~22,35M de alcance en Malasia, segmentación precisa, ramp rápido","sg.ttr":"ampliación","sg.ttre":"jóvenes chinos agrupados, creadores aportan volumen","sg.kolr":"acelerador de confianza","sg.kolre":"el aval de KOL chinos baja la barrera de confianza de un producto social","sg.foot":"basado en datos públicos y benchmarks del sector · un clic a borradores de campaña","sg.back":"Volver","sg.draft":"Convertir a borradores de campaña →"},
+"pt":{"sg.h":"Estratégia de crescimento · OiOi Live","sg.sub":"gerado pelo Strategist · claude-sonnet-4-6","sg.s1":"Resumo executivo","sg.lead":"OiOi Live é um app social de transmissão ao vivo para chineses da Malásia. Poucos downloads, reconhecimento de marca quase nulo — um cold start clássico de demanda latente. Recomendação: anúncios pagos como motor principal, social + KOL como aceleradores, para ganhar os primeiros 10–30k usuários semente em 30 dias e quebrar o ciclo 'sem conteúdo → sem usuários'.","sg.s2":"Personas principais","sg.ph1":"Persona","sg.ph2":"Traços","sg.ph3":"Alcance principal","sg.pa":"A · núcleo","sg.paf":"18–28, chinês-malaio, urbano, assiste a lives, dá gorjetas","sg.par":"vídeo curto Meta, TikTok","sg.pb":"B · social","sg.pbf":"20–32, busca círculo social chinês, forte necessidade de chat voz/vídeo","sg.pbr":"segmentação por interesses Meta","sg.pc":"C · conteúdo","sg.pcf":"18–35, consumo em momentos livres, convertível de TikTok / Bigo","sg.pcr":"TikTok, criadores","sg.s3":"Cenário competitivo","sg.ch1":"Concorrente","sg.ch2":"Escala","sg.ch3":"Força","sg.ch4":"Oportunidade para OiOi","sg.bigos":"500M+ cadastrados","sg.bigoa":"marca forte, conteúdo rico","sg.bigoo":"diluído globalmente, social chinês enfraquecido","sg.micos":"dezenas de milhões","sg.micoa":"social de vídeo em grupo","sg.micoo":"não exclusivo em chinês","sg.tts":"1B+","sg.tta":"maior tempo de visualização","sg.tto":"não é matching social 1:1","sg.s4":"Diagnóstico do problema","sg.diag":"O problema central é o <strong>cold start</strong>: reconhecimento zero, é preciso ganhar rápido os primeiros usuários semente e quebrar o ciclo 'sem conteúdo → sem usuários → sem conteúdo'. As funções existem (live / PK / co-host / matching); falta reconhecimento e a primeira oferta de conteúdo.","sg.s5":"Canais e divisão de orçamento","sg.ct1":"Canal","sg.ct2":"Orçamento mensal","sg.ct3":"Papel","sg.ct4":"Justificativa","sg.metar":"motor principal","sg.metare":"~22,35M de alcance na Malásia, segmentação precisa, ramp rápido","sg.ttr":"ampliação","sg.ttre":"jovens chineses agrupados, criadores trazem volume","sg.kolr":"acelerador de confiança","sg.kolre":"o aval de KOLs chineses reduz a barreira de confiança de um produto social","sg.foot":"baseado em dados públicos e benchmarks do setor · um clique para rascunhos de campanha","sg.back":"Voltar","sg.draft":"Converter em rascunhos de campanha →"},
+"vi":{"sg.h":"Chiến lược tăng trưởng · OiOi Live","sg.sub":"do Strategist tạo · claude-sonnet-4-6","sg.s1":"Tóm tắt","sg.lead":"OiOi Live là app social livestream cho người Hoa ở Malaysia. Lượt tải thấp, nhận diện gần như bằng 0 — một cold start nhu cầu tiềm ẩn điển hình. Đề xuất: quảng cáo trả phí làm động cơ chính, social + KOL làm bộ tăng tốc, giành 10–30k người dùng hạt giống đầu trong 30 ngày, phá vòng 'không nội dung → không người dùng'.","sg.s2":"Chân dung cốt lõi","sg.ph1":"Chân dung","sg.ph2":"Đặc điểm","sg.ph3":"Kênh tiếp cận chính","sg.pa":"A · chủ lực","sg.paf":"18–28, người Hoa Malaysia, thành thị, thích xem live, tặng quà","sg.par":"video ngắn Meta, TikTok","sg.pb":"B · xã hội","sg.pbf":"20–32, tìm vòng xã hội người Hoa, nhu cầu chat thoại/video mạnh","sg.pbr":"nhắm sở thích Meta","sg.pc":"C · nội dung","sg.pcf":"18–35, xem lúc rảnh, chuyển đổi từ TikTok / Bigo","sg.pcr":"TikTok, nhà sáng tạo","sg.s3":"Bối cảnh cạnh tranh","sg.ch1":"Đối thủ","sg.ch2":"Quy mô","sg.ch3":"Điểm mạnh","sg.ch4":"Cơ hội cho OiOi","sg.bigos":"500 triệu+ đăng ký","sg.bigoa":"thương hiệu mạnh, nội dung phong phú","sg.bigoo":"loãng toàn cầu, social người Hoa bị pha loãng","sg.micos":"hàng chục triệu","sg.micoa":"social video nhóm","sg.micoo":"không độc quyền tiếng Hoa","sg.tts":"1 tỷ+","sg.tta":"thời lượng xem dài nhất","sg.tto":"không phải ghép đôi 1:1","sg.s4":"Chẩn đoán vấn đề","sg.diag":"Vấn đề cốt lõi là <strong>cold start</strong>: nhận diện bằng 0, phải giành nhanh người dùng hạt giống đầu và phá vòng 'không nội dung → không người dùng → không nội dung'. Tính năng đã có (live / PK / co-host / ghép đôi); thiếu là nhận diện và nguồn nội dung đầu.","sg.s5":"Kênh & phân bổ ngân sách","sg.ct1":"Kênh","sg.ct2":"Ngân sách tháng","sg.ct3":"Vai trò","sg.ct4":"Lý do","sg.metar":"động cơ chính","sg.metare":"~22,35 triệu tiếp cận ở Malaysia, nhắm chính xác, lên nhanh","sg.ttr":"mở rộng quy mô","sg.ttre":"người Hoa trẻ tập trung, nhà sáng tạo kéo volume","sg.kolr":"tăng tốc niềm tin","sg.kolre":"KOL người Hoa bảo chứng hạ rào cản niềm tin cho sản phẩm social","sg.foot":"dựa trên dữ liệu công khai & chuẩn ngành · một chạm sang bản nháp campaign","sg.back":"Quay lại","sg.draft":"Chuyển thành bản nháp campaign →"},
+"fr":{"sg.h":"Stratégie de croissance · OiOi Live","sg.sub":"généré par Strategist · claude-sonnet-4-6","sg.s1":"Synthèse","sg.lead":"OiOi Live est une app sociale de live pour les Chinois de Malaisie. Peu de téléchargements, notoriété quasi nulle — un démarrage à froid de demande latente classique. Recommandation : la pub payante comme moteur principal, social + KOL comme accélérateurs, pour gagner les 10–30k premiers utilisateurs noyau en 30 jours et briser la boucle « pas de contenu → pas d'utilisateurs ».","sg.s2":"Personas clés","sg.ph1":"Persona","sg.ph2":"Traits","sg.ph3":"Reach principal","sg.pa":"A · noyau","sg.paf":"18–28, sino-malais, urbain, regarde les lives, donne des pourboires","sg.par":"vidéo courte Meta, TikTok","sg.pb":"B · social","sg.pbf":"20–32, cherche un cercle social chinois, fort besoin de chat voix/vidéo","sg.pbr":"ciblage par intérêts Meta","sg.pc":"C · contenu","sg.pcf":"18–35, visionnage par bribes, convertible depuis TikTok / Bigo","sg.pcr":"TikTok, créateurs","sg.s3":"Paysage concurrentiel","sg.ch1":"Concurrent","sg.ch2":"Échelle","sg.ch3":"Force","sg.ch4":"Opportunité pour OiOi","sg.bigos":"500M+ inscrits","sg.bigoa":"marque forte, contenu riche","sg.bigoo":"dilué mondialement, le social chinois s'amincit","sg.micos":"dizaines de millions","sg.micoa":"social vidéo de groupe","sg.micoo":"pas exclusivement chinois","sg.tts":"1Md+","sg.tta":"temps de visionnage le plus long","sg.tto":"pas de matching social 1:1","sg.s4":"Diagnostic du problème","sg.diag":"Le problème central est le <strong>démarrage à froid</strong> : notoriété nulle, il faut gagner vite les premiers utilisateurs noyau et briser la boucle « pas de contenu → pas d'utilisateurs → pas de contenu ». Les fonctions existent (live / PK / co-host / matching) ; il manque la notoriété et la première offre de contenu.","sg.s5":"Canaux et répartition du budget","sg.ct1":"Canal","sg.ct2":"Budget mensuel","sg.ct3":"Rôle","sg.ct4":"Justification","sg.metar":"moteur principal","sg.metare":"~22,35M de reach en Malaisie, ciblage précis, montée rapide","sg.ttr":"montée en échelle","sg.ttre":"jeunes Chinois regroupés, les créateurs apportent du volume","sg.kolr":"accélérateur de confiance","sg.kolre":"la caution de KOL chinois abaisse la barrière de confiance d'un produit social","sg.foot":"basé sur des données publiques et des benchmarks du secteur · un clic vers des brouillons de campagne","sg.back":"Retour","sg.draft":"Convertir en brouillons de campagne →"},
+"de":{"sg.h":"Wachstumsstrategie · OiOi Live","sg.sub":"erstellt von Strategist · claude-sonnet-4-6","sg.s1":"Zusammenfassung","sg.lead":"OiOi Live ist eine Live-Streaming-Social-App für malaysische Chinesen. Wenige Downloads, kaum Markenbekanntheit — ein klassischer Cold Start mit latenter Nachfrage. Empfehlung: bezahlte Anzeigen als Hauptmotor, Social + KOL als Beschleuniger, um in 30 Tagen die ersten 10–30k Seed-Nutzer zu gewinnen und die Schleife 'kein Content → keine Nutzer' zu durchbrechen.","sg.s2":"Kern-Personas","sg.ph1":"Persona","sg.ph2":"Merkmale","sg.ph3":"Haupt-Reichweite","sg.pa":"A · Kern","sg.paf":"18–28, malaysische Chinesen, urban, schaut Live, gibt Trinkgeld","sg.par":"Meta-Kurzvideo, TikTok","sg.pb":"B · sozial","sg.pbf":"20–32, sucht chinesischen Social-Kreis, starker Voice-/Video-Chat-Bedarf","sg.pbr":"Meta-Interessen-Targeting","sg.pc":"C · Content","sg.pcf":"18–35, Konsum in Pausen, von TikTok / Bigo konvertierbar","sg.pcr":"TikTok, Creator","sg.s3":"Wettbewerbslandschaft","sg.ch1":"Wettbewerber","sg.ch2":"Größe","sg.ch3":"Stärke","sg.ch4":"Chance für OiOi","sg.bigos":"500 Mio.+ registriert","sg.bigoa":"starke Marke, reicher Content","sg.bigoo":"global verwässert, chinesisches Social verdünnt","sg.micos":"zweistellige Millionen","sg.micoa":"Gruppen-Video-Social","sg.micoo":"nicht chinesisch-exklusiv","sg.tts":"1 Mrd.+","sg.tta":"längste Sehdauer","sg.tto":"kein 1:1-Social-Matching","sg.s4":"Problemdiagnose","sg.diag":"Das Kernproblem ist der <strong>Cold Start</strong>: null Bekanntheit, daher müssen die ersten Seed-Nutzer schnell gewonnen und die Schleife 'kein Content → keine Nutzer → kein Content' durchbrochen werden. Die Funktionen sind da (Live / PK / Co-Host / Matching); es fehlen Bekanntheit und das erste Content-Angebot.","sg.s5":"Kanäle & Budgetaufteilung","sg.ct1":"Kanal","sg.ct2":"Monatsbudget","sg.ct3":"Rolle","sg.ct4":"Begründung","sg.metar":"Hauptmotor","sg.metare":"~22,35 Mio. Reichweite in Malaysia, präzises Targeting, schneller Ramp-up","sg.ttr":"Skalierung","sg.ttre":"junge Chinesen geballt, Creator bringen Volumen","sg.kolr":"Vertrauensbeschleuniger","sg.kolre":"die Empfehlung chinesischer KOLs senkt die Vertrauensbarriere eines Social-Produkts","sg.foot":"basierend auf öffentlichen Daten & Branchen-Benchmarks · ein Klick zu Kampagnen-Entwürfen","sg.back":"Zurück","sg.draft":"In Kampagnen-Entwürfe umwandeln →"}
+};
+for (const _l in I18N_STRAT) { if (I18N[_l]) Object.assign(I18N[_l], I18N_STRAT[_l]); }
+// ---- misc edge strings ----
+const I18N_FIX = {
+"zh-CN":{"bn.raw1":"raw claude(无引擎)","bn.raw2":"raw gpt-4o(无引擎)","li.qa":"QA 中","li.files":"6 张","l.hold120":"保持 $120","st.local":"本地 / ollama","sg.kol":"KOL / 达人"},
+"zh-TW":{"bn.raw1":"raw claude(無引擎)","bn.raw2":"raw gpt-4o(無引擎)","li.qa":"QA 中","li.files":"6 張","l.hold120":"維持 $120","st.local":"本機 / ollama","sg.kol":"KOL / 達人"},
+"en":{"bn.raw1":"raw claude (no engine)","bn.raw2":"raw gpt-4o (no engine)","li.qa":"in QA","li.files":"6 files","l.hold120":"hold $120","st.local":"local / ollama","sg.kol":"KOL / creators"},
+"ja":{"bn.raw1":"raw claude(エンジン無)","bn.raw2":"raw gpt-4o(エンジン無)","li.qa":"QA 中","li.files":"6 枚","l.hold120":"$120 維持","st.local":"ローカル / ollama","sg.kol":"KOL / クリエイター"},
+"ko":{"bn.raw1":"raw claude(엔진 없음)","bn.raw2":"raw gpt-4o(엔진 없음)","li.qa":"QA 중","li.files":"6개","l.hold120":"$120 유지","st.local":"로컬 / ollama","sg.kol":"KOL / 크리에이터"},
+"es":{"bn.raw1":"raw claude (sin motor)","bn.raw2":"raw gpt-4o (sin motor)","li.qa":"en QA","li.files":"6 archivos","l.hold120":"mantener $120","st.local":"local / ollama","sg.kol":"KOL / creadores"},
+"pt":{"bn.raw1":"raw claude (sem motor)","bn.raw2":"raw gpt-4o (sem motor)","li.qa":"em QA","li.files":"6 arquivos","l.hold120":"manter $120","st.local":"local / ollama","sg.kol":"KOL / criadores"},
+"vi":{"bn.raw1":"raw claude (không engine)","bn.raw2":"raw gpt-4o (không engine)","li.qa":"đang QA","li.files":"6 tệp","l.hold120":"giữ $120","st.local":"cục bộ / ollama","sg.kol":"KOL / nhà sáng tạo"},
+"fr":{"bn.raw1":"raw claude (sans moteur)","bn.raw2":"raw gpt-4o (sans moteur)","li.qa":"en QA","li.files":"6 fichiers","l.hold120":"maintenir 120 $","st.local":"local / ollama","sg.kol":"KOL / créateurs"},
+"de":{"bn.raw1":"raw claude (ohne Engine)","bn.raw2":"raw gpt-4o (ohne Engine)","li.qa":"in QA","li.files":"6 Dateien","l.hold120":"120 $ halten","st.local":"lokal / ollama","sg.kol":"KOL / Creator"}
+};
+for (const _l in I18N_FIX) { if (I18N[_l]) Object.assign(I18N[_l], I18N_FIX[_l]); }
+// ---- restructure: inline guardrails gate + post-hoc diagnosis (zh-CN base + en; other langs fall back to zh until backfilled) ----
+const I18N_RESTRUCT = {
+"zh-CN":{"tip.dark":"切换到夜间","tip.light":"切换到日间","g.h":"护栏 · 批准前设定","g.sub":"这些就是规则引擎的阈值 · 改这里，每条决策都会重新推导","g.cpa":"目标 CPA","g.cpah":"超过即自动暂停","g.cap":"日预算上限","g.caph":"放量永不越过","g.perday":"/ 天","g.sample":"最小成交样本","g.sampleh":"低于此数置信度降级","g.orders":"单","g.freq":"频次上限","g.freqh":"超过判素材饱和","g.revert":"自动撤回","g.reverth":"CPP 超标或 CTR 跌 &gt;15% 自动回滚","g.boost":"大促自动加投","g.boosth":"平台大促期上限内提量","g.audit":"⛨ 6 条决策都会带上这套护栏 · 全部写进<b>可回放审计</b>","g.cancel":"取消","g.publish":"确认护栏并发布 6 项 →","g.published":"✓ 已发布 · 护栏已生效","g.toast":"已发布 6 项改动 · 护栏已生效 · 48h 后自动复盘","r.s5done":"已发布 6 项 · 护栏已写入审计","ph.q":"上一轮批准的 6 项改动跑了 48 小时，复盘一下效果。","ph.intro":"上一轮 6 项改动已跑满 <strong>48 小时</strong>，整体兑现了预测：综合 ROAS <strong>3.6× → 3.9×</strong>、CPA 降 <strong>$2.4</strong>，全程<strong>没有触发任何自动撤回护栏</strong>。下面是逐条「预测 vs 实际」，外加一条规则引擎新生成、待你批准的建议。","ph.h":"投后诊断 · 上一轮 6 项","ph.sub":"预测 vs 实际 · 48h 窗口","ph.k1":"综合 ROAS","ph.k1d":"↑ 预测 3.8×","ph.k2":"新增成交","ph.k4":"护栏触发","ph.k4d":"全程阈值内","ph.thact":"上轮动作","ph.thpred":"预测","ph.threal":"实际","ph.thv":"判定","ph.win":"兑现","ph.part":"部分","ph.p2":"11→稳住","ph.p3":"CTR 回升","ph.p4":"频次降","ph.stop":"止血","ph.s160":"省 $160/天","ph.s240":"省 $240/天","ph.r2real":"26 单","ph.rc":"<strong>根因 & 下一步：</strong>Retargeting_7d 换素材后频次回落但仍偏高（2.7），根因是<strong>受众过窄</strong>，不是素材问题。规则引擎据此生成 1 条新建议——<strong>扩 1% 相似受众</strong>，预计频次回到 2.3。已排进下一轮决策，等你下次批准。"},
+"en":{"tip.dark":"Switch to dark","tip.light":"Switch to light","g.h":"Guardrails · set before approving","g.sub":"These are the rule-engine thresholds · change them and every decision re-derives","g.cpa":"Target CPA","g.cpah":"auto-pause above this","g.cap":"Daily budget cap","g.caph":"scaling never crosses it","g.perday":"/ day","g.sample":"Min purchase sample","g.sampleh":"below this, confidence is downgraded","g.orders":"orders","g.freq":"Frequency cap","g.freqh":"above this = creative saturation","g.revert":"Auto-revert","g.reverth":"rolls back if CPP over or CTR drop &gt;15%","g.boost":"Boost during sales","g.boosth":"raise within cap during platform sales","g.audit":"⛨ all 6 decisions carry these guardrails · written into the <b>replayable audit</b>","g.cancel":"Cancel","g.publish":"Confirm guardrails & publish 6 →","g.published":"✓ Published · guardrails live","g.toast":"6 changes published · guardrails live · auto-review in 48h","r.s5done":"6 changes published · guardrails in audit","ph.q":"The 6 changes I approved last cycle have run 48h — review how they did.","ph.intro":"Last cycle's 6 changes have run a full <strong>48 hours</strong> and broadly hit forecast: blended ROAS <strong>3.6× → 3.9×</strong>, CPA down <strong>$2.4</strong>, and <strong>no auto-revert guardrail fired</strong>. Below: predicted vs actual per campaign, plus one new rule-engine suggestion awaiting approval.","ph.h":"Post-hoc diagnosis · last 6","ph.sub":"predicted vs actual · 48h window","ph.k1":"Blended ROAS","ph.k1d":"↑ forecast 3.8×","ph.k2":"New purchases","ph.k4":"Guardrails fired","ph.k4d":"all within threshold","ph.thact":"Last action","ph.thpred":"Predicted","ph.threal":"Actual","ph.thv":"Verdict","ph.win":"Hit","ph.part":"Partial","ph.p2":"11→hold","ph.p3":"CTR recovers","ph.p4":"freq down","ph.stop":"stop loss","ph.s160":"saved $160/day","ph.s240":"saved $240/day","ph.r2real":"26 orders","ph.rc":"<strong>Root cause & next:</strong> Retargeting_7d's frequency fell after the refresh but is still high (2.7) — the root cause is an <strong>audience too narrow</strong>, not the creative. The rule engine generated one new suggestion — <strong>expand to 1% lookalike</strong>, projected to bring frequency back to 2.3. It's queued for your next approval."}
+};
+for (const _l in I18N_RESTRUCT) { if (I18N[_l]) Object.assign(I18N[_l], I18N_RESTRUCT[_l]); }
 function setLang(code){
   if(!I18N[code]) code = "zh-CN";
   curLang = code;
@@ -1036,14 +1155,20 @@ if (bulkBtn) bulkBtn.addEventListener("click", () => {
   });
   showToast("已应用到全部可投放行");
 });
-// publish screen: confirm → advance progress + return to console
-const pubGo = document.querySelector("#view-publish .scrn-foot .btn.primary");
-if (pubGo) pubGo.addEventListener("click", () => {
-  if (pubGo.dataset.done) return;
-  pubGo.dataset.done = "1"; pubGo.textContent = "✓ 已发布 6 个 campaign";
+// inline approval gate: apply → scroll to guardrails; publish → advance progress + close loop
+const applyBtn = $("applyBtn"), gateCard = $("gateCard"), gatePublish = $("gatePublish");
+if (applyBtn && gateCard) applyBtn.addEventListener("click", () => {
+  gateCard.scrollIntoView({ behavior: "smooth", block: "center" });
+  gateCard.classList.remove("flash"); void gateCard.offsetWidth; gateCard.classList.add("flash");
+});
+if (gatePublish) gatePublish.addEventListener("click", () => {
+  if (gatePublish.dataset.done) return;
+  gatePublish.dataset.done = "1";
+  gatePublish.textContent = (I18N[curLang] && I18N[curLang]["g.published"]) || "✓ 已发布 · 护栏已生效";
+  gatePublish.style.background = "var(--green)"; gatePublish.style.borderColor = "var(--green)";
   const now = document.querySelector(".pstep.now");
-  if (now) { now.classList.remove("now"); now.classList.add("done"); now.querySelector(".n").textContent = "✓"; now.querySelector(".tx").textContent = "已发布 6 项改动 · 写入中"; }
-  setTimeout(() => setView("console"), 800);
+  if (now) { now.classList.remove("now"); now.classList.add("done"); now.querySelector(".n").textContent = "✓"; const tx = now.querySelector(".tx"); if (tx) tx.textContent = (I18N[curLang] && I18N[curLang]["r.s5done"]) || "已发布 6 项 · 护栏已写入审计"; }
+  showToast((I18N[curLang] && I18N[curLang]["g.toast"]) || "已发布 6 项改动 · 护栏已生效 · 48h 后自动复盘");
 });
 // audit replay feedback
 const replayBtn = document.querySelector(".replay button");
@@ -1076,7 +1201,7 @@ document.addEventListener("click", e => {
   if (b.hasAttribute("data-view") || b.classList.contains("approve") || b.classList.contains("ri") || b.classList.contains("av")
       || b.closest("[data-seg]") || b.closest("#langSel") || b.closest(".acct-menu") || b.hasAttribute("data-sw")
       || ["newBtn","welSend","signOut","signIn","rrToggle","langBtn"].indexOf(b.id) > -1
-      || b === pubGo || b === replayBtn || b === bulkBtn || b.classList.contains("send")) return;
+      || b === gatePublish || b === applyBtn || b === replayBtn || b === bulkBtn || b.classList.contains("send")) return;
   const msg = toastFor(b); if (msg) showToast(msg);
 });
 document.querySelectorAll(".composer .send").forEach(s => s.addEventListener("click", () => {
@@ -1128,6 +1253,28 @@ setLang(localStorage.getItem("drip-lang") || (function(){ const n = (navigator.l
   const si = $("signIn"); if (si) si.addEventListener("click", () => { ctl.classList.remove("signedout"); ctl.querySelector(".am-in").style.display = "block"; ctl.querySelector(".am-out").style.display = "none"; av.classList.remove("out"); av.textContent = "M"; ctl.classList.remove("open"); });
   if (ctl) ctl.querySelectorAll(".am-item").forEach(it => it.addEventListener("click", () => ctl.classList.remove("open")));
   document.addEventListener("click", e => { if (ctl && !ctl.contains(e.target)) ctl.classList.remove("open"); });
+})();
+// theme · elegant night mode (follows system by default, remembers your choice)
+(function(){
+  const tt = $("themeToggle"), root = document.documentElement;
+  const MOON = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.6A8.5 8.5 0 1 1 11.4 3a6.6 6.6 0 0 0 9.6 9.6z"/></svg>';
+  const SUN = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.2M12 19.3v2.2M4.6 4.6l1.6 1.6M17.8 17.8l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.6 19.4l1.6-1.6M17.8 6.2l1.6-1.6"/></svg>';
+  function apply(t){
+    root.setAttribute("data-theme", t);
+    if (tt){ tt.innerHTML = (t === "dark") ? SUN : MOON;
+      const d = I18N[curLang] || I18N["zh-CN"];
+      tt.title = (t === "dark") ? (d["tip.light"] || "切换到日间") : (d["tip.dark"] || "切换到夜间"); }
+  }
+  let saved = null; try { saved = localStorage.getItem("drip-theme"); } catch (e) {}
+  const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+  apply(saved || (prefersDark ? "dark" : "light"));
+  if (tt) tt.addEventListener("click", () => {
+    const next = (root.getAttribute("data-theme") === "dark") ? "light" : "dark";
+    root.classList.add("theming"); apply(next);
+    try { localStorage.setItem("drip-theme", next); } catch (e) {}
+    setTimeout(() => root.classList.remove("theming"), 360);
+  });
+  window.__applyTheme = apply;
 })();
 </script>
 </body>
