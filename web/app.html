@@ -270,9 +270,11 @@ button.pressed{transform:scale(.97);opacity:.85;transition:transform .08s,opacit
 
 /* welcome */
 .welcome-view{display:none;flex:1;overflow-y:auto;background:var(--canvas)}
-.app.welcome .welcome-view{display:flex;flex-direction:column;align-items:center;justify-content:center}
+.app.welcome .welcome-view{display:flex;flex-direction:column;align-items:center}
+.app.welcome .welcome-view::before{content:"";flex:1 0 48px}
+.app.welcome .welcome-view::after{content:"";flex:1.6 0 36px}
 .app.welcome .thread,.app.welcome .composer-wrap{display:none}
-.wv-in{max-width:768px;margin:auto;padding:40px 28px;width:100%}
+.wv-in{max-width:768px;margin:0 auto;padding:0 28px 28px;width:100%}
 .wv-hero{margin-bottom:18px;line-height:0}
 .wv-in h1{font-size:34px;font-weight:680;letter-spacing:-.035em;line-height:1.12}
 .wv-in .sub{font-size:15px;color:var(--text-2);margin:12px 0 28px;line-height:1.55;max-width:600px}
