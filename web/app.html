@@ -134,7 +134,9 @@ button{font-family:var(--font)}
 .rail .ri{width:100%;height:37px;border-radius:9px;display:grid;grid-template-columns:22px 1fr;place-items:center start;gap:10px;padding:0 8px;color:var(--text-2);cursor:pointer;font-size:16px;border:none;background:none;flex-shrink:0;font-family:var(--font)}
 .app.nav-collapsed .rail .ri{width:38px;height:38px;grid-template-columns:none;place-items:center;padding:0;color:var(--text-3)}
 .rail .ri:hover{background:var(--surface-2);color:var(--text)}
-.rail .ri.on{background:var(--accent-subtle);color:var(--accent);font-weight:600}
+.rail .ri.on{background:var(--accent-subtle);color:var(--accent)}
+.rail .ri:focus,.rail .cl-item:focus,.rail .logo:focus,.nav-toggle:focus,.acctctl:focus{outline:none}
+.rail .ri:focus-visible,.rail .cl-item:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
 .rail .ri svg{justify-self:center}
 .rail .ri#newBtn{margin-bottom:6px}
 .rlabel{font-size:13px;font-weight:550;white-space:nowrap}
