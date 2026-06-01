@@ -42,20 +42,15 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:
 ::-webkit-scrollbar-thumb{background:var(--border-strong);border-radius:6px;border:3px solid var(--bg)}
 button{font-family:var(--font)}
 
-:root{--clw:248px;--rrw:348px;--rail:56px}
+:root{--rrw:348px;--rail:248px}
 .app{display:grid;grid-template-columns:var(--rail) 1fr;grid-template-rows:100vh;height:100vh;overflow:hidden}
-.app.nav-open{--rail:236px}
-.chatlist,.rrail{transition:opacity .16s ease}
-.app.cl-hidden .chatlist,.app.rr-hidden .rrail{opacity:0}
-.app.chatctx{grid-template-columns:var(--rail) var(--clw) 1fr}
-.app.chatctx.chatmode{grid-template-columns:var(--rail) var(--clw) 1fr var(--rrw)}
-.app.chatctx.chatmode.rr-hidden{grid-template-columns:var(--rail) var(--clw) 1fr 0}
-.app.chatctx.cl-hidden{grid-template-columns:var(--rail) 0 1fr}
-.app.chatctx.chatmode.cl-hidden{grid-template-columns:var(--rail) 0 1fr var(--rrw)}
-.app.chatctx.chatmode.cl-hidden.rr-hidden{grid-template-columns:var(--rail) 0 1fr 0}
-.app:not(.chatctx) .chatlist{display:none}
-.app.cl-hidden .chatlist{border-right-color:transparent;pointer-events:none}
+.app.nav-collapsed{--rail:58px}
+.rrail{transition:opacity .16s ease}
+.app.rr-hidden .rrail{opacity:0}
+.app.chatmode{grid-template-columns:var(--rail) 1fr var(--rrw)}
+.app.chatmode.rr-hidden{grid-template-columns:var(--rail) 1fr 0}
 .app:not(.chatmode) .rrail{display:none}
+.app.rr-hidden .rrail{border-left-color:transparent;pointer-events:none}
 .chatlist{border-right:1px solid var(--border);background:var(--surface);display:flex;flex-direction:column;min-height:0;min-width:0;overflow:hidden;position:relative}
 .cl-new{display:flex;align-items:center;justify-content:center;gap:8px;margin:12px 12px 6px;padding:9px 12px;border:1px solid var(--border-strong);border-radius:9px;background:var(--bg);color:var(--text);font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer}
 .cl-new:hover{border-color:var(--accent);color:var(--accent)}
@@ -117,30 +112,46 @@ button{font-family:var(--font)}
 .app.welcome .rrail{display:none}
 
 /* left rail */
-.rail{background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;align-items:center;padding:12px 9px;gap:3px;overflow:hidden}
-.app.nav-open .rail{align-items:stretch}
-.rail-head{display:flex;align-items:center;gap:10px;width:100%;margin-bottom:11px;min-height:34px;justify-content:center}
-.app.nav-open .rail-head{justify-content:flex-start;padding:0 3px}
-.rail .logo{width:34px;height:34px;border-radius:10px;background:linear-gradient(145deg,#3b74ff,var(--accent));display:grid;place-items:center;box-shadow:0 2px 7px rgba(0,82,217,.30);flex-shrink:0;cursor:pointer;transition:transform .12s}
+/* unified sidebar — expanded by default (Manus form), collapses to icons */
+.rail{background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;align-items:stretch;padding:12px;gap:2px;position:relative}
+.app.nav-collapsed .rail{align-items:center;padding:12px 9px;gap:3px}
+.rail-grip{position:absolute;right:-3px;top:0;bottom:0;width:7px;cursor:col-resize;z-index:33}
+.rail-grip::after{content:"";position:absolute;right:3px;top:0;bottom:0;width:1px;background:transparent;transition:background .12s}
+.rail-grip:hover::after,.rail-grip.drag::after{background:var(--accent)}
+.app.nav-collapsed .rail-grip{display:none}
+.rail-head{display:flex;align-items:center;gap:10px;width:100%;margin-bottom:11px;min-height:34px;padding:0 3px}
+.app.nav-collapsed .rail-head{justify-content:center;padding:0}
+.rail .logo{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;flex-shrink:0;cursor:pointer;transition:transform .12s}
 .rail .logo:hover{transform:scale(1.06)}
-.rail .logo svg{display:block;filter:drop-shadow(0 1px 1px rgba(0,0,0,.12))}
-.rail-name{font-size:15.5px;font-weight:730;letter-spacing:-.01em;flex:1;white-space:nowrap;overflow:hidden;display:none}
-.app.nav-open .rail-name{display:block}
-.nav-toggle{width:30px;height:30px;border-radius:8px;border:none;background:none;color:var(--text-3);cursor:pointer;place-items:center;flex-shrink:0;display:none}
-.app.nav-open .nav-toggle{display:grid}.nav-toggle:hover{background:var(--surface-2);color:var(--text)}
-.rail .ri{width:38px;height:38px;border-radius:9px;display:grid;place-items:center;color:var(--text-3);cursor:pointer;font-size:16px;border:none;background:none;flex-shrink:0;font-family:var(--font)}
-.app.nav-open .rail .ri{width:100%;height:37px;grid-template-columns:22px 1fr;place-items:center start;gap:10px;padding:0 8px}
+.rail .logo svg{display:block;filter:drop-shadow(0 2px 5px rgba(31,95,255,.32))}
+.rail-name{font-size:16px;font-weight:740;letter-spacing:-.02em;flex:1;white-space:nowrap;overflow:hidden}
+.app.nav-collapsed .rail-name{display:none}
+.nav-toggle{width:30px;height:30px;border-radius:8px;border:none;background:none;color:var(--text-3);cursor:pointer;place-items:center;flex-shrink:0;display:grid}
+.app.nav-collapsed .nav-toggle{display:none}
+.nav-toggle:hover{background:var(--surface-2);color:var(--text)}
+.rail .ri{width:100%;height:37px;border-radius:9px;display:grid;grid-template-columns:22px 1fr;place-items:center start;gap:10px;padding:0 8px;color:var(--text-2);cursor:pointer;font-size:16px;border:none;background:none;flex-shrink:0;font-family:var(--font)}
+.app.nav-collapsed .rail .ri{width:38px;height:38px;grid-template-columns:none;place-items:center;padding:0;color:var(--text-3)}
 .rail .ri:hover{background:var(--surface-2);color:var(--text)}
-.rail .ri.on{background:var(--accent-subtle);color:var(--accent)}
+.rail .ri.on{background:var(--accent-subtle);color:var(--accent);font-weight:600}
 .rail .ri svg{justify-self:center}
-.rlabel{font-size:13px;font-weight:550;white-space:nowrap;display:none}
-.app.nav-open .rlabel{display:inline}
-.rail .sp{flex:1;min-height:6px}
-.rail-foot{display:flex;flex-direction:column;align-items:center;gap:3px;width:100%}
-.app.nav-open .rail-foot{align-items:stretch}
-.rail .av{width:34px;height:34px;border-radius:50%;background:#f0731f;color:#fff;display:grid;place-items:center;font-weight:600;font-size:13px;flex-shrink:0;cursor:pointer}
-.app.nav-open .acctctl{display:flex;align-items:center;gap:10px;padding:5px 8px 0}
-.acct-id{display:none;font-size:12.5px;font-weight:600;white-space:nowrap}.app.nav-open .acct-id{display:block}
+.rail .ri#newBtn{background:var(--accent);color:#fff;margin-bottom:5px}
+.rail .ri#newBtn:hover{background:var(--accent-hover)}
+.app.nav-collapsed .rail .ri#newBtn{background:var(--accent);color:#fff}
+.rlabel{font-size:13px;font-weight:550;white-space:nowrap}
+.app.nav-collapsed .rlabel{display:none}
+.rail-chats{flex:1;min-height:0;display:flex;flex-direction:column;margin-top:9px;overflow:hidden}
+.app.nav-collapsed .rail-chats{display:none}
+.rail-chats .cl-sec{font-size:10.5px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;padding:2px 8px 6px}
+.rail .sp{flex:1;display:none}
+.app.nav-collapsed .rail .sp{display:block}
+.rail-foot{display:flex;flex-direction:column;align-items:stretch;gap:2px;width:100%;margin-top:6px;border-top:1px solid var(--border);padding-top:8px}
+.app.nav-collapsed .rail-foot{align-items:center;border-top:none}
+.rail .av{width:30px;height:30px;border-radius:50%;background:#f0731f;color:#fff;display:grid;place-items:center;font-weight:600;font-size:12.5px;flex-shrink:0;cursor:pointer}
+.acctctl{display:flex;align-items:center;gap:10px;padding:5px 7px;border-radius:9px;cursor:pointer}
+.acctctl:hover{background:var(--surface-2)}
+.app.nav-collapsed .acctctl{padding:0;justify-content:center}
+.acct-id{font-size:12.5px;font-weight:600;white-space:nowrap}
+.app.nav-collapsed .acct-id{display:none}
 
 /* center */
 .center{display:flex;flex-direction:column;min-width:0;min-height:0;position:relative}
@@ -304,8 +315,7 @@ button{font-family:var(--font)}
 .side-toggle{width:30px;height:30px;margin-right:2px;border-radius:8px;border:none;background:none;color:var(--text-3);cursor:pointer;display:grid;place-items:center;flex-shrink:0;transition:background .12s,color .12s}
 .side-toggle:hover{background:var(--surface-2);color:var(--text)}
 .side-toggle svg{display:block;transition:transform .2s ease}
-.app.cl-hidden .side-toggle svg{transform:scaleX(-1)}
-.app:not(.chatctx) .side-toggle{display:none}
+.app.nav-collapsed .side-toggle svg{transform:scaleX(-1)}
 .app:not(.chatmode) #auditToggle{display:none}
 /* language selector */
 .langsel{position:relative}
@@ -395,8 +405,8 @@ button.pressed{transform:scale(.97);opacity:.85;transition:transform .08s,opacit
 .scene:hover .ic{color:var(--accent)}
 .scene .t{font-size:13px;font-weight:600}.scene .d{font-size:11.5px;color:var(--text-2);margin:4px 0 9px;line-height:1.45}.scene .tag{font-size:10px;font-weight:550;color:var(--text-3);background:var(--surface-2);padding:2px 8px;border-radius:10px}
 
-@media(max-width:1180px){.app.chatctx.chatmode,.app.chatctx.chatmode.rr-hidden{grid-template-columns:var(--rail) var(--clw) 1fr}.app.chatctx.chatmode.cl-hidden{grid-template-columns:var(--rail) 0 1fr}.rrail{display:none}}
-@media(max-width:860px){.app{--rail:56px}.app.chatctx,.app.chatctx.chatmode{grid-template-columns:56px 1fr}.chatlist{display:none}.rlabel,.rail-name,.nav-toggle,.acct-id{display:none!important}.app.nav-open .rail{align-items:center}}
+@media(max-width:1180px){.app.chatmode,.app.chatmode.rr-hidden{grid-template-columns:var(--rail) 1fr}.rrail{display:none}}
+@media(max-width:860px){.app{--rail:58px}.app .rail{align-items:center;padding:12px 9px}.rlabel,.rail-name,.nav-toggle,.acct-id,.rail-chats{display:none!important}.app .rail .ri{width:38px;height:38px;grid-template-columns:none;place-items:center;padding:0}.rail-foot{border-top:none;align-items:center}}
 @media(max-width:1000px){.scenes{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:760px){.thread-in,.composer-in,.screen-in{padding-left:18px;padding-right:18px}.wv-in{padding:30px 18px}.wv-in h1{font-size:25px}.kpis{grid-template-columns:repeat(3,1fr)}.card .body{grid-template-columns:1fr}.card .vdiv{display:none}}
 @media(max-width:600px){.scenes{grid-template-columns:1fr}.wv-in h1{font-size:22px}.wv-in .sub{font-size:13.5px}.kpis,.kpis-4{grid-template-columns:repeat(2,1fr)}.topbar .ttl .meta{display:none}.topbar{padding:0 12px;gap:8px}.topbar .ttl{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.chip{display:none}.composer .bar,.wv-composer .bar{flex-wrap:wrap}.thread-in,.composer-in,.screen-in{padding-left:14px;padding-right:14px}.composer-wrap{padding:10px 14px 12px}.scrn-head h2{font-size:16px}.card .head{flex-wrap:wrap;row-gap:6px}.card .title{order:-1;flex-basis:100%}.dqrow{flex-wrap:wrap;row-gap:6px}}
@@ -509,7 +519,8 @@ select.inp{cursor:pointer}
 .acctctl{position:relative}
 .acctctl .av{border:none;cursor:pointer;font-family:var(--font)}
 .acctctl .av.out{background:var(--surface-2);color:var(--text-3);border:1px solid var(--border-strong);font-weight:500}
-.acct-menu{position:absolute;left:46px;bottom:0;width:232px;background:var(--bg);border:1px solid var(--border);border-radius:12px;box-shadow:0 14px 38px rgba(16,24,40,.18);padding:6px;display:none;z-index:60}
+.acct-menu{position:absolute;left:0;bottom:calc(100% + 8px);width:240px;background:var(--bg);border:1px solid var(--border);border-radius:12px;box-shadow:0 14px 38px rgba(16,24,40,.18);padding:6px;display:none;z-index:80}
+.app.nav-collapsed .acct-menu{left:46px;bottom:0}
 .acctctl.open .acct-menu{display:block}
 .am-head{display:flex;align-items:center;gap:10px;padding:8px 9px 4px}
 .am-av{width:34px;height:34px;border-radius:50%;background:#f0731f;color:#fff;display:grid;place-items:center;font-weight:600;font-size:14px;flex-shrink:0}
@@ -564,6 +575,12 @@ button{cursor:pointer}
 .tb-demo:hover{border-color:var(--accent);color:var(--accent)}
 .tb-demo svg{color:var(--accent)}
 @media(max-width:600px){.tb-demo span{display:none}.tb-demo{padding:0 9px}}
+.tb-star{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 11px;border:1px solid var(--border-strong);border-radius:8px;background:var(--bg);color:var(--text-2);cursor:pointer;font-family:var(--font);font-size:12.5px;font-weight:600;white-space:nowrap;text-decoration:none;flex-shrink:0;transition:border-color .12s,color .12s,box-shadow .12s}
+.tb-star:hover{border-color:#f0a020;color:#a8660a;box-shadow:0 0 0 3px rgba(240,160,32,.12)}
+.tb-star svg{color:#f0a020;transition:transform .2s}
+.tb-star:hover svg{transform:rotate(72deg) scale(1.12)}
+.tb-star b{font-weight:700;color:var(--text);font-variant-numeric:tabular-nums}
+@media(max-width:600px){.tb-star span{display:none}.tb-star{padding:0 9px}}
 .projrow{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:6px}
 .projcard{border:1px solid var(--border);border-radius:11px;background:var(--bg);padding:13px 14px;cursor:pointer;transition:border-color .15s,box-shadow .15s}
 .projcard:hover{border-color:var(--border-strong)}
@@ -712,8 +729,9 @@ body.demo-on.demo-cap-on::before{opacity:1}
 </svg>
 <div class="app" id="app">
   <aside class="rail">
+    <div class="rail-grip" id="railGrip"></div>
     <div class="rail-head">
-      <div class="logo" id="navToggle" title="展开 / 收起侧栏"><svg viewBox="0 0 24 24" width="18" height="18" fill="#fff"><path d="M12 21a7 7 0 0 1-7-7c0-5 7-11 7-11s7 6 7 11a7 7 0 0 1-7 7z"/></svg></div>
+      <div class="logo" id="navToggle" title="展开 / 收起侧栏"><svg viewBox="0 0 32 32" width="30" height="30" fill="none"><defs><linearGradient id="lg-mark" x1="6" y1="3" x2="26" y2="29" gradientUnits="userSpaceOnUse"><stop stop-color="#6aa6ff"/><stop offset="1" stop-color="#1f5fff"/></linearGradient></defs><path d="M16 3.2c-5.1 7.2-9.2 11.2-9.2 16.3a9.2 9.2 0 0 0 18.4 0c0-5.1-4.1-9.1-9.2-16.3z" fill="url(#lg-mark)"/><path d="M10.4 13c2.2-1 4-.2 4.2 2 .2 2.4 1.7 3.4 3.9 2.2" stroke="#fff" stroke-width="0" fill="none"/><path d="M11.3 20.2l2.9-3.1 2.2 1.6 3.6-4.2" stroke="#fff" stroke-width="1.9" fill="none" stroke-linecap="round" stroke-linejoin="round"/><circle cx="20" cy="14.5" r="1.15" fill="#fff"/><ellipse cx="12.7" cy="12.2" rx="2.1" ry="3" fill="#fff" opacity=".22" transform="rotate(-28 12.7 12.2)"/></svg></div>
       <span class="rail-name">Drip</span>
       <button class="nav-toggle" id="navCollapse" title="收起侧栏" aria-label="收起侧栏"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/></svg></button>
     </div>
@@ -722,6 +740,28 @@ body.demo-on.demo-cap-on::before{opacity:1}
     <button class="ri" data-view="strategy" title="增长策略"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4v16h16"/><path d="M7 15l3.5-4 3 2.5L19 7"/></svg><span class="rlabel">增长策略</span></button>
     <button class="ri" data-view="creative" title="创意库"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2.5"/><circle cx="8.5" cy="8.5" r="1.6"/><path d="M21 15l-5-5L4.5 21"/></svg><span class="rlabel">创意库</span></button>
     <button class="ri" data-view="bench" title="Drip-Bench"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4"/><path d="M5 4h12l-2.2 3.5L17 11H5"/></svg><span class="rlabel">Drip-Bench</span></button>
+    <div class="rail-chats">
+      <div class="cl-head"><div class="cl-search"><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="7" cy="7" r="4.5"/><path d="M14 14l-3.2-3.2" stroke-linecap="round"/></svg><input id="clSearch" type="text" data-i18n-ph="cl.search" placeholder="搜索对话"></div></div>
+      <div class="cl-scroll" id="clScroll">
+        <div class="cl-grp"><span class="gtw">▾</span><span data-i18n="cl.today">今天</span><span class="gn"></span></div>
+        <a class="cl-item on" data-i18n="cl.c1">今天 4 个账户该怎么投</a>
+        <a class="cl-item" data-i18n="cl.c2">OiOi Live 马来冷启拉 ROAS</a>
+        <a class="cl-item" data-i18n="cl.c8">TikTok JP 要不要加投到 25k</a>
+        <div class="cl-grp"><span class="gtw">▾</span><span data-i18n="cl.week">本周</span><span class="gn"></span></div>
+        <a class="cl-item" data-i18n="cl.c3">DTC 再营销频次超了换素材</a>
+        <a class="cl-item" data-i18n="cl.c4">Casual Game 东南亚止损复盘</a>
+        <a class="cl-item" data-i18n="cl.c5">GMV Max 越南选品</a>
+        <a class="cl-item" data-i18n="cl.c9">AppLovin 还是 Mintegral 更值</a>
+        <a class="cl-item" data-i18n="cl.c10">iOS SKAN 4.0 转化值建模</a>
+        <div class="cl-grp"><span class="gtw">▾</span><span data-i18n="cl.earlier">更早</span><span class="gn"></span></div>
+        <a class="cl-item" data-i18n="cl.c6">Q2 预算跨平台重新分</a>
+        <a class="cl-item" data-i18n="cl.c7">AppsFlyer 和平台口径对不上</a>
+        <a class="cl-item" data-i18n="cl.c11">黑五怎么在上限内加投</a>
+        <a class="cl-item" data-i18n="cl.c12">达人 GRWM 首批 20 条怎么测</a>
+        <a class="cl-item" data-i18n="cl.c13">北美再营销扩 1% Lookalike</a>
+        <div class="cl-empty" id="clEmpty" data-i18n="cl.none">没有匹配的对话</div>
+      </div>
+    </div>
     <div class="sp"></div>
     <div class="rail-foot">
     <button class="ri" data-view="settings" title="设置"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h9"/><path d="M17 7h3"/><path d="M4 17h3"/><path d="M11 17h9"/><circle cx="15" cy="7" r="2.3"/><circle cx="9" cy="17" r="2.3"/></svg><span class="rlabel">设置</span></button>
@@ -734,7 +774,6 @@ body.demo-on.demo-cap-on::before{opacity:1}
           <div class="am-sep"></div>
           <button class="am-item" data-view="settings"><span class="ai">⚙</span>设置</button>
           <button class="am-item" data-view="bench"><span class="ai">⚑</span>Drip-Bench</button>
-          <a class="am-item" href="https://github.com/YunyueLi/Drip" target="_blank" rel="noopener"><span class="ai">↗</span>GitHub 仓库</a>
           <div class="am-sep"></div>
           <button class="am-item danger" id="signOut"><span class="ai">⏻</span>退出登录</button>
         </div>
@@ -747,37 +786,13 @@ body.demo-on.demo-cap-on::before{opacity:1}
     </div>
   </aside>
 
-  <aside class="chatlist" id="chatList">
-    <div class="cl-grip" id="clGrip"></div>
-    <button class="cl-new" id="clNew"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><span data-i18n="cl.new">新对话</span></button>
-    <div class="cl-head"><div class="cl-search"><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="7" cy="7" r="4.5"/><path d="M14 14l-3.2-3.2" stroke-linecap="round"/></svg><input id="clSearch" type="text" data-i18n-ph="cl.search" placeholder="搜索对话"></div></div>
-    <div class="cl-scroll" id="clScroll">
-      <div class="cl-grp"><span class="gtw">▾</span><span data-i18n="cl.today">今天</span><span class="gn"></span></div>
-      <a class="cl-item on" data-i18n="cl.c1">今日预算诊断 4 账户</a>
-      <a class="cl-item" data-i18n="cl.c2">OiOi Live 马来冷启 ROAS 拉升</a>
-      <a class="cl-item" data-i18n="cl.c8">TikTok JP 加投 ¥25k 拆分</a>
-      <div class="cl-grp"><span class="gtw">▾</span><span data-i18n="cl.week">本周</span><span class="gn"></span></div>
-      <a class="cl-item" data-i18n="cl.c3">DTC 再营销频次超限 换素材</a>
-      <a class="cl-item" data-i18n="cl.c4">Casual Game SEA 止损复盘</a>
-      <a class="cl-item" data-i18n="cl.c5">GMV Max 越南 TikTok Shop 选品</a>
-      <a class="cl-item" data-i18n="cl.c9">AppLovin vs Mintegral 渠道对比</a>
-      <a class="cl-item" data-i18n="cl.c10">iOS SKAN 4.0 转化值建模</a>
-      <div class="cl-grp"><span class="gtw">▾</span><span data-i18n="cl.earlier">更早</span><span class="gn"></span></div>
-      <a class="cl-item" data-i18n="cl.c6">Q2 跨平台预算重分配</a>
-      <a class="cl-item" data-i18n="cl.c7">归因对账 AppsFlyer vs 平台口径</a>
-      <a class="cl-item" data-i18n="cl.c11">黑五大促 上限内自动加投</a>
-      <a class="cl-item" data-i18n="cl.c12">达人联盟 GRWM 首批 20 条</a>
-      <a class="cl-item" data-i18n="cl.c13">北美再营销 1% Lookalike 扩量</a>
-      <div class="cl-empty" id="clEmpty" data-i18n="cl.none">没有匹配的对话</div>
-    </div>
-  </aside>
-
   <main class="center">
     <div class="topbar">
       <div class="ttl"><button class="side-toggle" id="sideToggle" title="折叠对话栏" aria-label="折叠对话栏"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/></svg></button><span id="tbTitle">操盘台</span><span class="meta" id="tbMeta"> 4 账户 32 campaign</span></div>
       <div class="right">
         <span class="chip"><span class="pip"></span><span data-i18n="top.mode">Copilot 上限 $3,500/天</span></span>
         <button class="tb-demo" id="demoPill" title="看演示"><svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" stroke="none"><path d="M8 5v14l11-7z"/></svg><span id="demoPillTx">演示</span></button>
+        <a class="tb-star" href="https://github.com/YunyueLi/Drip" target="_blank" rel="noopener" title="在 GitHub 上 Star ⭐"><svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor" stroke="none"><path d="M12 2l2.9 6.26 6.85.62-5.18 4.55 1.54 6.7L12 17.27 5.89 20.73l1.54-6.7L2.25 8.88l6.85-.62z"/></svg><span>Star</span><b>1.2k</b></a>
         <div class="langsel" id="langSel">
           <button class="lang-btn" id="langBtn" aria-haspopup="true"><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="8" cy="8" r="6.4"/><path d="M1.6 8h12.8"/><path d="M8 1.6c2.2 2 2.2 10.8 0 12.8c-2.2-2-2.2-10.8 0-12.8z"/></svg><span id="langCur">简体中文</span><span class="caret">▾</span></button>
           <div class="lang-menu" id="langMenu">
@@ -799,18 +814,21 @@ body.demo-on.demo-cap-on::before{opacity:1}
     </div>
 
     <div class="welcome-view"><div class="wv-in">
-      <div class="wv-hero"><svg width="98" height="98" viewBox="0 0 100 100" fill="none" class="hero-art">
+      <div class="wv-hero"><svg width="100" height="100" viewBox="0 0 100 100" fill="none" class="hero-art">
         <defs>
-          <radialGradient id="hg-glow" cx="50%" cy="46%" r="54%"><stop offset="0" stop-color="var(--accent)" stop-opacity=".20"/><stop offset="1" stop-color="var(--accent)" stop-opacity="0"/></radialGradient>
-          <linearGradient id="hg-drop" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#67a3ff"/><stop offset="1" stop-color="#1f63ff"/></linearGradient>
+          <radialGradient id="hg-glow" cx="50%" cy="44%" r="55%"><stop offset="0" stop-color="var(--accent)" stop-opacity=".22"/><stop offset="1" stop-color="var(--accent)" stop-opacity="0"/></radialGradient>
+          <linearGradient id="hg-drop" x1="34" y1="14" x2="66" y2="80" gradientUnits="userSpaceOnUse"><stop stop-color="#7db0ff"/><stop offset=".55" stop-color="#3b78ff"/><stop offset="1" stop-color="#1450f0"/></linearGradient>
+          <radialGradient id="hg-gloss" cx="40%" cy="34%" r="40%"><stop offset="0" stop-color="#fff" stop-opacity=".55"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
         </defs>
-        <circle cx="50" cy="50" r="48" fill="url(#hg-glow)"/>
-        <path class="hero-drop" d="M50 16c-8 14-22 26-22 40a22 22 0 0 0 44 0c0-14-14-26-22-40z" fill="url(#hg-drop)"/>
-        <path class="hero-spark" d="M37 61l8-9 6 4 11-13" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-        <circle class="hero-tip" cx="62" cy="43" r="3.1" fill="#fff"/>
-        <circle class="hero-p p1" cx="80" cy="22" r="4" fill="var(--accent)"/>
-        <circle class="hero-p p2" cx="22" cy="30" r="3" fill="var(--green)"/>
-        <circle class="hero-p p3" cx="85" cy="44" r="2.6" fill="var(--amber)"/>
+        <circle cx="50" cy="50" r="49" fill="url(#hg-glow)"/>
+        <path class="hero-drop" d="M50 14c-8.6 14.4-22.5 26.4-22.5 41.2a22.5 22.5 0 0 0 45 0C72.5 40.4 58.6 28.4 50 14z" fill="url(#hg-drop)"/>
+        <ellipse cx="41" cy="40" rx="9" ry="13" fill="url(#hg-gloss)" transform="rotate(-26 41 40)"/>
+        <path class="hero-spark" d="M37 62l8.5-9.5 6 4 11.5-13.5" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle class="hero-tip" cx="63" cy="43" r="3.2" fill="#fff"/>
+        <circle class="hero-p p1" cx="81" cy="21" r="4" fill="var(--accent)"/>
+        <circle class="hero-p p2" cx="20" cy="29" r="3" fill="var(--green)"/>
+        <circle class="hero-p p3" cx="86" cy="45" r="2.6" fill="var(--amber)"/>
+        <circle class="hero-p p2" cx="16" cy="56" r="2.2" fill="var(--accent-2)"/>
       </svg></div>
       <h1 data-i18n="wel.h1">今天，预算该投向哪里？</h1>
       <p class="sub" data-i18n="wel.sub">诊断 campaign、跨平台再分配、规划下一个测试 —— 每个决策都由规则给出、可审计，动钱之前先过你这关。</p>
@@ -1602,7 +1620,7 @@ function refreshTopbar(){
 function setView(v){
   _curView = v;
   if (v === "welcome") {
-    app.classList.add("welcome", "chatctx"); app.classList.remove("chatmode");
+    app.classList.add("welcome"); app.classList.remove("chatmode");
     document.querySelectorAll(".screen").forEach(s => s.classList.remove("on"));
     document.querySelector(".thread").style.display = "";
     document.querySelector(".composer-wrap").style.display = "";
@@ -1611,7 +1629,7 @@ function setView(v){
   }
   app.classList.remove("welcome");
   const isC = v === "console";
-  app.classList.toggle("chatmode", isC); app.classList.toggle("chatctx", isC);
+  app.classList.toggle("chatmode", isC);
   document.querySelector(".thread").style.display = isC ? "" : "none";
   document.querySelector(".composer-wrap").style.display = isC ? "" : "none";
   document.querySelectorAll(".screen").forEach(s => s.classList.remove("on"));
@@ -1877,31 +1895,29 @@ document.querySelectorAll(".lang button").forEach(b => b.addEventListener("click
   const root = document.documentElement;
   const LS = { get(k){ try { return localStorage.getItem(k); } catch(e){ return null; } }, set(k,v){ try { localStorage.setItem(k,v); } catch(e){} } };
   // restore widths + collapse state
-  const clw = parseInt(LS.get("drip-clw"), 10), rrw = parseInt(LS.get("drip-rrw"), 10);
-  if (clw >= 180 && clw <= 420) root.style.setProperty("--clw", clw + "px");
+  const railW = parseInt(LS.get("drip-rail"), 10), rrw = parseInt(LS.get("drip-rrw"), 10);
+  if (railW >= 200 && railW <= 380) root.style.setProperty("--rail", railW + "px");
   if (rrw >= 280 && rrw <= 600) root.style.setProperty("--rrw", rrw + "px");
-  if (LS.get("drip-cl-hidden") === "1") app.classList.add("cl-hidden");
+  if (LS.get("drip-nav-collapsed") === "1") app.classList.add("nav-collapsed");
   if (LS.get("drip-rr-hidden") === "1") app.classList.add("rr-hidden");
   const syncAudit = () => { const b = $("auditToggle"); if (b) b.classList.toggle("off", app.classList.contains("rr-hidden")); };
   syncAudit();
-  // left nav: expand (labels) / collapse (icons) — Manus-style dual form
-  if (LS.get("drip-nav-open") === "1") app.classList.add("nav-open");
-  const setNav = open => { app.classList.toggle("nav-open", open); LS.set("drip-nav-open", open ? "1" : "0"); };
-  const navT = $("navToggle"); if (navT) navT.addEventListener("click", () => setNav(!app.classList.contains("nav-open")));
-  const navC = $("navCollapse"); if (navC) navC.addEventListener("click", () => setNav(false));
-  // collapse toggles
-  const side = $("sideToggle");
-  if (side) side.addEventListener("click", () => { LS.set("drip-cl-hidden", app.classList.toggle("cl-hidden") ? "1" : "0"); });
+  // left sidebar: expanded (default) ↔ collapsed icons — one Manus-style sidebar
+  const setCollapsed = c => { app.classList.toggle("nav-collapsed", c); LS.set("drip-nav-collapsed", c ? "1" : "0"); };
+  const toggleNav = () => setCollapsed(!app.classList.contains("nav-collapsed"));
+  const navT = $("navToggle"); if (navT) navT.addEventListener("click", toggleNav);
+  const navC = $("navCollapse"); if (navC) navC.addEventListener("click", () => setCollapsed(true));
+  const side = $("sideToggle"); if (side) side.addEventListener("click", toggleNav);
   const at = $("auditToggle");
   if (at) at.addEventListener("click", () => { LS.set("drip-rr-hidden", app.classList.toggle("rr-hidden") ? "1" : "0"); syncAudit(); });
-  // drag-resize through CSS vars — composes cleanly with every column layout
+  // drag-resize through CSS vars — sidebar (from x=0) and audit rail (from right)
   function makeResize(grip, varName, lsKey, min, max, fromRight){
     if (!grip) return; let on = false;
-    grip.addEventListener("mousedown", e => { on = true; grip.classList.add("drag"); app.classList.add("resizing"); document.body.style.userSelect = "none"; e.preventDefault(); });
-    window.addEventListener("mousemove", e => { if (!on) return; let w = fromRight ? (window.innerWidth - e.clientX) : (e.clientX - 56); w = Math.max(min, Math.min(max, w)); root.style.setProperty(varName, w + "px"); });
+    grip.addEventListener("mousedown", e => { if (!fromRight && app.classList.contains("nav-collapsed")) return; on = true; grip.classList.add("drag"); app.classList.add("resizing"); document.body.style.userSelect = "none"; e.preventDefault(); });
+    window.addEventListener("mousemove", e => { if (!on) return; let w = fromRight ? (window.innerWidth - e.clientX) : e.clientX; w = Math.max(min, Math.min(max, w)); root.style.setProperty(varName, w + "px"); });
     window.addEventListener("mouseup", () => { if (!on) return; on = false; grip.classList.remove("drag"); app.classList.remove("resizing"); document.body.style.userSelect = ""; const cur = parseInt(getComputedStyle(root).getPropertyValue(varName), 10); if (cur) LS.set(lsKey, cur); });
   }
-  makeResize($("clGrip"), "--clw", "drip-clw", 180, 420, false);
+  makeResize($("railGrip"), "--rail", "drip-rail", 200, 380, false);
   makeResize($("rrGrip"), "--rrw", "drip-rrw", 280, 600, true);
   // chat search + collapsible date groups (hierarchy navigation)
   const scroll = $("clScroll"), search = $("clSearch"), empty = $("clEmpty");
@@ -2183,7 +2199,7 @@ setLang(localStorage.getItem("drip-lang") || (function(){ const n = (navigator.l
   function start(){
     if (started) { return; } started = true;
     build(); body.classList.add("demo-on");
-    appEl.classList.remove("cl-hidden", "rr-hidden");
+    appEl.classList.remove("nav-collapsed", "rr-hidden");
     if (window.__resetConv) window.__resetConv();
     const pill = $("demoPill"); if (pill) pill.style.display = "none";
     injectChrome(); hideAll(); setView("welcome");
