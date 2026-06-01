@@ -115,13 +115,13 @@ button{font-family:var(--font)}
 
 /* left rail */
 /* unified sidebar — expanded by default (Manus form), collapses to icons */
-.rail{background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;align-items:stretch;padding:12px;gap:2px;position:relative}
+.rail{background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;align-items:stretch;padding:12px;gap:3px;position:relative}
 .app.nav-collapsed .rail{align-items:center;padding:12px 9px;gap:3px}
 .rail-grip{position:absolute;right:-3px;top:0;bottom:0;width:7px;cursor:col-resize;z-index:33}
 .rail-grip::after{content:"";position:absolute;right:3px;top:0;bottom:0;width:1px;background:transparent;transition:background .12s}
 .rail-grip:hover::after,.rail-grip.drag::after{background:var(--accent)}
 .app.nav-collapsed .rail-grip{display:none}
-.rail-head{display:flex;align-items:center;gap:10px;width:100%;margin-bottom:11px;min-height:34px;padding:0 3px}
+.rail-head{display:flex;align-items:center;gap:10px;width:100%;margin-bottom:4px;min-height:44px;padding:0 3px}
 .app.nav-collapsed .rail-head{justify-content:center;padding:0}
 .rail .logo{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;flex-shrink:0;cursor:pointer;transition:transform .12s}
 .rail .logo:hover{transform:scale(1.06)}
@@ -139,7 +139,7 @@ button{font-family:var(--font)}
 .rail .ri:focus,.rail .cl-item:focus,.rail .logo:focus,.nav-toggle:focus,.acctctl:focus{outline:none}
 .rail .ri:focus-visible,.rail .cl-item:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
 .rail .ri svg{justify-self:center}
-.rail .ri#newBtn{margin-bottom:6px}
+.rail .ri#newBtn{margin-bottom:0}
 .rlabel{font-size:14px;font-weight:500;white-space:nowrap;-webkit-font-smoothing:antialiased}
 .app.nav-collapsed .rlabel{display:none}
 .rail-chats{flex:1;min-height:0;display:flex;flex-direction:column;margin-top:9px;overflow:hidden}
