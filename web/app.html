@@ -491,6 +491,20 @@ select.inp{cursor:pointer}
 .atag{font-size:10.5px;color:var(--text-2);background:var(--surface-2);border:1px solid var(--border);border-radius:6px;padding:2px 8px;font-family:var(--mono)}
 .atag.mut{color:var(--text-3)}
 .acct-row .btn.sm{height:30px;padding:0 13px;font-size:12px}
+.conn-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.conn-card{display:flex;align-items:center;gap:12px;border:1px solid var(--border);border-radius:12px;background:var(--bg);padding:13px 14px;box-shadow:0 1px 2px rgba(16,24,40,.04);transition:transform .14s cubic-bezier(.22,.61,.36,1),border-color .14s,box-shadow .14s}
+.conn-card:hover{transform:translateY(-2px);border-color:var(--border-strong);box-shadow:0 6px 18px rgba(16,24,40,.08)}
+.conn-info{flex:1;min-width:0}
+.conn-nm{font-size:13px;font-weight:650}
+.conn-d{font-size:11.5px;color:var(--text-3);margin-top:3px;line-height:1.45}
+.conn-add{width:28px;height:28px;border-radius:8px;border:1px solid var(--border-strong);background:var(--bg);color:var(--text-2);cursor:pointer;flex-shrink:0;font-size:17px;display:grid;place-items:center;transition:border-color .12s,color .12s,background .12s}
+.conn-add:hover{border-color:var(--accent);color:#fff;background:var(--accent)}
+.conn-tile{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;flex-shrink:0;font-weight:700;font-size:13px;color:#fff;letter-spacing:-.02em}
+.pj-grouphd{display:flex;align-items:center;gap:9px;margin:2px 0 13px}
+.pj-gh-t{font-size:13.5px;font-weight:650}
+.pj-gh-n{font-size:11px;font-weight:600;color:var(--text-2);background:var(--surface-2);border-radius:20px;padding:1px 9px;font-variant-numeric:tabular-nums}
+.pj-gh-d{margin-left:auto;font-size:11.5px;color:var(--text-3)}
+@media(max-width:760px){.conn-grid{grid-template-columns:1fr}}
 /* account menu */
 .acctctl{position:relative}
 .acctctl .av{border:none;cursor:pointer;font-family:var(--font)}
@@ -1164,6 +1178,7 @@ body.demo-on.demo-cap-on::before{opacity:1}
           <div class="pb-filters"><button class="chipf on" data-st="all" data-i18n="pj.all">全部</button><button class="chipf" data-st="live" data-i18n="pj.live">进行中</button><button class="chipf" data-st="plan" data-i18n="pj.plan">规划中</button><button class="chipf" data-st="draft" data-i18n="pj.draft">草稿</button></div>
           <div class="pb-right"><select class="inp pb-sort" id="pbSort"><option value="upd" data-i18n="pj.supd">最近更新</option><option value="budget" data-i18n="pj.sbud">按预算</option><option value="roas" data-i18n="pj.sroas">按 ROAS</option></select><div class="seg pb-view"><button class="on" data-pv="card" title="卡片">▦</button><button data-pv="table" title="表格">≣</button></div></div>
         </div>
+        <div class="pj-grouphd"><span class="pj-gh-t">全部策略项目</span><span class="pj-gh-n" id="pjGhN">7</span><span class="pj-gh-d">更新于今天</span></div>
         <div class="pj-grid" id="pjGrid">
           <div class="pj-card" data-st="live" data-budget="10000" data-roas="2.8" data-upd="2" data-open><div class="pj-top"><span class="pj-nm">OiOi Live</span><span class="ps live" data-i18n="pj.live">进行中</span></div><div class="pj-sub" data-i18n="pj.s1">马来西亚 直播社交</div><div class="pj-tags"><span class="pf meta">Meta</span><span class="pf tt">TikTok</span></div><div class="pj-k"><span data-i18n="pj.kbud">月预算</span> <b>$10k</b> ROAS <b class="g">2.8×</b></div><div class="pj-upd"><span>2d</span><span class="pj-open" data-i18n="pj.open">查看方案 →</span></div></div>
           <div class="pj-card" data-st="live" data-budget="9600" data-roas="4.1" data-upd="0" data-open><div class="pj-top"><span class="pj-nm">DTC Store US</span><span class="ps live" data-i18n="pj.live">进行中</span></div><div class="pj-sub" data-i18n="pj.s2">北美 DTC 电商</div><div class="pj-tags"><span class="pf meta">Meta</span></div><div class="pj-k"><span data-i18n="pj.kbud">月预算</span> <b>$9.6k</b> ROAS <b class="g">4.1×</b></div><div class="pj-upd"><span data-i18n="pj.today">今天</span><span class="pj-open" data-i18n="pj.open">查看方案 →</span></div></div>
@@ -1287,6 +1302,15 @@ body.demo-on.demo-cap-on::before{opacity:1}
           <div class="acct-info"><div class="acct-nm">Google Ads <span class="acct-badge off" data-i18n="st.notconn">○ 未连接</span></div><div class="acct-tags"><span class="atag mut">Google Ads API</span><span class="atag mut" data-i18n="st.scopes">需 adwords 授权</span></div></div>
           <button class="btn primary sm" data-i18n="st.connect">连接</button>
         </div>
+      </div>
+      <div class="sect">更多连接器</div>
+      <div class="conn-grid">
+        <div class="conn-card"><span class="conn-tile" style="background:#1b9df0">AF</span><div class="conn-info"><div class="conn-nm">AppsFlyer</div><div class="conn-d">MMP 归因真值，校正平台口径</div></div><button class="conn-add" title="连接">+</button></div>
+        <div class="conn-card"><span class="conn-tile" style="background:#0b1b34">aj</span><div class="conn-info"><div class="conn-nm">Adjust</div><div class="conn-d">归因与防作弊，事件回传</div></div><button class="conn-add" title="连接">+</button></div>
+        <div class="conn-card"><span class="conn-tile" style="background:#e8710a">GA</span><div class="conn-info"><div class="conn-nm">GA4</div><div class="conn-d">站内行为与转化路径分析</div></div><button class="conn-add" title="连接">+</button></div>
+        <div class="conn-card"><span class="conn-tile" style="background:#4a154b">#</span><div class="conn-info"><div class="conn-nm">Slack</div><div class="conn-d">告警与待批决策推送到频道</div></div><button class="conn-add" title="连接">+</button></div>
+        <div class="conn-card"><span class="conn-tile" style="background:#000">N</span><div class="conn-info"><div class="conn-nm">Notion</div><div class="conn-d">把复盘报告自动写进知识库</div></div><button class="conn-add" title="连接">+</button></div>
+        <div class="conn-card"><span class="conn-tile" style="background:#0a66c2">in</span><div class="conn-info"><div class="conn-nm">飞书 / Lark</div><div class="conn-d">多维表格同步与团队审批</div></div><button class="conn-add" title="连接">+</button></div>
       </div>
       <div class="sect" data-i18n="st.sect3">模型与归因</div>
       <div class="fcard">
@@ -1736,7 +1760,7 @@ const CONV = {
   const grid=$("pjGrid"), table=$("pjTable");
   const openDetail=()=>{ board.style.display="none"; detail.style.display=""; const sc=detail.closest(".screen"); if(sc) sc.scrollTop=0; };
   const showBoard=()=>{ detail.style.display="none"; board.style.display=""; };
-  document.querySelectorAll("#view-strategy .pb-filters .chipf").forEach(c=>c.addEventListener("click",()=>{ document.querySelectorAll("#view-strategy .pb-filters .chipf").forEach(x=>x.classList.remove("on")); c.classList.add("on"); const st=c.getAttribute("data-st"); document.querySelectorAll("#pjGrid .pj-card,#pjTable tbody tr").forEach(el=>{ el.style.display=(st==="all"||el.getAttribute("data-st")===st)?"":"none"; }); }));
+  document.querySelectorAll("#view-strategy .pb-filters .chipf").forEach(c=>c.addEventListener("click",()=>{ document.querySelectorAll("#view-strategy .pb-filters .chipf").forEach(x=>x.classList.remove("on")); c.classList.add("on"); const st=c.getAttribute("data-st"); let n=0; document.querySelectorAll("#pjGrid .pj-card,#pjTable tbody tr").forEach(el=>{ const show=(st==="all"||el.getAttribute("data-st")===st); el.style.display=show?"":"none"; if(show&&el.classList.contains("pj-card"))n++; }); const gh=document.getElementById("pjGhN"); if(gh)gh.textContent=n; }));
   document.querySelectorAll(".pb-view button").forEach(b=>b.addEventListener("click",()=>{ document.querySelectorAll(".pb-view button").forEach(x=>x.classList.remove("on")); b.classList.add("on"); const pv=b.getAttribute("data-pv"); grid.style.display=pv==="card"?"":"none"; table.style.display=pv==="table"?"":"none"; }));
   const ss=$("pbSort"); if(ss) ss.addEventListener("change",()=>{ const k=ss.value; [...grid.children].sort((a,b)=> k==="upd" ? (+a.dataset.upd)-(+b.dataset.upd) : (parseFloat(b.dataset[k])||0)-(parseFloat(a.dataset[k])||0)).forEach(c=>grid.appendChild(c)); });
   document.querySelectorAll("#projBoard [data-open]").forEach(el=>el.addEventListener("click",openDetail));
