@@ -56,7 +56,9 @@ button{font-family:var(--font)}
 .cl-new:hover{border-color:var(--accent);color:var(--accent)}
 .cl-scroll{flex:1;min-height:0;overflow-y:auto;padding:6px 8px 12px}
 .cl-grp{font-size:10.5px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;padding:10px 8px 5px}
-.cl-item{display:block;padding:8px 10px;border-radius:8px;font-size:12.5px;color:var(--text-2);cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-decoration:none}
+.cl-item{display:block;position:relative;padding:8px 10px 8px 31px;border-radius:8px;font-size:12.5px;color:var(--text-2);cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-decoration:none}
+.cl-item::before{content:"";position:absolute;left:9px;top:50%;margin-top:-7.5px;width:15px;height:15px;background:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238a93a3' stroke-width='1.7' stroke-linejoin='round'%3E%3Cpath d='M21 11.5a8.5 8.5 0 0 1-12.4 7.6L3 21l1.9-5.6A8.5 8.5 0 1 1 21 11.5z'/%3E%3C/svg%3E") center/contain no-repeat;opacity:.5}
+.cl-item.on::before{opacity:.9}
 .cl-item:hover{background:var(--surface-2);color:var(--text)}
 .cl-item.on{background:var(--accent-subtle);color:var(--accent);font-weight:550}
 .cl-grip{position:absolute;right:-3px;top:0;bottom:0;width:7px;cursor:col-resize;z-index:32}
@@ -514,6 +516,37 @@ select.inp{cursor:pointer}
 .pj-gh-t{font-size:13.5px;font-weight:650}
 .pj-gh-n{font-size:11px;font-weight:600;color:var(--text-2);background:var(--surface-2);border-radius:20px;padding:1px 9px;font-variant-numeric:tabular-nums}
 .pj-gh-d{margin-left:auto;font-size:11.5px;color:var(--text-3)}
+/* settings modal (Manus-style: left sub-nav + right panes) */
+.set-mask{position:fixed;inset:0;background:rgba(16,24,40,.42);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);z-index:200;display:none;align-items:center;justify-content:center;padding:24px}
+.set-mask.open{display:flex;animation:fadeIn .18s ease}
+.set-modal{width:min(920px,95vw);height:min(640px,88vh);background:var(--bg);border:1px solid var(--border);border-radius:16px;box-shadow:0 36px 90px rgba(16,24,40,.36);display:grid;grid-template-columns:240px 1fr;overflow:hidden;position:relative;animation:setIn .24s cubic-bezier(.22,.61,.36,1)}
+@keyframes setIn{from{opacity:0;transform:translateY(12px) scale(.98)}to{opacity:1;transform:none}}
+.set-close{position:absolute;top:14px;right:14px;width:32px;height:32px;border-radius:8px;border:none;background:none;color:var(--text-3);cursor:pointer;font-size:15px;display:grid;place-items:center;z-index:2}
+.set-close:hover{background:var(--surface-2);color:var(--text)}
+.set-side{background:var(--surface);border-right:1px solid var(--border);padding:18px 13px;overflow-y:auto;display:flex;flex-direction:column;gap:2px}
+.set-acct{display:flex;align-items:center;gap:11px;padding:4px 8px 14px;margin-bottom:4px;border-bottom:1px solid var(--border)}
+.set-acct .av{width:38px;height:38px;border-radius:50%;background:#f0731f;color:#fff;display:grid;place-items:center;font-weight:600;font-size:15px;flex-shrink:0}
+.set-acct .nm{font-size:13.5px;font-weight:650}.set-acct .pl{font-size:11.5px;color:var(--text-3);margin-top:1px}
+.set-sec{font-size:10.5px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;padding:13px 8px 5px}
+.set-link{display:flex;align-items:center;gap:10px;width:100%;padding:8px 9px;border-radius:8px;border:none;background:none;color:var(--text-2);cursor:pointer;font-family:var(--font);font-size:13px;font-weight:500;text-align:left;text-decoration:none}
+.set-link:hover{background:var(--surface-2);color:var(--text)}
+.set-link.on{background:var(--accent-subtle);color:var(--accent);font-weight:600}
+.set-link .ai{width:17px;height:17px;display:grid;place-items:center;flex-shrink:0}
+#setHelp{margin-top:auto;color:var(--text-3)}
+.set-main{overflow-y:auto;padding:30px 36px 36px}
+.set-main h2{font-size:20px;font-weight:680;letter-spacing:-.02em;margin-bottom:18px}
+.set-pane{display:none}.set-pane.on{display:block;animation:fadeIn .2s ease}
+.set-grp{font-size:13px;font-weight:650;margin:24px 0 10px;color:var(--text)}
+.set-grp:first-of-type{margin-top:0}
+.set-row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:13px 0;border-bottom:1px solid var(--border)}
+.set-row:last-child{border-bottom:none}
+.set-row .rl{font-size:13px;font-weight:550}.set-row .rh{font-size:11.5px;color:var(--text-3);margin-top:3px;max-width:440px;line-height:1.5}
+.theme-opts{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:440px;margin-bottom:6px}
+.theme-opt{border:1px solid var(--border-strong);border-radius:11px;padding:15px 0;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;font-size:12.5px;font-weight:550;color:var(--text-2);background:var(--bg);transition:border-color .12s,box-shadow .12s,color .12s}
+.theme-opt:hover{border-color:var(--text-3)}
+.theme-opt.on{border-color:var(--accent);color:var(--accent);box-shadow:0 0 0 3px var(--accent-subtle)}
+.set-main .fcard,.set-main .conn-grid{margin-top:0}
+@media(max-width:680px){.set-modal{grid-template-columns:1fr}.set-side{display:none}}
 @media(max-width:760px){.conn-grid{grid-template-columns:1fr}}
 /* account menu */
 .acctctl{position:relative}
@@ -558,8 +591,7 @@ body:not(.demo-on) .screen.on :is(.ck-sum,.acct-grid,.pj-grid,.dir-grid,.vgrid)>
 .scene:hover,.dir-card:hover,.pj-card:hover{box-shadow:0 8px 22px rgba(16,24,40,.10)}
 .ck-stat{transition:transform .15s ease,box-shadow .15s ease}
 .ck-stat:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(16,24,40,.08)}
-.cl-item{transition:background .13s,color .13s,padding-left .15s ease}
-.cl-item:hover{padding-left:13px}
+.cl-item{transition:background .13s,color .13s}
 .rail .ri{transition:background .13s,color .13s,transform .1s}.rail .ri:active{transform:scale(.9)}
 .chipf{transition:background .14s,border-color .14s,color .14s,transform .1s}.chipf:active{transform:scale(.95)}
 .toast{will-change:transform,opacity}
@@ -1297,47 +1329,87 @@ body.demo-on.demo-cap-on::before{opacity:1}
     </div></div>
 
     <!-- 设置 -->
-    <div class="screen" id="view-settings"><div class="screen-in">
-      <div class="sect" data-i18n="st.sect1">运行模式(DRIP_MODE)</div>
-      <div class="fcard">
-        <div class="frow"><div class="fl"><span data-i18n="st.mode">模式</span><div class="h" data-i18n="st.modeh">写入平台的权限级别</div></div><div class="fc"><label class="rad"><input type="radio" name="mode"> <span data-i18n="mode.shadow">Shadow 只规划</span></label><label class="rad"><input type="radio" name="mode" checked> <span data-i18n="mode.copilot">Copilot 逐条批准</span></label><label class="rad"><input type="radio" name="mode"> <span data-i18n="mode.auto">Autonomous 上限内自动</span></label></div></div>
-        <div class="frow"><div class="fl" data-i18n="st.cap">预算上限</div><div class="fc"><input class="inp" style="width:110px" value="$3,500"><span style="font-size:12px;color:var(--text-3)" data-i18n="st.caph">/ 天 自动模式下的硬上限</span></div></div>
-      </div>
-      <div class="sect" data-i18n="st.sect2">连接的账户</div>
-      <div class="fcard">
-        <div class="acct-row">
-          <span class="plogo-tile"><svg class="plogo"><use href="#lg-meta"/></svg></span>
-          <div class="acct-info"><div class="acct-nm">Meta Ads <span class="acct-badge ok" data-i18n="st.connected">● 已连接</span></div><div class="acct-tags"><span class="atag">act_10293847</span><span class="atag">Graph API v19.0</span><span class="atag mut" data-i18n="st.synca">2 分钟前同步</span></div></div>
-          <div class="sw on" data-sw></div>
-        </div>
-        <div class="acct-row">
-          <span class="plogo-tile"><svg class="plogo"><use href="#lg-tt"/></svg></span>
-          <div class="acct-info"><div class="acct-nm">TikTok Ads <span class="acct-badge ok" data-i18n="st.connected">● 已连接</span></div><div class="acct-tags"><span class="atag">7545763527</span><span class="atag">Marketing API v1.3</span><span class="atag mut" data-i18n="st.syncb">5 分钟前同步</span></div></div>
-          <div class="sw on" data-sw></div>
-        </div>
-        <div class="acct-row">
-          <span class="plogo-tile"><svg class="plogo"><use href="#lg-gg"/></svg></span>
-          <div class="acct-info"><div class="acct-nm">Google Ads <span class="acct-badge off" data-i18n="st.notconn">○ 未连接</span></div><div class="acct-tags"><span class="atag mut">Google Ads API</span><span class="atag mut" data-i18n="st.scopes">需 adwords 授权</span></div></div>
-          <button class="btn primary sm" data-i18n="st.connect">连接</button>
-        </div>
-      </div>
-      <div class="sect">更多连接器</div>
-      <div class="conn-grid">
-        <div class="conn-card"><span class="conn-tile" style="background:#1b9df0">AF</span><div class="conn-info"><div class="conn-nm">AppsFlyer</div><div class="conn-d">MMP 归因真值，校正平台口径</div></div><button class="conn-add" title="连接">+</button></div>
-        <div class="conn-card"><span class="conn-tile" style="background:#0b1b34">aj</span><div class="conn-info"><div class="conn-nm">Adjust</div><div class="conn-d">归因与防作弊，事件回传</div></div><button class="conn-add" title="连接">+</button></div>
-        <div class="conn-card"><span class="conn-tile" style="background:#e8710a">GA</span><div class="conn-info"><div class="conn-nm">GA4</div><div class="conn-d">站内行为与转化路径分析</div></div><button class="conn-add" title="连接">+</button></div>
-        <div class="conn-card"><span class="conn-tile" style="background:#4a154b">#</span><div class="conn-info"><div class="conn-nm">Slack</div><div class="conn-d">告警与待批决策推送到频道</div></div><button class="conn-add" title="连接">+</button></div>
-        <div class="conn-card"><span class="conn-tile" style="background:#000">N</span><div class="conn-info"><div class="conn-nm">Notion</div><div class="conn-d">把复盘报告自动写进知识库</div></div><button class="conn-add" title="连接">+</button></div>
-        <div class="conn-card"><span class="conn-tile" style="background:#0a66c2">in</span><div class="conn-info"><div class="conn-nm">飞书 / Lark</div><div class="conn-d">多维表格同步与团队审批</div></div><button class="conn-add" title="连接">+</button></div>
-      </div>
-      <div class="sect" data-i18n="st.sect3">模型与归因</div>
-      <div class="fcard">
-        <div class="frow"><div class="fl"><span data-i18n="st.llm">LLM 提供方</span><div class="h" data-i18n="st.llmh">12 家 + OpenRouter 兜底</div></div><div class="fc"><select class="inp"><option>anthropic / claude-sonnet-4-6</option><option>openai / gpt-4o</option><option>google / gemini-2.5-pro</option><option>deepseek / deepseek-v3</option><option data-i18n="st.local">本地 / ollama</option></select></div></div>
-        <div class="frow"><div class="fl" data-i18n="st.attr">归因来源</div><div class="fc"><select class="inp"><option>AppsFlyer</option><option>Adjust</option><option data-i18n="st.attrlast">平台口径(打折)</option></select></div></div>
-      </div>
-    </div></div>
-
   </main>
+
+  <div class="set-mask" id="setMask">
+    <div class="set-modal" role="dialog" aria-modal="true">
+      <button class="set-close" id="setClose" aria-label="关闭">✕</button>
+      <div class="set-side">
+        <div class="set-acct"><span class="av">M</span><div><div class="nm">Operator</div><div class="pl">个人 · 自托管</div></div></div>
+        <div class="set-sec">账户</div>
+        <button class="set-link on" data-spane="general"><span class="ai"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1l2-1.5-2-3.4-2.3 1a7 7 0 0 0-1.7-1l-.3-2.5H10l-.3 2.5a7 7 0 0 0-1.7 1l-2.3-1-2 3.4L3.6 11a7 7 0 0 0 0 2l-2 1.5 2 3.4 2.3-1a7 7 0 0 0 1.7 1l.3 2.5h4l.3-2.5a7 7 0 0 0 1.7-1l2.3 1 2-3.4-2-1.5a7 7 0 0 0 .1-1z"/></svg></span>通用</button>
+        <button class="set-link" data-spane="account"><span class="ai"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></span>账户</button>
+        <button class="set-link" data-spane="usage"><span class="ai"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l3-4 3 2 5-7"/></svg></span>用量与计费</button>
+        <div class="set-sec">功能</div>
+        <button class="set-link" data-spane="connect"><span class="ai"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M9 12h6"/><path d="M9 8H6a4 4 0 0 0 0 8h3"/><path d="M15 8h3a4 4 0 0 1 0 8h-3"/></svg></span>连接器</button>
+        <button class="set-link" data-spane="run"><span class="ai"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18"/></svg></span>运行与模型</button>
+        <a class="set-link" id="setHelp" href="https://github.com/YunyueLi/Drip" target="_blank" rel="noopener"><span class="ai"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.8.4-1 .8-1 1.7" stroke-linecap="round"/><path d="M12 17h.01" stroke-linecap="round"/></svg></span>获取帮助 ↗</a>
+      </div>
+      <div class="set-main">
+        <div class="set-pane on" data-spane="general">
+          <h2>通用</h2>
+          <div class="set-grp">外观</div>
+          <div class="set-row"><div><div class="rl">语言</div></div><select class="inp" id="setLangSel" style="width:190px"></select></div>
+          <div class="set-row" style="border:none;padding-bottom:6px"><div><div class="rl">主题</div></div></div>
+          <div class="theme-opts">
+            <div class="theme-opt" data-theme-opt="light"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5L19 19M19 5l-1.5 1.5M6.5 17.5L5 19" stroke-linecap="round"/></svg>浅色</div>
+            <div class="theme-opt" data-theme-opt="dark"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M21 12.8A8 8 0 1 1 11.2 3a6.2 6.2 0 0 0 9.8 9.8z"/></svg>深色</div>
+            <div class="theme-opt" data-theme-opt="auto"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="9"/><path d="M12 3v18" /><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor" stroke="none"/></svg>跟随系统</div>
+          </div>
+          <div class="set-grp">通讯偏好</div>
+          <div class="set-row"><div><div class="rl">浏览器通知</div><div class="rh">有新进展或决策待批时，浏览器会收到通知。</div></div><div class="sw" data-sw></div></div>
+          <div class="set-row"><div><div class="rl">接收产品更新</div><div class="rh">抢先体验新功能发布与最佳实践。</div></div><div class="sw on" data-sw></div></div>
+        </div>
+        <div class="set-pane" data-spane="account">
+          <h2>账户</h2>
+          <div class="set-row"><div><div class="rl">Operator</div><div class="rh">operator@drip.dev</div></div></div>
+          <div class="set-row"><div><div class="rl">方案</div><div class="rh">自托管 · Apache-2.0 · 数据始终在你自己的环境里。</div></div></div>
+          <div style="margin-top:20px"><button class="btn" id="setSignOut" style="color:var(--red);border-color:var(--red-subtle)">退出登录</button></div>
+        </div>
+        <div class="set-pane" data-spane="usage">
+          <h2>用量与计费</h2>
+          <div class="kpis kpis-4" style="border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:18px">
+            <div class="kpi"><div class="k">本月决策</div><div class="v mono">1,284</div><div class="d up">↑ 12%</div></div>
+            <div class="kpi"><div class="k">运行次数</div><div class="v mono">342</div><div class="d flat">—</div></div>
+            <div class="kpi"><div class="k">连接账户</div><div class="v mono">3</div><div class="d flat">/ 6</div></div>
+            <div class="kpi"><div class="k">方案</div><div class="v mono">自托管</div><div class="d up">无限制</div></div>
+          </div>
+          <div class="set-row"><div><div class="rl">自托管 · Apache-2.0</div><div class="rh">开源免费，用你自己的算力与模型额度，无平台计费。</div></div></div>
+        </div>
+        <div class="set-pane" data-spane="connect">
+          <h2>连接器</h2>
+          <div class="set-grp">连接的账户</div>
+          <div class="fcard">
+            <div class="acct-row"><span class="plogo-tile"><svg class="plogo"><use href="#lg-meta"/></svg></span><div class="acct-info"><div class="acct-nm">Meta Ads <span class="acct-badge ok" data-i18n="st.connected">● 已连接</span></div><div class="acct-tags"><span class="atag">act_10293847</span><span class="atag">Graph API v19.0</span><span class="atag mut" data-i18n="st.synca">2 分钟前同步</span></div></div><div class="sw on" data-sw></div></div>
+            <div class="acct-row"><span class="plogo-tile"><svg class="plogo"><use href="#lg-tt"/></svg></span><div class="acct-info"><div class="acct-nm">TikTok Ads <span class="acct-badge ok" data-i18n="st.connected">● 已连接</span></div><div class="acct-tags"><span class="atag">7545763527</span><span class="atag">Marketing API v1.3</span><span class="atag mut" data-i18n="st.syncb">5 分钟前同步</span></div></div><div class="sw on" data-sw></div></div>
+            <div class="acct-row"><span class="plogo-tile"><svg class="plogo"><use href="#lg-gg"/></svg></span><div class="acct-info"><div class="acct-nm">Google Ads <span class="acct-badge off" data-i18n="st.notconn">○ 未连接</span></div><div class="acct-tags"><span class="atag mut">Google Ads API</span><span class="atag mut" data-i18n="st.scopes">需 adwords 授权</span></div></div><button class="btn primary sm" data-i18n="st.connect">连接</button></div>
+          </div>
+          <div class="set-grp">更多连接器</div>
+          <div class="conn-grid">
+            <div class="conn-card"><span class="conn-tile" style="background:#1b9df0">AF</span><div class="conn-info"><div class="conn-nm">AppsFlyer</div><div class="conn-d">MMP 归因真值，校正平台口径</div></div><button class="conn-add" title="连接">+</button></div>
+            <div class="conn-card"><span class="conn-tile" style="background:#0b1b34">aj</span><div class="conn-info"><div class="conn-nm">Adjust</div><div class="conn-d">归因与防作弊，事件回传</div></div><button class="conn-add" title="连接">+</button></div>
+            <div class="conn-card"><span class="conn-tile" style="background:#e8710a">GA</span><div class="conn-info"><div class="conn-nm">GA4</div><div class="conn-d">站内行为与转化路径分析</div></div><button class="conn-add" title="连接">+</button></div>
+            <div class="conn-card"><span class="conn-tile" style="background:#4a154b">#</span><div class="conn-info"><div class="conn-nm">Slack</div><div class="conn-d">告警与待批决策推送到频道</div></div><button class="conn-add" title="连接">+</button></div>
+            <div class="conn-card"><span class="conn-tile" style="background:#000">N</span><div class="conn-info"><div class="conn-nm">Notion</div><div class="conn-d">把复盘报告自动写进知识库</div></div><button class="conn-add" title="连接">+</button></div>
+            <div class="conn-card"><span class="conn-tile" style="background:#0a66c2">in</span><div class="conn-info"><div class="conn-nm">飞书 / Lark</div><div class="conn-d">多维表格同步与团队审批</div></div><button class="conn-add" title="连接">+</button></div>
+          </div>
+        </div>
+        <div class="set-pane" data-spane="run">
+          <h2>运行与模型</h2>
+          <div class="set-grp">运行模式(DRIP_MODE)</div>
+          <div class="fcard">
+            <div class="frow"><div class="fl"><span data-i18n="st.mode">模式</span><div class="h" data-i18n="st.modeh">写入平台的权限级别</div></div><div class="fc"><label class="rad"><input type="radio" name="mode"> <span data-i18n="mode.shadow">Shadow 只规划</span></label><label class="rad"><input type="radio" name="mode" checked> <span data-i18n="mode.copilot">Copilot 逐条批准</span></label><label class="rad"><input type="radio" name="mode"> <span data-i18n="mode.auto">Autonomous 上限内自动</span></label></div></div>
+            <div class="frow"><div class="fl" data-i18n="st.cap">预算上限</div><div class="fc"><input class="inp" style="width:110px" value="$3,500"><span style="font-size:12px;color:var(--text-3)" data-i18n="st.caph">/ 天 自动模式下的硬上限</span></div></div>
+          </div>
+          <div class="set-grp">模型与归因</div>
+          <div class="fcard">
+            <div class="frow"><div class="fl"><span data-i18n="st.llm">LLM 提供方</span><div class="h" data-i18n="st.llmh">12 家 + OpenRouter 兜底</div></div><div class="fc"><select class="inp"><option>anthropic / claude-sonnet-4-6</option><option>openai / gpt-4o</option><option>google / gemini-2.5-pro</option><option>deepseek / deepseek-v3</option><option data-i18n="st.local">本地 / ollama</option></select></div></div>
+            <div class="frow"><div class="fl" data-i18n="st.attr">归因来源</div><div class="fc"><select class="inp"><option>AppsFlyer</option><option>Adjust</option><option data-i18n="st.attrlast">平台口径(打折)</option></select></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <aside class="rrail"><div class="rr-grip" id="rrGrip"></div>
     <details class="rp" open>
@@ -1618,6 +1690,7 @@ function refreshTopbar(){
   if (dt) dt.textContent = en ? "Demo" : "演示";
 }
 function setView(v){
+  if (v === "settings" && window.__openSettings) { window.__openSettings(); return; }
   _curView = v;
   if (v === "welcome") {
     app.classList.add("welcome"); app.classList.remove("chatmode");
@@ -1935,6 +2008,30 @@ document.querySelectorAll(".lang button").forEach(b => b.addEventListener("click
     if (empty) empty.classList.toggle("on", !!q && total === 0);
   });
 })();
+// ===== settings modal (Manus-style) =====
+(function(){
+  const mask = $("setMask"); if (!mask) return;
+  const modal = mask.querySelector(".set-modal");
+  window.__openSettings = function(pane){ mask.classList.add("open"); if (pane) showPane(pane); const ls = $("setLangSel"); if (ls && !ls.dataset.built) buildLang(ls); syncTheme(); };
+  const close = () => mask.classList.remove("open");
+  $("setClose").addEventListener("click", close);
+  mask.addEventListener("mousedown", e => { if (e.target === mask) close(); });
+  document.addEventListener("keydown", e => { if (e.code === "Escape" && mask.classList.contains("open")) close(); });
+  function showPane(p){ mask.querySelectorAll(".set-link[data-spane]").forEach(b => b.classList.toggle("on", b.getAttribute("data-spane") === p)); mask.querySelectorAll(".set-pane").forEach(el => el.classList.toggle("on", el.getAttribute("data-spane") === p)); modal.querySelector(".set-main").scrollTop = 0; }
+  mask.querySelectorAll(".set-link[data-spane]").forEach(b => b.addEventListener("click", () => showPane(b.getAttribute("data-spane"))));
+  // language select mirrors the app
+  function buildLang(sel){ sel.dataset.built = "1"; sel.innerHTML = Object.keys(LANGS).map(c => '<option value="' + c + '">' + LANGS[c] + '</option>').join(""); sel.value = curLang; sel.addEventListener("change", () => setLang(sel.value)); }
+  // theme: light / dark / auto
+  function applyTheme(mode){
+    try { localStorage.setItem("drip-theme", mode); } catch(e){}
+    let dark = mode === "dark";
+    if (mode === "auto") { try { dark = window.matchMedia("(prefers-color-scheme: dark)").matches; } catch(e){ dark = false; } }
+    document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
+  }
+  function syncTheme(){ let m = "auto"; try { m = localStorage.getItem("drip-theme") || "auto"; } catch(e){} mask.querySelectorAll(".theme-opt").forEach(o => o.classList.toggle("on", o.getAttribute("data-theme-opt") === m)); }
+  mask.querySelectorAll(".theme-opt").forEach(o => o.addEventListener("click", () => { applyTheme(o.getAttribute("data-theme-opt")); syncTheme(); }));
+  const so = $("setSignOut"); if (so) so.addEventListener("click", () => { close(); const s = $("signOut"); if (s) s.click(); });
+})();
 // every button gives tactile feedback so nothing feels dead
 document.addEventListener("mousedown", e => {
   const b = e.target.closest("button");
@@ -1966,7 +2063,7 @@ setLang(localStorage.getItem("drip-lang") || (function(){ const n = (navigator.l
   }
   let saved = null; try { saved = localStorage.getItem("drip-theme"); } catch (e) {}
   const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
-  apply(saved || (prefersDark ? "dark" : "light"));
+  apply((!saved || saved === "auto") ? (prefersDark ? "dark" : "light") : saved);
   if (tt) tt.addEventListener("click", () => {
     const next = (root.getAttribute("data-theme") === "dark") ? "light" : "dark";
     root.classList.add("theming"); apply(next);
