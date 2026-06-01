@@ -44,7 +44,7 @@ button{font-family:var(--font)}
 
 :root{--rrw:348px;--rail:248px}
 .app{display:grid;grid-template-columns:var(--rail) 1fr;grid-template-rows:100vh;height:100vh;overflow:hidden}
-.app.nav-collapsed{--rail:58px}
+.app.nav-collapsed{--rail:72px}
 .rrail{transition:opacity .16s ease}
 .app.rr-hidden .rrail{opacity:0}
 .app.chatmode{grid-template-columns:var(--rail) 1fr var(--rrw)}
@@ -116,13 +116,11 @@ button{font-family:var(--font)}
 /* left rail */
 /* unified sidebar — expanded by default (Manus form), collapses to icons */
 .rail{background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;align-items:stretch;padding:12px;gap:3px;position:relative}
-.app.nav-collapsed .rail{align-items:center;padding:12px 9px;gap:3px}
 .rail-grip{position:absolute;right:-3px;top:0;bottom:0;width:7px;cursor:col-resize;z-index:33}
 .rail-grip::after{content:"";position:absolute;right:3px;top:0;bottom:0;width:1px;background:transparent;transition:background .12s}
 .rail-grip:hover::after,.rail-grip.drag::after{background:var(--accent)}
 .app.nav-collapsed .rail-grip{display:none}
-.rail-head{display:flex;align-items:center;gap:10px;width:100%;margin-bottom:4px;min-height:44px;padding:0 3px}
-.app.nav-collapsed .rail-head{justify-content:center;padding:0}
+.rail-head{display:flex;align-items:center;gap:10px;width:100%;margin-bottom:4px;min-height:44px;padding:0 6px}
 .rail .logo{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;flex-shrink:0;cursor:pointer;transition:transform .12s}
 .rail .logo:hover{transform:scale(1.06)}
 .rail .logo svg{display:block;filter:drop-shadow(0 2px 5px rgba(31,95,255,.32))}
@@ -133,7 +131,6 @@ button{font-family:var(--font)}
 .nav-toggle:hover{background:var(--surface-2);color:var(--text)}
 .rail .ri{width:100%;height:44px;border-radius:10px;display:grid;grid-template-columns:24px 1fr;place-items:center start;gap:12px;padding:0 11px;color:var(--text-2);cursor:pointer;font-size:16px;border:none;background:none;flex-shrink:0;font-family:var(--font)}
 .rail .ri svg{width:19px;height:19px}
-.app.nav-collapsed .rail .ri{width:38px;height:38px;grid-template-columns:none;place-items:center;padding:0;color:var(--text-3)}
 .rail .ri:hover{background:var(--surface-2);color:var(--text)}
 .rail .ri.on{background:var(--accent-subtle);color:var(--accent)}
 .rail .ri:focus,.rail .cl-item:focus,.rail .logo:focus,.nav-toggle:focus,.acctctl:focus{outline:none}
@@ -148,11 +145,9 @@ button{font-family:var(--font)}
 .rail .sp{flex:1;display:none}
 .app.nav-collapsed .rail .sp{display:block}
 .rail-foot{display:flex;flex-direction:column;align-items:stretch;gap:2px;width:100%;margin-top:6px;border-top:1px solid var(--border);padding-top:8px}
-.app.nav-collapsed .rail-foot{align-items:center;border-top:none}
 .rail .av{width:30px;height:30px;border-radius:50%;background:#f0731f;color:#fff;display:grid;place-items:center;font-weight:600;font-size:12.5px;flex-shrink:0;cursor:pointer}
 .acctctl{display:flex;align-items:center;gap:10px;padding:5px 7px;border-radius:9px;cursor:pointer}
 .acctctl:hover{background:var(--surface-2)}
-.app.nav-collapsed .acctctl{padding:0;justify-content:center}
 .acct-id{font-size:12.5px;font-weight:600;white-space:nowrap}
 .app.nav-collapsed .acct-id{display:none}
 
