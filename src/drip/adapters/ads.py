@@ -63,6 +63,8 @@ class MetaWriter:
     matches the campaign-level pull in the collector) or ``"adset"``.
     """
 
+    platform = "meta"
+
     def __init__(
         self,
         token: str | None = None,
