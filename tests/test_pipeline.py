@@ -12,8 +12,8 @@ from drip.pipeline import Pipeline
 
 def test_pipeline_runs_end_to_end() -> None:
     r = Pipeline(total_budget=1000.0).run(since="2026-05-01", until="2026-05-28")
-    assert r.report.n_campaigns == 4
-    assert r.report.total_spend == 880
+    assert r.report.n_campaigns == 7          # meta×2 + tiktok×2 + tencent/ocean/kuaishou ×1
+    assert r.report.total_spend == 1480
     assert len(r.variants) == 3            # winner gets variants
     assert r.feedback.platform_roas        # feedback produced learnings/signals
 
