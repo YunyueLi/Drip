@@ -12,6 +12,12 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - First Knowledge Pack — `drip-pack-anime` — extra signals + prompt overrides for anime / gacha titles.
 - Drip-Bench grows to 20 cases.
 
+## [0.0.7] — 2026-06-02
+
+### Added
+- **Autonomous orchestration — `drip autopilot`.** A signal-driven supervisor replaces the fixed pipeline order: it classifies the situation (**bleeding / scaling / fatigued / steady**) and routes accordingly (stop-loss first, then scale, refresh, allocate), runs the loop end-to-end, and — in autonomous mode — applies within the money-safety caps behind a **circuit breaker** that halts *before any write* on a data anomaly (most of the account wanting to pause) and *mid-run* on write failures.
+  - `drip.supervisor` — `classify` / `route` (situation → an ordered, reasoned plan) + `CircuitBreaker` (pre-apply anomaly + post-write failure halts). Deterministic + auditable — rules route, not an LLM, so every routing step carries its reason. 6 tests.
+
 ## [0.0.6] — 2026-06-02
 
 ### Added
