@@ -437,6 +437,130 @@ def watch(once: bool, interval: int, mode: str | None, level: str,
 
 
 @main.command()
+@click.option("--since", default=None, help="Window start YYYY-MM-DD (default: 7 days ago).")
+@click.option("--until", default=None, help="Window end YYYY-MM-DD (default: today).")
+@click.option("--budget", type=float, default=1000.0)
+@click.option("--cpp-target", type=float, default=25.0)
+@click.option("--roas-target", type=float, default=3.0)
+@click.option("--mode", type=click.Choice([m.value for m in RunMode]), default=None,
+              help="Override DRIP_MODE. `autopilot` defaults to copilot; --mode autonomous for hands-off.")
+@click.option("--level", type=click.Choice(["campaign", "adset"]), default="campaign")
+@click.option("--dry-run", is_flag=True)
+@click.option("--yes", is_flag=True, help="Skip per-write prompts (autonomous-style; still capped).")
+def autopilot(since: str | None, until: str | None, budget: float, cpp_target: float,
+              roas_target: float, mode: str | None, level: str, dry_run: bool, yes: bool) -> None:
+    """Autonomous orchestration — diagnose → route → allocate → apply → learn, end to end.
+
+    A signal-driven supervisor classifies the situation (bleeding / scaling /
+    fatigued / steady) and routes accordingly, then — in autonomous mode —
+    applies within the money-safety caps behind a circuit breaker that halts the
+    run on a data anomaly (most of the account wanting to pause) or on write
+    failures. Deterministic + auditable; shadow by default.
+    """
+    import datetime
+
+    from rich.table import Table
+
+    from drip import safety
+    from drip.adapters.writers import build_writer
+    from drip.allocator import Allocator
+    from drip.collectors import Collector
+    from drip.engine.rules import Action
+    from drip.feedback import FeedbackLoop
+    from drip.supervisor import CircuitBreaker, route
+
+    mode_enum = RunMode(mode) if mode else RunMode(os.getenv("DRIP_MODE", "copilot"))
+    until = until or datetime.date.today().isoformat()
+    since = since or (datetime.date.today() - datetime.timedelta(days=7)).isoformat()
+    caps = safety.Caps.from_env()
+    send_live = mode_enum is not RunMode.SHADOW and not dry_run
+    breaker = CircuitBreaker()
+
+    console.print(Panel.fit(
+        f"autopilot · mode=[yellow]{mode_enum.value}[/yellow] · dry-run={dry_run} · "
+        f"writes route per-platform (shadow without that platform's token)",
+        title="drip autopilot", border_style="bright_black",
+    ))
+
+    metrics = Collector().collect(since=since, until=until)
+    plan = Allocator().plan(metrics, total_budget=budget,
+                            cpp_target=cpp_target, roas_target=roas_target)
+    actions = [a.result.decision.action for a in plan.allocations]
+
+    rr = route(actions)
+    console.print(f"\n[bold]situation[/bold]  [yellow]{rr.situation.value}[/yellow]")
+    for s in rr.steps:
+        console.print(f"  → [bold]{s.step}[/bold] — [bright_black]{s.why}[/bright_black]")
+
+    n_total = len(actions)
+    n_pause = sum(1 for x in actions if x is Action.PAUSE)
+    tripped, why = breaker.pre_apply(n_total, n_pause)
+    if tripped:
+        console.print(f"\n[red]⛔ circuit breaker — {why}[/red]")
+        console.print("[yellow]nothing applied. Review the data pull, then re-run.[/yellow]")
+        return
+
+    console.print()
+    tbl = Table(border_style="bright_black")
+    for col in ("platform", "campaign", "action", "change", "result"):
+        tbl.add_column(col)
+    n_attempted = n_failed = n_applied = 0
+    halted = False
+    for a in plan.allocations:
+        action = a.result.decision.action
+        verb, plat = action.value, a.metrics.platform
+        old_b, new_b = a.old_budget, a.new_budget
+        if action in (Action.HOLD, Action.REFRESH_CREATIVE):
+            tbl.add_row(plat, a.metrics.label, verb, "—", "[bright_black]no write[/bright_black]")
+            continue
+        change = "→ $0/day" if action is Action.PAUSE else f"${old_b:,.0f} → ${new_b:,.0f}/day"
+        try:
+            safety.guard_change(action=verb, old_budget=old_b, new_budget=new_b, caps=caps)
+        except safety.GuardError as exc:
+            tbl.add_row(plat, a.metrics.label, verb, change, f"[red]denied[/red] — {exc}")
+            continue
+        approved = True
+        if send_live and mode_enum is RunMode.COPILOT and not yes:
+            approved = click.confirm(f"  {verb}  {a.metrics.label}  {change} ?", default=False)
+        r = build_writer(plat, level=level).apply_decision(
+            a.metrics.campaign_id, verb, new_budget=new_b,
+            dry_run=not (send_live and approved), label=a.metrics.label,
+        )
+        if not approved:
+            r.status, r.detail = "skipped", "declined by operator"
+        rec = r.to_dict()
+        rec["ts"] = datetime.datetime.now().isoformat(timespec="seconds")
+        rec["mode"], rec["layer"] = mode_enum.value, "autopilot"
+        safety.audit(rec)
+        n_attempted += 1
+        if r.status == "applied":
+            n_applied += 1
+        elif r.status == "failed":
+            n_failed += 1
+        colour = {"applied": "green", "shadow": "bright_black", "skipped": "yellow",
+                  "failed": "red"}.get(r.status, "white")
+        tbl.add_row(plat, a.metrics.label, verb, change, f"[{colour}]{r.status}[/{colour}]")
+        tripped, why = breaker.post_write(n_attempted, n_failed)
+        if tripped:
+            halted = True
+            break
+    console.print(tbl)
+    if halted:
+        console.print(f"[red]⛔ circuit breaker — {why}[/red]")
+
+    feedback = FeedbackLoop(roas_target=roas_target).review(metrics)
+    if feedback.learnings:
+        console.print("\n[bold]feedback[/bold]")
+        for learning in feedback.learnings:
+            console.print(f"  · {learning.insight}")
+
+    if mode_enum is RunMode.SHADOW:
+        console.print("\n[yellow]shadow — planned only. --mode autonomous to run hands-off (within caps).[/yellow]")
+    elif n_applied:
+        console.print(f"\n[green]{n_applied} change(s) applied.[/green]")
+
+
+@main.command()
 def llm() -> None:
     """List supported LLM providers and how to address them."""
     from rich.table import Table
