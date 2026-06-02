@@ -6,6 +6,7 @@ import asyncio
 import os
 import sys
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import click
 import yaml
@@ -15,6 +16,9 @@ from rich.panel import Panel
 
 from drip import __version__
 from drip.orchestrator import DripOrchestrator, GameSpec, RunMode
+
+if TYPE_CHECKING:
+    from drip.engine.intraday import IntradayMetrics
 
 console = Console()
 
@@ -321,6 +325,123 @@ def apply(since: str | None, until: str | None, budget: float, cpp_target: float
         console.print("[yellow]shadow mode — nothing sent. Use --mode copilot to apply.[/yellow]")
     else:
         console.print(f"[green]{n_applied} change(s) applied to Meta.[/green]")
+
+
+def _sample_intraday(cpa_target: float) -> list[IntradayMetrics]:
+    """Deterministic within-day sample so `drip watch` runs offline.
+
+    Four campaigns mid-day, each in a different spend-side state.
+    """
+    from drip.engine.intraday import IntradayMetrics
+    return [
+        # healthy, on pace
+        IntradayMetrics(campaign_id="meta-0001", daily_budget=200.0, spend_so_far=100.0,
+                        day_fraction=0.5, cpa_recent=18.0, cpa_baseline=18.0, cpa_target=cpa_target,
+                        conversions_recent=9, label="Meta_Prospecting_v3"),
+        # cost spiking over the ceiling → throttle/pause
+        IntradayMetrics(campaign_id="meta-0002", daily_budget=240.0, spend_so_far=150.0,
+                        day_fraction=0.5, cpa_recent=44.0, cpa_baseline=26.0, cpa_target=cpa_target,
+                        conversions_recent=7, label="Meta_Broad_v1"),
+        # burning budget too early while cost is soft → gentle trim
+        IntradayMetrics(campaign_id="meta-0003", daily_budget=180.0, spend_so_far=150.0,
+                        day_fraction=0.5, cpa_recent=27.0, cpa_baseline=26.0, cpa_target=cpa_target,
+                        conversions_recent=8, label="Meta_Lookalike_v2"),
+        # underpacing a healthy line → small raise
+        IntradayMetrics(campaign_id="meta-0004", daily_budget=160.0, spend_so_far=40.0,
+                        day_fraction=0.5, cpa_recent=15.0, cpa_baseline=16.0, cpa_target=cpa_target,
+                        conversions_recent=10, label="Meta_Retarget_v4"),
+    ]
+
+
+@main.command()
+@click.option("--once", is_flag=True, help="Run a single cycle and exit (default loops).")
+@click.option("--interval", type=int, default=30, help="Minutes between cycles in continuous mode.")
+@click.option("--mode", type=click.Choice([m.value for m in RunMode]), default=None,
+              help="Override DRIP_MODE. `watch` defaults to copilot.")
+@click.option("--level", type=click.Choice(["campaign", "adset"]), default="campaign")
+@click.option("--cpa-target", type=float, default=25.0, help="Acceptable cost-per-action ceiling.")
+@click.option("--dry-run", is_flag=True, help="Plan throttles/pauses, never call the write API.")
+@click.option("--yes", is_flag=True, help="Skip per-write prompts (autonomous-style; still capped).")
+def watch(once: bool, interval: int, mode: str | None, level: str,
+          cpa_target: float, dry_run: bool, yes: bool) -> None:
+    """Intraday spend-side guard — pacing / cost-spike / anti-overspend, every N min.
+
+    The hourly layer above `drip apply` (which is daily / ROI). Pulls within-day
+    metrics, runs the spend-side rules (throttle / pause / small raise), and writes
+    through the same gated, audited path. ROI is never optimised here — that stays
+    daily. Offline it uses a sample intraday series; plug a token + hourly data to
+    go live. shadow by default.
+    """
+    import datetime
+    import time
+
+    from rich.table import Table
+
+    from drip import safety
+    from drip.adapters.ads import MetaWriter
+    from drip.engine.intraday import IntradayAction, decide_intraday, evaluate_intraday
+
+    mode_enum = RunMode(mode) if mode else RunMode(os.getenv("DRIP_MODE", "copilot"))
+    caps = safety.Caps.from_env()
+    writer = MetaWriter(level=level)
+    send_live = mode_enum is not RunMode.SHADOW and not dry_run
+    verb_map = {IntradayAction.THROTTLE: "REDUCE", IntradayAction.RAISE: "SCALE",
+                IntradayAction.PAUSE: "PAUSE"}
+
+    console.print(Panel.fit(
+        f"watch · mode=[yellow]{mode_enum.value}[/yellow] · cpa-target=${cpa_target:,.0f} · "
+        f"meta token={'set' if writer.live else '[red]missing → shadow[/red]'} · dry-run={dry_run}",
+        title="drip watch", border_style="bright_black",
+    ))
+
+    def cycle() -> None:
+        metrics = _sample_intraday(cpa_target)
+        tbl = Table(border_style="bright_black")
+        for col in ("campaign", "signals", "action", "result"):
+            tbl.add_column(col)
+        for m in metrics:
+            sig = evaluate_intraday(m)
+            d = decide_intraday(sig, m)
+            if d.action is IntradayAction.HOLD:
+                tbl.add_row(m.label, sig.summary, "HOLD", "[bright_black]—[/bright_black]")
+                continue
+            verb = verb_map[d.action]
+            try:
+                safety.guard_change(action=verb, old_budget=d.current_budget,
+                                    new_budget=d.projected_budget, caps=caps)
+            except safety.GuardError as exc:
+                tbl.add_row(m.label, sig.summary, d.headline, f"[red]denied[/red] — {exc}")
+                continue
+            approved = True
+            if send_live and mode_enum is RunMode.COPILOT and not yes:
+                approved = click.confirm(f"  {d.headline}  ({m.label}) ?", default=False)
+            r = writer.apply_decision(
+                m.campaign_id, verb, new_budget=d.projected_budget,
+                dry_run=not (send_live and approved), label=m.label,
+            )
+            if not approved:
+                r.status, r.detail = "skipped", "declined by operator"
+            rec = r.to_dict()
+            rec["ts"] = datetime.datetime.now().isoformat(timespec="seconds")
+            rec["mode"], rec["layer"] = mode_enum.value, "intraday"
+            safety.audit(rec)
+            colour = {"applied": "green", "shadow": "bright_black", "skipped": "yellow",
+                      "failed": "red"}.get(r.status, "white")
+            tbl.add_row(m.label, sig.summary, d.headline, f"[{colour}]{r.status}[/{colour}]")
+        console.print(tbl)
+
+    if once:
+        cycle()
+        return
+    console.print("[bright_black]continuous mode — Ctrl-C to stop[/bright_black]")
+    try:
+        while True:
+            cycle()
+            console.print(f"[bright_black]next cycle in {interval} min …[/bright_black]")
+            time.sleep(interval * 60)
+    except KeyboardInterrupt:
+        console.print("[red]stopped[/red]")
+        sys.exit(130)
 
 
 @main.command()
