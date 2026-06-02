@@ -8,9 +8,21 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ### Planned for v0.1
 - Public Drip-Bench leaderboard with baseline scores for `dummy`, `claude-sonnet-4-6`, `gpt-4o`, and `drip`.
-- First real Meta Marketing API call from `BiddingWorker` (`mode=copilot`).
+- **First _live_ Meta write verified on a real ad account** (the `drip apply` write path shipped in 0.0.4 — this is the live-credentials confirmation).
 - First Knowledge Pack — `drip-pack-anime` — extra signals + prompt overrides for anime / gacha titles.
 - Drip-Bench grows to 20 cases.
+
+## [0.0.4] — 2026-06-02
+
+### Added
+- **Real Meta write path — `drip apply`.** The first command that pushes decisions to a live platform: collect → diagnose → allocate → **apply**. Each scale/pause becomes a real Meta Marketing API mutate (`facebook-business` SDK, lazy-imported), gated three ways and audited.
+  - `drip.adapters.ads.MetaWriter` — maps `SCALE`/`REDUCE` → `daily_budget` (in cents) and `PAUSE` → `status=PAUSED` on a campaign (or adset via `--level adset`). Snapshots the old value first, re-reads after to **verify** the change landed, and is **idempotent** (an already-paused campaign is skipped, not re-written).
+  - `drip.safety` — money-safety guards + an append-only audit trail. `DRIP_BUDGET_CAP` caps any single daily budget; new `DRIP_MAX_CHANGE_PCT` (default 0.5) refuses one-step jumps large enough to reset the platform learning phase. Every write (real or shadow) is appended to `DRIP_AUDIT_PATH`.
+  - Three-way safety: **shadow** sends nothing · **copilot** prompts y/N per write · **autonomous** (or `--yes`) applies within caps. With no `META_ACCESS_TOKEN`, every write is shadow — so `drip apply` runs safely offline.
+- 14 tests for the write path and guards (action→params mapping, token gate, idempotency, dry-run, post-write verify, budget/learning-phase caps, audit trail).
+
+### Note
+- The write path is implemented and tested; the roadmap's "first live Meta write" is checked once it runs against a real account with your credentials. TikTok/China-platform writers are still shadow (tracked for v0.3).
 
 ## [0.0.3] — 2026-06-02
 

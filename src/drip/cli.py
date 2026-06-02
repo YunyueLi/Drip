@@ -209,6 +209,121 @@ def run(since: str | None, until: str | None, budget: float, narrate_model: str 
 
 
 @main.command()
+@click.option("--since", default=None, help="Window start YYYY-MM-DD (default: 7 days ago).")
+@click.option("--until", default=None, help="Window end YYYY-MM-DD (default: today).")
+@click.option("--budget", type=float, default=1000.0, help="Total budget to allocate before pushing.")
+@click.option("--cpp-target", type=float, default=25.0)
+@click.option("--roas-target", type=float, default=3.0)
+@click.option("--mode", type=click.Choice([m.value for m in RunMode]), default=None,
+              help="Override DRIP_MODE. `apply` defaults to copilot (approve each write).")
+@click.option("--level", type=click.Choice(["campaign", "adset"]), default="campaign",
+              help="Meta entity that holds budget/status.")
+@click.option("--dry-run", is_flag=True, help="Plan and show every write, but never call the write API.")
+@click.option("--yes", is_flag=True, help="Skip per-write prompts (autonomous-style; still capped).")
+def apply(since: str | None, until: str | None, budget: float, cpp_target: float,
+          roas_target: float, mode: str | None, level: str, dry_run: bool, yes: bool) -> None:
+    """Diagnose, allocate, and PUSH the budget/pause decisions to Meta — the real write path.
+
+    Defaults to copilot: every change waits for your y/N. `shadow` sends nothing;
+    `autonomous` (or --yes) applies within the money-safety caps (DRIP_BUDGET_CAP,
+    DRIP_MAX_CHANGE_PCT). With no META_ACCESS_TOKEN every write is shadow, so this
+    runs safely offline. Every write — real or shadow — lands in the audit trail.
+    """
+    import datetime
+
+    from rich.table import Table
+
+    from drip import safety
+    from drip.adapters.ads import MetaWriter
+    from drip.allocator import Allocator
+    from drip.collectors import Collector
+    from drip.engine.rules import Action
+
+    mode_enum = RunMode(mode) if mode else RunMode(os.getenv("DRIP_MODE", "copilot"))
+    until = until or datetime.date.today().isoformat()
+    since = since or (datetime.date.today() - datetime.timedelta(days=7)).isoformat()
+    caps = safety.Caps.from_env()
+    writer = MetaWriter(level=level)
+    send_live = mode_enum is not RunMode.SHADOW and not dry_run
+
+    console.print(Panel.fit(
+        f"apply · mode=[yellow]{mode_enum.value}[/yellow] · "
+        f"meta token={'set' if writer.live else '[red]missing → shadow[/red]'} · dry-run={dry_run}",
+        title="drip apply", border_style="bright_black",
+    ))
+
+    metrics = Collector().collect(since=since, until=until)
+    plan = Allocator().plan(metrics, total_budget=budget,
+                            cpp_target=cpp_target, roas_target=roas_target)
+
+    tbl = Table(border_style="bright_black")
+    for col in ("platform", "campaign", "action", "change", "result"):
+        tbl.add_column(col)
+
+    audit_file: object | None = None
+    n_applied = 0
+    for a in plan.allocations:
+        action = a.result.decision.action
+        verb = action.value
+        plat = a.metrics.platform
+        old_b, new_b = a.old_budget, a.new_budget
+
+        if action in (Action.HOLD, Action.REFRESH_CREATIVE):
+            tbl.add_row(plat, a.metrics.label, verb, "—", "[bright_black]no write[/bright_black]")
+            continue
+
+        change = "→ $0/day" if action is Action.PAUSE else f"${old_b:,.0f} → ${new_b:,.0f}/day"
+
+        if plat != "meta":
+            tbl.add_row(plat, a.metrics.label, verb, change,
+                        "[bright_black]shadow (meta only in v0.3)[/bright_black]")
+            continue
+
+        try:
+            safety.guard_change(action=verb, old_budget=old_b, new_budget=new_b, caps=caps)
+        except safety.GuardError as exc:
+            tbl.add_row(plat, a.metrics.label, verb, change, f"[red]denied[/red] — {exc}")
+            safety.audit({"ts": datetime.datetime.now().isoformat(timespec="seconds"),
+                          "mode": mode_enum.value, "platform": plat,
+                          "target_id": a.metrics.campaign_id, "action": verb,
+                          "status": "denied", "detail": str(exc), "label": a.metrics.label})
+            continue
+
+        approved = True
+        if send_live and mode_enum is RunMode.COPILOT and not yes:
+            approved = click.confirm(f"  apply {verb}  {a.metrics.label}  {change} ?", default=False)
+
+        r = writer.apply_decision(
+            a.metrics.campaign_id, verb, new_budget=new_b,
+            dry_run=not (send_live and approved), label=a.metrics.label,
+        )
+        if not approved:
+            r.status, r.detail = "skipped", "declined by operator"
+
+        rec = r.to_dict()
+        rec["ts"] = datetime.datetime.now().isoformat(timespec="seconds")
+        rec["mode"] = mode_enum.value
+        audit_file = safety.audit(rec)
+
+        colour = {"applied": "green", "shadow": "bright_black", "skipped": "yellow",
+                  "failed": "red", "denied": "red"}.get(r.status, "white")
+        if r.status == "applied":
+            n_applied += 1
+        tbl.add_row(plat, a.metrics.label, verb, change, f"[{colour}]{r.status}[/{colour}]")
+
+    console.print(tbl)
+    if audit_file is not None:
+        console.print(f"\naudit trail → [bright_black]{audit_file}[/bright_black]")
+    if not writer.live:
+        console.print("[yellow]No META_ACCESS_TOKEN — every write was shadow. "
+                      "Set the token, then --mode copilot to go live.[/yellow]")
+    elif mode_enum is RunMode.SHADOW:
+        console.print("[yellow]shadow mode — nothing sent. Use --mode copilot to apply.[/yellow]")
+    else:
+        console.print(f"[green]{n_applied} change(s) applied to Meta.[/green]")
+
+
+@main.command()
 def llm() -> None:
     """List supported LLM providers and how to address them."""
     from rich.table import Table
