@@ -238,7 +238,7 @@ def apply(since: str | None, until: str | None, budget: float, cpp_target: float
     from rich.table import Table
 
     from drip import safety
-    from drip.adapters.ads import MetaWriter
+    from drip.adapters.writers import build_writer
     from drip.allocator import Allocator
     from drip.collectors import Collector
     from drip.engine.rules import Action
@@ -247,12 +247,11 @@ def apply(since: str | None, until: str | None, budget: float, cpp_target: float
     until = until or datetime.date.today().isoformat()
     since = since or (datetime.date.today() - datetime.timedelta(days=7)).isoformat()
     caps = safety.Caps.from_env()
-    writer = MetaWriter(level=level)
     send_live = mode_enum is not RunMode.SHADOW and not dry_run
 
     console.print(Panel.fit(
         f"apply · mode=[yellow]{mode_enum.value}[/yellow] · "
-        f"meta token={'set' if writer.live else '[red]missing → shadow[/red]'} · dry-run={dry_run}",
+        f"dry-run={dry_run} · writes route per-platform (shadow without that platform's token)",
         title="drip apply", border_style="bright_black",
     ))
 
@@ -278,11 +277,6 @@ def apply(since: str | None, until: str | None, budget: float, cpp_target: float
 
         change = "→ $0/day" if action is Action.PAUSE else f"${old_b:,.0f} → ${new_b:,.0f}/day"
 
-        if plat != "meta":
-            tbl.add_row(plat, a.metrics.label, verb, change,
-                        "[bright_black]shadow (meta only in v0.3)[/bright_black]")
-            continue
-
         try:
             safety.guard_change(action=verb, old_budget=old_b, new_budget=new_b, caps=caps)
         except safety.GuardError as exc:
@@ -297,7 +291,7 @@ def apply(since: str | None, until: str | None, budget: float, cpp_target: float
         if send_live and mode_enum is RunMode.COPILOT and not yes:
             approved = click.confirm(f"  apply {verb}  {a.metrics.label}  {change} ?", default=False)
 
-        r = writer.apply_decision(
+        r = build_writer(plat, level=level).apply_decision(
             a.metrics.campaign_id, verb, new_budget=new_b,
             dry_run=not (send_live and approved), label=a.metrics.label,
         )
@@ -318,13 +312,12 @@ def apply(since: str | None, until: str | None, budget: float, cpp_target: float
     console.print(tbl)
     if audit_file is not None:
         console.print(f"\naudit trail → [bright_black]{audit_file}[/bright_black]")
-    if not writer.live:
-        console.print("[yellow]No META_ACCESS_TOKEN — every write was shadow. "
-                      "Set the token, then --mode copilot to go live.[/yellow]")
-    elif mode_enum is RunMode.SHADOW:
+    if mode_enum is RunMode.SHADOW:
         console.print("[yellow]shadow mode — nothing sent. Use --mode copilot to apply.[/yellow]")
+    elif n_applied:
+        console.print(f"[green]{n_applied} change(s) applied.[/green]")
     else:
-        console.print(f"[green]{n_applied} change(s) applied to Meta.[/green]")
+        console.print("[yellow]nothing applied — set each platform's token + --mode copilot to go live.[/yellow]")
 
 
 def _sample_intraday(cpa_target: float) -> list[IntradayMetrics]:
@@ -378,19 +371,18 @@ def watch(once: bool, interval: int, mode: str | None, level: str,
     from rich.table import Table
 
     from drip import safety
-    from drip.adapters.ads import MetaWriter
+    from drip.adapters.writers import build_writer
     from drip.engine.intraday import IntradayAction, decide_intraday, evaluate_intraday
 
     mode_enum = RunMode(mode) if mode else RunMode(os.getenv("DRIP_MODE", "copilot"))
     caps = safety.Caps.from_env()
-    writer = MetaWriter(level=level)
     send_live = mode_enum is not RunMode.SHADOW and not dry_run
     verb_map = {IntradayAction.THROTTLE: "REDUCE", IntradayAction.RAISE: "SCALE",
                 IntradayAction.PAUSE: "PAUSE"}
 
     console.print(Panel.fit(
         f"watch · mode=[yellow]{mode_enum.value}[/yellow] · cpa-target=${cpa_target:,.0f} · "
-        f"meta token={'set' if writer.live else '[red]missing → shadow[/red]'} · dry-run={dry_run}",
+        f"dry-run={dry_run} · writes route per-platform (shadow without that platform's token)",
         title="drip watch", border_style="bright_black",
     ))
 
@@ -415,7 +407,7 @@ def watch(once: bool, interval: int, mode: str | None, level: str,
             approved = True
             if send_live and mode_enum is RunMode.COPILOT and not yes:
                 approved = click.confirm(f"  {d.headline}  ({m.label}) ?", default=False)
-            r = writer.apply_decision(
+            r = build_writer(m.platform, level=level).apply_decision(
                 m.campaign_id, verb, new_budget=d.projected_budget,
                 dry_run=not (send_live and approved), label=m.label,
             )

@@ -12,6 +12,14 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - First Knowledge Pack — `drip-pack-anime` — extra signals + prompt overrides for anime / gacha titles.
 - Drip-Bench grows to 20 cases.
 
+## [0.0.6] — 2026-06-02
+
+### Added
+- **China-platform writers — 腾讯广告 / 巨量引擎 / 快手.** `drip.adapters.writers` adds REST-API write adapters (over `httpx`, no SDK) on the same `WriteResult` contract + token gate + shadow fallback + money-safety guards as the Meta path. `build_writer(platform)` routes each campaign to its platform's writer (accepts aliases like 巨量 / 腾讯 / 快手; unknown platform → a shadow writer).
+  - **Tencent**: `campaigns/update` (daily_budget 分 / configured_status). **Ocean Engine**: `promotion/budget/update` + `promotion/status/update`. **Kuaishou**: contract mapped; endpoint pending confirmation, so shadow until then.
+  - `drip apply` and `drip watch` now dispatch **per platform** (no longer Meta-only); the collector returns cross-platform samples so routing is demoable offline.
+  - Live HTTP paths are gated and untested without credentials — same maturity as the Meta path. Verify each platform's auth ceremony + budget unit (分 vs 元) per `docs/intraday-research.md`. 9 tests.
+
 ## [0.0.5] — 2026-06-02
 
 ### Added

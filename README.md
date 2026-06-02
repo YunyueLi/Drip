@@ -14,7 +14,7 @@ you keep the wheel. Any LLM, any ad platform, fully self-hostable.
 
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg?style=flat-square)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.11-3776ab.svg?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
-[![Release](https://img.shields.io/badge/release-v0.0.5-0052d9.svg?style=flat-square)](https://github.com/YunyueLi/Drip/releases)
+[![Release](https://img.shields.io/badge/release-v0.0.6-0052d9.svg?style=flat-square)](https://github.com/YunyueLi/Drip/releases)
 [![CI](https://img.shields.io/github/actions/workflow/status/YunyueLi/Drip/ci.yml?branch=main&style=flat-square&label=ci)](https://github.com/YunyueLi/Drip/actions)
 [![Tests](https://img.shields.io/badge/tests-passing-22c55e.svg?style=flat-square)](tests/)
 [![Stars](https://img.shields.io/github/stars/YunyueLi/Drip?style=flat-square&color=fbbf24)](https://github.com/YunyueLi/Drip/stargazers)
@@ -260,7 +260,7 @@ The roadmap is **bench-driven** — every release publishes its Drip-Bench score
 - [x] **Intraday spend-side layer** — `drip watch`: hourly pacing / cost-spike / anti-overspend (gated + audited)
 - [ ] Public Drip-Bench leaderboard with baseline scores
 - [ ] **Autonomous orchestration** — Agent-SDK supervisor that re-routes on signals (today it's a fixed pipeline)
-- [ ] China platforms — 巨量引擎 / 腾讯广告 / 快手 collectors + writers
+- [x] **China-platform writers** — 腾讯 / 巨量 / 快手, routed by `drip apply` + `drip watch` (gated + audited; live verify pending creds)
 - [ ] Knowledge Packs — vertical signal/prompt overrides (anime, DTC, app…)
 
 Build log: [@drip_agent](https://x.com/drip_agent) · [CHANGELOG](CHANGELOG.md).
