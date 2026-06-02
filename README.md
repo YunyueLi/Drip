@@ -14,7 +14,7 @@ you keep the wheel. Any LLM, any ad platform, fully self-hostable.
 
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg?style=flat-square)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.11-3776ab.svg?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
-[![Release](https://img.shields.io/badge/release-v0.0.3-0052d9.svg?style=flat-square)](https://github.com/YunyueLi/Drip/releases)
+[![Release](https://img.shields.io/badge/release-v0.0.4-0052d9.svg?style=flat-square)](https://github.com/YunyueLi/Drip/releases)
 [![CI](https://img.shields.io/github/actions/workflow/status/YunyueLi/Drip/ci.yml?branch=main&style=flat-square&label=ci)](https://github.com/YunyueLi/Drip/actions)
 [![Tests](https://img.shields.io/badge/tests-passing-22c55e.svg?style=flat-square)](tests/)
 [![Stars](https://img.shields.io/github/stars/YunyueLi/Drip?style=flat-square&color=fbbf24)](https://github.com/YunyueLi/Drip/stargazers)
@@ -146,14 +146,16 @@ uv pip install -e ".[dev]"
 
 drip run                       # the whole loop, end to end (offline samples)
 drip doctor                    # diagnose one account → decision cards
+drip apply                     # collect → decide → PUSH to Meta (shadow by default)
 drip bench run --agent claude  # score any agent on 10 UA decisions
 drip llm                       # 12 model providers, addressed as provider/model
 ```
 
 Go live: set `ANTHROPIC_API_KEY` + a Meta System User token, `uv pip install -e
-".[all]"`, then `drip run --narrate anthropic/claude-sonnet-4-6`. Reads pull
-from the real platform; spend stays in **shadow** until you flip `DRIP_MODE`.
-Full path: [`docs/deploy.md`](docs/deploy.md).
+".[all]"`, then `drip apply --mode copilot` — Drip pulls real data, shows each
+scale/pause with its **why**, and writes only the ones you approve (capped by
+`DRIP_BUDGET_CAP` + `DRIP_MAX_CHANGE_PCT`, every write audited). Spend stays in
+**shadow** until you choose `copilot`/`autonomous`. Full path: [`docs/deploy.md`](docs/deploy.md).
 
 ---
 
@@ -252,8 +254,9 @@ The roadmap is **bench-driven** — every release publishes its Drip-Bench score
 - [x] **7 agents + end-to-end one-stop pipeline** · `drip run`
 - [x] Drip-Bench v0 (10 cases) · LangGraph production graph
 - [x] **Chat-driven console** (10 languages) + platform-capability research ([`docs/intraday-research.md`](docs/intraday-research.md))
+- [x] **Meta write path** — `drip apply` pushes scale/pause to live campaigns (copilot approval · budget + learning-phase guards · audited)
+- [ ] First live Meta write **verified on a real account** (plug your token, `drip apply --mode copilot`)
 - [ ] Public Drip-Bench leaderboard with baseline scores
-- [ ] **First live Meta/TikTok write from real credentials** (copilot mode)
 - [ ] **Intraday (spend-side) control layer** — hourly pacing / cost-spike / anti-overspend
 - [ ] Knowledge Packs — vertical signal/prompt overrides (anime, DTC, app…)
 - [ ] China platforms — 巨量引擎 / 腾讯广告 / 快手 adapters
