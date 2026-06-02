@@ -11,61 +11,68 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><path d='M50 14C42 34 26 48 26 64a24 24 0 0 0 48 0C74 48 58 34 50 14Z' fill='%230052d9'/></svg>">
 <style>
 :root{
-  --bg:#ffffff; --bg-soft:#f6f8fc; --ink:#0b1220; --ink-2:#475069; --ink-3:#8a93a8;
-  --line:#e7ebf3; --line-2:#eef1f7; --accent:#0052d9; --accent-soft:#eaf0fe;
-  --green:#1a9d5a; --green-bg:#e7f6ee; --amber:#c98a14; --amber-bg:#fbf2dd; --red:#d2453d;
-  --radius:16px; --shadow:0 1px 2px rgba(11,18,32,.04),0 12px 40px rgba(11,18,32,.07);
+  --bg:#ffffff; --bg-soft:#f7f9fc; --ink:#0b1220; --ink-2:#48526b; --ink-3:#8a93a8;
+  --line:#e7ebf3; --line-2:#eef1f7; --accent:#0052d9; --accent-hover:#0046b8; --accent-subtle:#eaf1fd;
+  --green:#1a9d5a; --green-bg:#e7f6ee; --amber:#c98a14; --red:#d2453d;
+  --radius:16px; --shadow-sm:0 1px 2px rgba(11,18,32,.05);
+  --shadow:0 1px 2px rgba(11,18,32,.04),0 14px 44px rgba(11,18,32,.08);
   --font:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB",Roboto,Helvetica,Arial,sans-serif;
   --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth}
-body{font-family:var(--font);background:var(--bg);color:var(--ink);line-height:1.6;-webkit-font-smoothing:antialiased;font-size:16px;letter-spacing:-.011em}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{font-family:var(--font);background:var(--bg);color:var(--ink);line-height:1.6;-webkit-font-smoothing:antialiased;font-size:16px;letter-spacing:-.011em;overflow-x:hidden}
 a{color:inherit;text-decoration:none}
-.wrap{max-width:1140px;margin:0 auto;padding:0 24px}
-.btn{display:inline-flex;align-items:center;gap:8px;font-weight:600;font-size:15px;padding:12px 20px;border-radius:11px;border:1px solid transparent;cursor:pointer;transition:transform .12s ease,box-shadow .15s ease,background .15s}
+code{font-family:var(--mono);font-size:.92em;background:var(--bg-soft);border:1px solid var(--line-2);border-radius:6px;padding:1px 6px}
+.wrap{max-width:1120px;margin:0 auto;padding:0 24px}
+.btn{display:inline-flex;align-items:center;gap:8px;font-weight:600;font-size:15px;padding:13px 22px;border-radius:12px;border:1px solid transparent;cursor:pointer;transition:transform .12s ease,box-shadow .15s ease,background .15s,border-color .15s;white-space:nowrap}
 .btn:active{transform:translateY(1px)}
-.btn-primary{background:var(--accent);color:#fff;box-shadow:0 6px 18px rgba(0,82,217,.28)}
-.btn-primary:hover{background:#0047bd;box-shadow:0 8px 24px rgba(0,82,217,.34)}
+.btn-primary{background:var(--accent);color:#fff;box-shadow:0 6px 18px rgba(0,82,217,.26)}
+.btn-primary:hover{background:var(--accent-hover);box-shadow:0 10px 26px rgba(0,82,217,.32)}
 .btn-ghost{background:#fff;color:var(--ink);border-color:var(--line)}
 .btn-ghost:hover{border-color:var(--ink-3);background:var(--bg-soft)}
-.eyebrow{font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}
+.eyebrow{display:inline-block;font-size:13px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--accent);margin-bottom:14px}
 
-/* ---- droplet logo ---- */
 .logo{display:flex;align-items:center;gap:9px;font-weight:700;font-size:19px;letter-spacing:-.02em}
 .logo svg{width:24px;height:24px}
 
-/* ---- nav ---- */
-header.nav{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.82);backdrop-filter:saturate(180%) blur(12px);border-bottom:1px solid var(--line-2)}
-.nav-in{display:flex;align-items:center;justify-content:space-between;height:62px}
+/* nav */
+header.nav{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.8);backdrop-filter:saturate(180%) blur(12px);border-bottom:1px solid var(--line-2)}
+.nav-in{display:flex;align-items:center;justify-content:space-between;height:62px;gap:18px}
 .nav-links{display:flex;align-items:center;gap:26px;font-size:14.5px;color:var(--ink-2);font-weight:500}
 .nav-links a:hover{color:var(--ink)}
-.nav-cta{display:flex;align-items:center;gap:14px}
-.nav-cta .btn{padding:9px 16px;font-size:14px}
-@media(max-width:760px){.nav-links{display:none}}
+.nav-right{display:flex;align-items:center;gap:16px}
+.lang{display:flex;align-items:center;gap:2px;font-size:13px;font-weight:600;color:var(--ink-3);border:1px solid var(--line);border-radius:9px;overflow:hidden}
+.lang button{font:inherit;color:var(--ink-3);background:none;border:none;cursor:pointer;padding:6px 10px}
+.lang button.on{background:var(--accent-subtle);color:var(--accent)}
+.nav-right>a.ghostlink{font-size:14.5px;color:var(--ink-2);font-weight:500}
+.nav-right>a.ghostlink:hover{color:var(--ink)}
+.nav-right .btn{padding:9px 16px;font-size:14px}
+@media(max-width:820px){.nav-links{display:none}.nav-right>a.ghostlink{display:none}}
 
-/* ---- hero ---- */
+/* hero */
 .hero{position:relative;overflow:hidden;border-bottom:1px solid var(--line-2)}
 .hero::before{content:"";position:absolute;inset:0;background:
-  radial-gradient(900px 420px at 78% -8%,rgba(0,82,217,.10),transparent 60%),
-  radial-gradient(700px 400px at 5% 110%,rgba(0,82,217,.05),transparent 55%);pointer-events:none}
-.hero-in{position:relative;display:grid;grid-template-columns:1.04fr .96fr;gap:54px;align-items:center;padding:84px 0 92px}
-.pill{display:inline-flex;align-items:center;gap:8px;font-size:12.5px;font-weight:600;color:var(--ink-2);background:#fff;border:1px solid var(--line);padding:6px 13px;border-radius:100px;margin-bottom:24px}
+  radial-gradient(820px 400px at 82% -10%,rgba(0,82,217,.09),transparent 62%),
+  radial-gradient(620px 360px at 2% 112%,rgba(0,82,217,.045),transparent 58%);pointer-events:none}
+.hero-in{position:relative;display:grid;grid-template-columns:1.05fr .95fr;gap:56px;align-items:center;padding:74px 0 82px}
+.pill{display:inline-flex;align-items:center;gap:8px;font-size:12.5px;font-weight:600;color:var(--ink-2);background:#fff;border:1px solid var(--line);padding:6px 14px;border-radius:100px;margin-bottom:26px;box-shadow:var(--shadow-sm)}
 .pill b{color:var(--accent)}
-h1{font-size:58px;line-height:1.04;letter-spacing:-.035em;font-weight:760;margin-bottom:22px}
-h1 .grad{background:linear-gradient(110deg,#0052d9,#3f86ff);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
-.lede{font-size:19.5px;line-height:1.5;color:var(--ink-2);max-width:560px;margin-bottom:32px}
-.hero-cta{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:22px}
+h1{font-size:53px;line-height:1.07;letter-spacing:-.035em;font-weight:750;margin-bottom:22px}
+h1 span{display:block;text-wrap:balance}
+h1 .grad{background:linear-gradient(108deg,#0052d9,#3f86ff);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.lede{font-size:19px;line-height:1.55;color:var(--ink-2);max-width:556px;margin-bottom:32px}
+.hero-cta{display:flex;gap:13px;flex-wrap:wrap;margin-bottom:24px}
 .hero-cta .btn{padding:14px 24px;font-size:15.5px}
-.trust{display:flex;gap:8px 20px;flex-wrap:wrap;font-size:13.5px;color:var(--ink-3);font-weight:500}
+.trust{display:flex;gap:9px 22px;flex-wrap:wrap;font-size:13.5px;color:var(--ink-3);font-weight:500}
 .trust span{display:inline-flex;align-items:center;gap:7px}
-.trust svg{width:15px;height:15px;color:var(--green)}
-@media(max-width:900px){.hero-in{grid-template-columns:1fr;gap:40px;padding:54px 0 64px}h1{font-size:43px}.lede{font-size:18px}}
+.trust svg{width:15px;height:15px;color:var(--green);flex:none}
+@media(max-width:900px){.hero-in{grid-template-columns:1fr;gap:38px;padding:50px 0 60px}h1{font-size:40px}.lede{font-size:17.5px}}
 
-/* ---- product mock: decision card ---- */
+/* product mock */
 .mock{background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);overflow:hidden}
 .mock-bar{display:flex;align-items:center;gap:7px;padding:12px 15px;border-bottom:1px solid var(--line-2);background:var(--bg-soft)}
-.dot{width:11px;height:11px;border-radius:50%}
+.dot{width:11px;height:11px;border-radius:50%;flex:none}
 .mock-bar .u{margin-left:10px;font-size:12px;color:var(--ink-3);font-family:var(--mono)}
 .mock-body{padding:20px 21px 22px}
 .card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:16px}
@@ -74,73 +81,73 @@ h1 .grad{background:linear-gradient(110deg,#0052d9,#3f86ff);-webkit-background-c
 .verdict{flex:none;font-weight:750;font-size:13px;color:#fff;background:var(--green);padding:6px 12px;border-radius:9px;text-align:center;line-height:1.25}
 .verdict small{display:block;font-weight:600;font-size:10.5px;opacity:.92}
 .sig-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:16px}
-.sig{border:1px solid var(--line-2);border-radius:10px;padding:8px 9px;background:#fff}
-.sig .n{font-size:10.5px;color:var(--ink-3);font-weight:600;letter-spacing:.02em;display:flex;align-items:center;gap:5px}
+.sig{border:1px solid var(--line-2);border-radius:10px;padding:8px 9px}
+.sig .n{font-size:10.5px;color:var(--ink-3);font-weight:600;display:flex;align-items:center;gap:5px}
 .sig .n::before{content:"";width:7px;height:7px;border-radius:50%;flex:none}
 .sig.g .n::before{background:var(--green)} .sig.a .n::before{background:var(--amber)} .sig.r .n::before{background:var(--red)}
 .sig .v{font-size:13.5px;font-weight:680;margin-top:3px;font-family:var(--mono)}
-.rule{font-size:12.5px;color:var(--ink-2);background:var(--accent-soft);border-radius:10px;padding:10px 12px;line-height:1.5;margin-bottom:14px}
+.rule{font-size:12.5px;color:var(--ink-2);background:var(--accent-subtle);border-radius:10px;padding:10px 12px;line-height:1.5;margin-bottom:14px}
 .rule b{color:var(--accent)}
 .card-foot{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .conf{font-size:12px;color:var(--ink-3);font-weight:600}
 .conf b{color:var(--green)}
 .approve{font-size:13px;font-weight:680;color:#fff;background:var(--accent);padding:9px 18px;border-radius:9px}
 
-/* ---- logos strip ---- */
+/* trust strip — fixed: balanced, no orphan */
 .strip{border-bottom:1px solid var(--line-2);background:var(--bg-soft)}
-.strip-in{display:flex;align-items:center;justify-content:center;gap:14px 38px;flex-wrap:wrap;padding:22px 0;font-size:14px;color:var(--ink-3);font-weight:600}
-.strip b{color:var(--ink-2)}
-.strip .sep{color:var(--line)}
+.strip-in{display:flex;align-items:center;justify-content:center;gap:14px 40px;flex-wrap:wrap;padding:20px 0}
+.strip-i{display:inline-flex;align-items:center;gap:9px;font-size:14px;color:var(--ink-2);font-weight:500;white-space:nowrap}
+.strip-i svg{width:16px;height:16px;color:var(--accent);flex:none}
 
-/* ---- sections ---- */
-section{padding:92px 0}
-.sec-head{max-width:680px;margin:0 auto 52px;text-align:center}
-.sec-head h2{font-size:38px;line-height:1.12;letter-spacing:-.03em;font-weight:740;margin:14px 0 14px}
-.sec-head p{font-size:18px;color:var(--ink-2)}
-@media(max-width:900px){section{padding:62px 0}.sec-head h2{font-size:30px}}
+/* sections */
+section{padding:94px 0}
+.sec-head{max-width:660px;margin:0 auto 52px;text-align:center}
+.sec-head h2{font-size:37px;line-height:1.14;letter-spacing:-.03em;font-weight:730;margin-bottom:15px;text-wrap:balance}
+.sec-head p{font-size:18px;color:var(--ink-2);line-height:1.55}
+@media(max-width:900px){section{padding:60px 0}.sec-head h2{font-size:28px}.sec-head p{font-size:16px}}
 
 /* feature trio */
 .trio{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
-.feat{border:1px solid var(--line);border-radius:var(--radius);padding:26px 24px;background:#fff;transition:border-color .15s,transform .15s,box-shadow .15s}
+.feat{border:1px solid var(--line);border-radius:var(--radius);padding:28px 26px;background:#fff;transition:border-color .15s,transform .15s,box-shadow .15s}
 .feat:hover{border-color:#cfd8ea;transform:translateY(-3px);box-shadow:var(--shadow)}
-.feat .ic{width:42px;height:42px;border-radius:11px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;margin-bottom:16px}
-.feat .ic svg{width:22px;height:22px}
-.feat h3{font-size:18px;font-weight:680;letter-spacing:-.02em;margin-bottom:8px}
-.feat p{font-size:14.5px;color:var(--ink-2);line-height:1.55}
-@media(max-width:820px){.trio{grid-template-columns:1fr}}
+.feat .ic{width:44px;height:44px;border-radius:12px;background:var(--accent-subtle);color:var(--accent);display:grid;place-items:center;margin-bottom:18px}
+.feat .ic svg{width:23px;height:23px}
+.feat h3{font-size:18px;font-weight:680;letter-spacing:-.02em;margin-bottom:9px}
+.feat p{font-size:14.5px;color:var(--ink-2);line-height:1.6}
+@media(max-width:820px){.trio{grid-template-columns:1fr;gap:16px}}
 
 /* numbered modules */
-.module{display:grid;grid-template-columns:1fr 1fr;gap:54px;align-items:center;max-width:980px;margin:0 auto 64px}
+.module{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:center;max-width:980px;margin:0 auto 70px}
 .module:last-child{margin-bottom:0}
 .module.flip .m-text{order:2}
-.m-num{font-family:var(--mono);font-size:13px;font-weight:700;color:var(--accent);letter-spacing:.08em;margin-bottom:12px}
-.m-text h3{font-size:27px;letter-spacing:-.025em;font-weight:720;margin-bottom:14px;line-height:1.15}
-.m-text p{font-size:16px;color:var(--ink-2);margin-bottom:14px}
+.m-num{font-family:var(--mono);font-size:13px;font-weight:700;color:var(--accent);letter-spacing:.06em;margin-bottom:12px}
+.m-text h3{font-size:27px;letter-spacing:-.025em;font-weight:710;margin-bottom:14px;line-height:1.18}
+.m-text p{font-size:16px;color:var(--ink-2);margin-bottom:16px;line-height:1.58}
 .m-text .mlist{list-style:none;font-size:14.5px;color:var(--ink-2)}
-.m-text .mlist li{padding:6px 0 6px 24px;position:relative}
+.m-text .mlist li{padding:7px 0 7px 26px;position:relative}
 .m-text .mlist li::before{content:"";position:absolute;left:0;top:12px;width:13px;height:13px;border-radius:50%;background:var(--green-bg);box-shadow:inset 0 0 0 2px var(--green)}
-.m-vis{border:1px solid var(--line);border-radius:var(--radius);background:var(--bg-soft);box-shadow:var(--shadow);overflow:hidden}
-@media(max-width:820px){.module{grid-template-columns:1fr;gap:26px}.module.flip .m-text{order:0}}
+.m-vis{border:1px solid var(--line);border-radius:var(--radius);background:#fff;box-shadow:var(--shadow);overflow:hidden}
+@media(max-width:820px){.module{grid-template-columns:1fr;gap:24px;margin-bottom:48px}.module.flip .m-text{order:0}.m-text h3{font-size:23px}}
 
 /* allocation viz */
-.alloc{padding:20px}
+.alloc{padding:22px}
 .alloc-row{display:flex;align-items:center;gap:12px;padding:9px 0;font-size:13px}
-.alloc-row .nm{flex:0 0 132px;font-family:var(--mono);font-size:12px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.bar{flex:1;height:10px;border-radius:6px;background:#e3e9f4;overflow:hidden}
+.alloc-row .nm{flex:0 0 130px;font-family:var(--mono);font-size:12px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar{flex:1;height:10px;border-radius:6px;background:#e6ebf5;overflow:hidden}
 .bar i{display:block;height:100%;border-radius:6px;background:linear-gradient(90deg,#0052d9,#3f86ff)}
-.bar.cut i{background:#cfd6e4}
-.alloc-row .amt{flex:0 0 56px;text-align:right;font-family:var(--mono);font-weight:600;font-size:12.5px}
-.tag{font-size:10px;font-weight:700;padding:2px 7px;border-radius:6px}
+.bar.cut i{background:#d3dae8}
+.alloc-row .amt{flex:0 0 50px;text-align:right;font-family:var(--mono);font-weight:600;font-size:12.5px}
+.alloc-row .tag{flex:0 0 58px;text-align:center;font-size:10px;font-weight:700;padding:3px 0;border-radius:6px}
 .tag.up{color:var(--green);background:var(--green-bg)} .tag.dn{color:var(--ink-3);background:#eef1f7}
 
 /* bench viz */
-.bench{padding:18px 20px;font-family:var(--mono);font-size:12.5px;color:var(--ink-2);line-height:1.85}
+.bench{padding:20px 22px;font-family:var(--mono);font-size:12.5px;color:var(--ink-2);line-height:1.95}
 .bench .ok{color:var(--green);font-weight:700}
 .bench .hl{color:var(--ink);font-weight:700}
 
 /* comparison */
 .cmp{max-width:840px;margin:0 auto;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow)}
-.cmp-row{display:grid;grid-template-columns:1.2fr 1fr 1fr;border-top:1px solid var(--line-2)}
+.cmp-row{display:grid;grid-template-columns:1.25fr 1fr 1fr;border-top:1px solid var(--line-2)}
 .cmp-row:first-child{border-top:none}
 .cmp-row>div{padding:15px 18px;font-size:14.5px}
 .cmp-row.h{background:var(--bg-soft);font-weight:700;font-size:13px}
@@ -149,27 +156,29 @@ section{padding:92px 0}
 .cmp .c{color:var(--ink-3)}
 .cmp .d{color:var(--ink);font-weight:600}
 .cmp .d::before{content:"✓ ";color:var(--green);font-weight:800}
-@media(max-width:680px){.cmp-row{grid-template-columns:1fr 1fr 1fr}.cmp-row>div{padding:12px 11px;font-size:12.5px}}
+@media(max-width:680px){.cmp-row>div{padding:12px 11px;font-size:12px}}
 
-/* closing CTA */
-.cta{position:relative;overflow:hidden;border-radius:24px;background:linear-gradient(135deg,#06112c,#0a3aa0);color:#fff;text-align:center;padding:68px 28px;box-shadow:0 24px 70px rgba(0,82,217,.28)}
-.cta::before{content:"";position:absolute;inset:0;background:radial-gradient(600px 300px at 50% -20%,rgba(120,170,255,.25),transparent 60%)}
-.cta h2{position:relative;font-size:36px;letter-spacing:-.03em;font-weight:740;line-height:1.12;margin-bottom:16px;max-width:620px;margin-inline:auto}
-.cta p{position:relative;font-size:17px;color:#bcd0ff;margin-bottom:30px}
-.cta .hero-cta{position:relative;justify-content:center}
-.cta .btn-ghost{background:rgba(255,255,255,.10);color:#fff;border-color:rgba(255,255,255,.22)}
-.cta .btn-ghost:hover{background:rgba(255,255,255,.18)}
+/* closing CTA — light, refined, with the hand-drawn droplet */
+.cta-sec{padding-top:8px}
+.cta{position:relative;overflow:hidden;border:1px solid #dbe6fb;border-radius:24px;
+  background:radial-gradient(680px 300px at 50% -30%,#dfeafe,transparent 60%),linear-gradient(180deg,#f3f7ff,#ffffff);
+  text-align:center;padding:60px 28px 64px}
+.cta .drop{width:74px;height:71px;margin:0 auto 22px;display:block}
+.cta h2{font-size:35px;letter-spacing:-.03em;font-weight:730;line-height:1.15;margin-bottom:14px;max-width:600px;margin-inline:auto;text-wrap:balance}
+.cta p{font-size:17px;color:var(--ink-2);margin-bottom:28px}
+.cta .hero-cta{justify-content:center;margin-bottom:0}
+@media(max-width:680px){.cta{padding:46px 20px 50px}.cta h2{font-size:26px}}
 
 /* footer */
-footer{border-top:1px solid var(--line-2);padding:46px 0;color:var(--ink-3);font-size:13.5px}
+footer{border-top:1px solid var(--line-2);padding:42px 0;color:var(--ink-3);font-size:13.5px}
 .foot-in{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap}
-.foot-in a{color:var(--ink-2);font-weight:500}
-.foot-in a:hover{color:var(--ink)}
-.foot-links{display:flex;gap:20px;flex-wrap:wrap}
+.foot-links{display:flex;gap:22px;flex-wrap:wrap}
+.foot-links a{color:var(--ink-2);font-weight:500}
+.foot-links a:hover{color:var(--ink)}
 
-.reveal{opacity:0;transform:translateY(14px);transition:opacity .6s ease,transform .6s ease}
+.reveal{opacity:0;transform:translateY(15px);transition:opacity .6s ease,transform .6s ease}
 .reveal.in{opacity:1;transform:none}
-@media(prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none;transition:none}}
+@media(prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none;transition:none}html{scroll-behavior:auto}}
 </style>
 </head>
 <body>
@@ -182,14 +191,15 @@ footer{border-top:1px solid var(--line-2);padding:46px 0;color:var(--ink-3);font
       Drip
     </a>
     <nav class="nav-links">
-      <a href="#how">How it works</a>
-      <a href="#features">Why Drip</a>
-      <a href="#compare">Open vs closed</a>
+      <a href="#how" data-i18n="nav.how">How it works</a>
+      <a href="#features" data-i18n="nav.why">Why Drip</a>
+      <a href="#compare" data-i18n="nav.compare">Open vs closed</a>
       <a href="https://github.com/YunyueLi/Drip#-drip-bench">Drip-Bench</a>
     </nav>
-    <div class="nav-cta">
-      <a class="nav-links" style="display:flex" href="https://github.com/YunyueLi/Drip">GitHub</a>
-      <a class="btn btn-primary" href="https://yunyueli.github.io/Drip/app.html">▶ Live demo</a>
+    <div class="nav-right">
+      <a class="ghostlink" href="https://github.com/YunyueLi/Drip">GitHub</a>
+      <span class="lang"><button data-lang="en" class="on">EN</button><button data-lang="zh">中</button></span>
+      <a class="btn btn-primary" href="https://yunyueli.github.io/Drip/app.html" data-i18n="nav.demo">▶ Live demo</a>
     </div>
   </div>
 </header>
@@ -198,21 +208,20 @@ footer{border-top:1px solid var(--line-2);padding:46px 0;color:var(--ink-3);font
 <section class="hero">
   <div class="wrap hero-in">
     <div class="reveal in">
-      <span class="pill">⬦ Open-source · Apache-2.0 · <b>v0.0.3</b></span>
-      <h1>Growth on autopilot.<br><span class="grad">Every decision in the open.</span></h1>
-      <p class="lede">Drip runs the whole user-acquisition loop — diagnose, decide, allocate, create — as a team of agents. The decision core is <b>deterministic and auditable</b>; the LLM only explains. Self-host it, fork it, see exactly <em>why</em> before you spend a dollar.</p>
+      <span class="pill">⬦ <span data-i18n="hero.pill">Open-source · Apache-2.0 · <b>v0.0.3</b></span></span>
+      <h1><span data-i18n="hero.h1a">Growth on autopilot.</span><span class="grad" data-i18n="hero.h1b">Every decision in the open.</span></h1>
+      <p class="lede" data-i18n="hero.lede">Drip runs the whole user-acquisition loop — diagnose, decide, allocate, create — as a team of agents. The decision core is <b>deterministic and auditable</b>; the LLM only explains. Self-host it, fork it, see exactly <em>why</em> before you spend a dollar.</p>
       <div class="hero-cta">
-        <a class="btn btn-primary" href="https://yunyueli.github.io/Drip/app.html">▶&nbsp; Try the live console</a>
-        <a class="btn btn-ghost" href="https://github.com/YunyueLi/Drip">★&nbsp; Star on GitHub</a>
+        <a class="btn btn-primary" href="https://yunyueli.github.io/Drip/app.html">▶&nbsp; <span data-i18n="hero.cta1">Try the live console</span></a>
+        <a class="btn btn-ghost" href="https://github.com/YunyueLi/Drip">★&nbsp; <span data-i18n="hero.cta2">Star on GitHub</span></a>
       </div>
       <div class="trust">
-        <span><svg viewBox="0 0 20 20" fill="currentColor"><path d="M8 14.2 4.3 10.5l1.4-1.4L8 11.4l6.3-6.3 1.4 1.4z"/></svg>Any of 12 LLMs</span>
-        <span><svg viewBox="0 0 20 20" fill="currentColor"><path d="M8 14.2 4.3 10.5l1.4-1.4L8 11.4l6.3-6.3 1.4 1.4z"/></svg>Meta · TikTok · cross-platform</span>
-        <span><svg viewBox="0 0 20 20" fill="currentColor"><path d="M8 14.2 4.3 10.5l1.4-1.4L8 11.4l6.3-6.3 1.4 1.4z"/></svg>Your data, self-hosted</span>
+        <span><svg viewBox="0 0 20 20" fill="currentColor"><path d="M8 14.2 4.3 10.5l1.4-1.4L8 11.4l6.3-6.3 1.4 1.4z"/></svg><span data-i18n="hero.t1">Any of 12 LLMs</span></span>
+        <span><svg viewBox="0 0 20 20" fill="currentColor"><path d="M8 14.2 4.3 10.5l1.4-1.4L8 11.4l6.3-6.3 1.4 1.4z"/></svg><span data-i18n="hero.t2">Meta · TikTok · cross-platform</span></span>
+        <span><svg viewBox="0 0 20 20" fill="currentColor"><path d="M8 14.2 4.3 10.5l1.4-1.4L8 11.4l6.3-6.3 1.4 1.4z"/></svg><span data-i18n="hero.t3">Your data, self-hosted</span></span>
       </div>
     </div>
 
-    <!-- product mock: an auditable decision card -->
     <div class="reveal in" style="transition-delay:.08s">
       <div class="mock">
         <div class="mock-bar">
@@ -234,7 +243,7 @@ footer{border-top:1px solid var(--line-2);padding:46px 0;color:var(--ink-3);font
             <div class="sig g"><div class="n">Purch</div><div class="v">11</div></div>
             <div class="sig a"><div class="n">Headroom</div><div class="v">83%</div></div>
           </div>
-          <div class="rule"><b>rule chain:</b> 7/8 signals green · unit economics healthy (CPP&lt;target, ROAS&gt;3×) · sample on the edge → <b>scale at the conservative step (+20%)</b>, not +50%.</div>
+          <div class="rule"><b>rule chain:</b> 7/8 green · unit economics healthy (CPP&lt;target, ROAS&gt;3×) · sample on the edge → <b>scale the conservative step (+20%)</b>, not +50%.</div>
           <div class="card-foot">
             <span class="conf">confidence <b>HIGH</b> · revert if CPP &gt; $22</span>
             <span class="approve">Approve ✓</span>
@@ -248,11 +257,10 @@ footer{border-top:1px solid var(--line-2);padding:46px 0;color:var(--ink-3);font
 <!-- TRUST STRIP -->
 <div class="strip">
   <div class="wrap strip-in">
-    <span>Rules decide, the LLM only explains</span><span class="sep">·</span>
-    <span><b>8-signal</b> decision engine</span><span class="sep">·</span>
-    <span><b>Drip-Bench</b> — reproducible eval</span><span class="sep">·</span>
-    <span>shadow → copilot → autonomous</span><span class="sep">·</span>
-    <span><b>10</b> languages</span>
+    <span class="strip-i"><svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 2a8 8 0 1 0 0 16 8 8 0 0 0 0-16zm-1 11.4L5.6 10l1.4-1.4L9 10.6l4-4L14.4 8z"/></svg><span data-i18n="strip.1">Rules decide, the LLM only explains</span></span>
+    <span class="strip-i"><svg viewBox="0 0 20 20" fill="currentColor"><path d="M3 11h4v6H3zm5-5h4v11H8zm5 3h4v8h-4z"/></svg><span data-i18n="strip.2"><b>8-signal</b> decision engine</span></span>
+    <span class="strip-i"><svg viewBox="0 0 20 20" fill="currentColor"><path d="M4 3h12v2H4zm0 5h12v2H4zm0 5h8v2H4z"/></svg><span data-i18n="strip.3"><b>Drip-Bench</b> · reproducible</span></span>
+    <span class="strip-i"><svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 2 3 6v5c0 4 3 6 7 7 4-1 7-3 7-7V6z"/></svg><span data-i18n="strip.4">shadow → copilot → autonomous</span></span>
   </div>
 </div>
 
@@ -260,83 +268,83 @@ footer{border-top:1px solid var(--line-2);padding:46px 0;color:var(--ink-3);font
 <section id="features">
   <div class="wrap">
     <div class="sec-head reveal">
-      <span class="eyebrow">Why Drip</span>
-      <h2>Human strategy. Agent execution.<br>Nothing hidden in between.</h2>
-      <p>The closed UA agents say "trust us." Drip shows the work — every scale, pause, and budget move opens its full reasoning.</p>
+      <span class="eyebrow" data-i18n="feat.eyebrow">Why Drip</span>
+      <h2 data-i18n="feat.h2">Human strategy. Agent execution.<br>Nothing hidden in between.</h2>
+      <p data-i18n="feat.sub">The closed UA agents say “trust us.” Drip shows the work — every scale, pause, and budget move opens its full reasoning.</p>
     </div>
     <div class="trio">
       <div class="feat reveal">
         <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3 8-8"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
-        <h3>Rules decide, not vibes</h3>
-        <p>Eight signals → GREEN/YELLOW/RED → a deterministic rule chain produces the action, confidence, and guardrails. The LLM only writes the human "why". Replayable, byte-for-byte.</p>
+        <h3 data-i18n="feat1.t">Rules decide, not vibes</h3>
+        <p data-i18n="feat1.d">Eight signals → red/amber/green → a deterministic rule chain produces the action, confidence, and guardrails. The LLM only writes the human “why”. Replayable, byte-for-byte.</p>
       </div>
       <div class="feat reveal" style="transition-delay:.06s">
         <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17l6-6 4 4 6-7"/><path d="M4 21h16"/></svg></div>
-        <h3>The whole loop, one command</h3>
-        <p>collect → diagnose → strategize → create → allocate → learn. <code>drip run</code> walks the entire cycle, cross-platform, and reallocates budget from losers to winners within your cap.</p>
+        <h3 data-i18n="feat2.t">The whole loop, one command</h3>
+        <p data-i18n="feat2.d">collect → diagnose → strategize → create → allocate → learn. <code>drip run</code> walks the entire cycle, cross-platform, and reallocates budget from losers to winners within your cap.</p>
       </div>
       <div class="feat reveal" style="transition-delay:.12s">
         <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 4v5c0 5-3.5 7.5-8 9-4.5-1.5-8-4-8-9V7z"/><path d="M9 12l2 2 4-4"/></svg></div>
-        <h3>Safe by default</h3>
-        <p>A ladder, not a switch: <b>shadow</b> (plan only) → <b>copilot</b> (human approves each write) → <b>autonomous</b> (within a hard budget cap). A person signs off before money moves.</p>
+        <h3 data-i18n="feat3.t">Safe by default</h3>
+        <p data-i18n="feat3.d">A ladder, not a switch: <b>shadow</b> (plan only) → <b>copilot</b> (human approves each write) → <b>autonomous</b> (within a hard budget cap). A person signs off before money moves.</p>
       </div>
     </div>
   </div>
 </section>
 
-<!-- HOW IT WORKS / MODULES -->
+<!-- HOW / MODULES -->
 <section id="how" style="background:var(--bg-soft);border-block:1px solid var(--line-2)">
   <div class="wrap">
     <div class="sec-head reveal">
-      <span class="eyebrow">How it works</span>
-      <h2>See it. Decide it. Prove it.</h2>
-      <p>Platform AI won the bidding auction. The new battleground is the <em>decision</em> layer — and that's exactly what Drip opens up.</p>
+      <span class="eyebrow" data-i18n="how.eyebrow">How it works</span>
+      <h2 data-i18n="how.h2">See it. Decide it. Prove it.</h2>
+      <p data-i18n="how.sub">Platform AI won the bidding auction. The new battleground is the <em>decision</em> layer — and that's exactly what Drip opens up.</p>
     </div>
 
     <div class="module reveal">
       <div class="m-text">
-        <div class="m-num">01 — DIAGNOSE</div>
-        <h3>Every campaign, scored on 8 signals</h3>
-        <p>CPP, ROAS, CVR, CTR, frequency, spend, purchases, headroom. Each goes red/amber/green, the rules fire, and you get a decision card with the full vector + rule chain + confidence.</p>
-        <ul class="mlist"><li>Thin sample → it scales conservatively and caps confidence</li><li>Open the rule chain to see exactly why</li></ul>
+        <div class="m-num" data-i18n="m1.num">01 — DIAGNOSE</div>
+        <h3 data-i18n="m1.t">Every campaign, scored on 8 signals</h3>
+        <p data-i18n="m1.d">CPP, ROAS, CVR, CTR, frequency, spend, purchases, headroom. Each goes red/amber/green, the rules fire, and you get a decision card with the full vector + rule chain + confidence.</p>
+        <ul class="mlist"><li data-i18n="m1.l1">Thin sample → it scales conservatively and caps confidence</li><li data-i18n="m1.l2">Open the rule chain to see exactly why</li></ul>
       </div>
       <div class="m-vis">
-        <div class="mock-body" style="background:#fff">
+        <div class="mock-body">
           <div class="card-head"><div class="card-camp">TikTok_Broad_v1<span class="sub">unit economics broken</span></div><div class="verdict" style="background:var(--red)">PAUSE<small>$240 → $0</small></div></div>
-          <div class="sig-grid" style="grid-template-columns:repeat(4,1fr)">
+          <div class="sig-grid">
             <div class="sig r"><div class="n">CPP</div><div class="v">$41</div></div>
             <div class="sig r"><div class="n">ROAS</div><div class="v">1.4×</div></div>
             <div class="sig r"><div class="n">CVR</div><div class="v">1.2%</div></div>
             <div class="sig a"><div class="n">CTR</div><div class="v">0.8%</div></div>
           </div>
-          <div class="rule"><b>rule chain:</b> CPP & ROAS both red — unit economics broken → <b>stop the bleed</b>. Confidence capped LOW (sample below minimum).</div>
+          <div class="rule"><b>rule chain:</b> CPP &amp; ROAS both red — unit economics broken → <b>stop the bleed</b>. Confidence capped LOW (sample below minimum).</div>
         </div>
       </div>
     </div>
 
     <div class="module flip reveal">
       <div class="m-text">
-        <div class="m-num">02 — ALLOCATE</div>
-        <h3>Budget flows to winners, across platforms</h3>
-        <p>Nobody optimises <em>across</em> walled gardens — that's the open, neutral gap Drip fills. Freed budget from pauses flows to the scalers in proportion to value, inside your daily cap.</p>
-        <ul class="mlist"><li>Cross-platform, vendor-neutral</li><li>Value-weighted (ROAS by default, plug your LTV model)</li></ul>
+        <div class="m-num" data-i18n="m2.num">02 — ALLOCATE</div>
+        <h3 data-i18n="m2.t">Budget flows to winners, across platforms</h3>
+        <p data-i18n="m2.d">Nobody optimises <em>across</em> walled gardens — that's the open, neutral gap Drip fills. Freed budget from pauses flows to the scalers in proportion to value, inside your daily cap.</p>
+        <ul class="mlist"><li data-i18n="m2.l1">Cross-platform, vendor-neutral</li><li data-i18n="m2.l2">Value-weighted (ROAS by default, plug your LTV model)</li></ul>
       </div>
       <div class="m-vis">
         <div class="alloc">
           <div class="alloc-row"><span class="nm">meta · Prospect_v3</span><span class="bar"><i style="width:84%"></i></span><span class="amt">$500</span><span class="tag up">SCALE</span></div>
           <div class="alloc-row"><span class="nm">tiktok · Prospect_v3</span><span class="bar"><i style="width:84%"></i></span><span class="amt">$500</span><span class="tag up">SCALE</span></div>
-          <div class="alloc-row"><span class="nm">meta · Broad_v1</span><span class="bar cut"><i style="width:0%"></i></span><span class="amt">$0</span><span class="tag dn">PAUSE</span></div>
-          <div class="alloc-row"><span class="nm">tiktok · Broad_v1</span><span class="bar cut"><i style="width:0%"></i></span><span class="amt">$0</span><span class="tag dn">PAUSE</span></div>
+          <div class="alloc-row"><span class="nm">meta · Broad_v1</span><span class="bar cut"><i style="width:3%"></i></span><span class="amt">$0</span><span class="tag dn">PAUSE</span></div>
+          <div class="alloc-row"><span class="nm">tiktok · Broad_v1</span><span class="bar cut"><i style="width:3%"></i></span><span class="amt">$0</span><span class="tag dn">PAUSE</span></div>
         </div>
       </div>
     </div>
 
     <div class="module reveal">
       <div class="m-text">
-        <div class="m-num">03 — PROVE</div>
-        <h3>The first reproducible UA-agent benchmark</h3>
-        <p>10 hand-curated decision cases, a three-part rubric, a pluggable agent interface. Score any model — yours, ours, a competitor's — and every run writes a bundle anyone can re-run and diff.</p>
-        <ul class="mlist"><li>No more unverifiable "70% lower CPA"</li><li>Open leaderboard — win or lose, we publish ours</li></ul>
+        <div class="m-num" data-i18n="m3.num">03 — PROVE</div>
+        <h3 data-i18n="m3.t">The first reproducible UA-agent benchmark</h3>
+        <p data-i18n="m3.d">10 hand-curated decision cases, a three-part rubric, a pluggable agent interface. Score any model — yours, ours, a competitor's — and every run writes a bundle anyone can re-run and diff.</p>
+        <ul class="mlist"><li data-i18n="m3.l1">No more unverifiable “70% lower CPA”</li><li data-i18n="m3.l2">Open leaderboard — win or lose, we publish ours</li></ul>
       </div>
       <div class="m-vis">
         <div class="bench"><span class="hl">$ drip bench run --agent claude</span><br>drip-bench v0 · 10 cases<br><br>▸ 001 sample on the edge&nbsp;&nbsp;<span class="ok">92/100</span><br>▸ 002 slow bleed&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="ok">88/100</span><br>▸ 003 budget reallocation&nbsp;<span class="ok">81/100</span><br>▸ 004 creative fatigue&nbsp;&nbsp;&nbsp;&nbsp;<span class="ok">95/100</span><br>…<br><br>&nbsp;&nbsp;total <span class="hl">851 / 1000</span><br>&nbsp;&nbsp;bundle → benchmarks/runs/…</div>
@@ -349,32 +357,38 @@ footer{border-top:1px solid var(--line-2);padding:46px 0;color:var(--ink-3);font
 <section id="compare">
   <div class="wrap">
     <div class="sec-head reveal">
-      <span class="eyebrow">Open vs closed</span>
-      <h2>Why a transparent agent wins</h2>
-      <p>We're not claiming Drip beats them on raw performance today. We're claiming it's the only one you can audit, fork, and run in your own environment.</p>
+      <span class="eyebrow" data-i18n="cmp.eyebrow">Open vs closed</span>
+      <h2 data-i18n="cmp.h2">Why a transparent agent wins</h2>
+      <p data-i18n="cmp.sub">We're not claiming Drip beats them on raw performance today. We're claiming it's the only one you can audit, fork, and run in your own environment.</p>
     </div>
     <div class="cmp reveal">
       <div class="cmp-row h"><div>&nbsp;</div><div class="c">Sett · Kohort · GrowthGPT</div><div class="d">Drip</div></div>
-      <div class="cmp-row"><div class="lbl">Code</div><div class="c">Closed</div><div class="d">Apache-2.0</div></div>
-      <div class="cmp-row"><div class="lbl">Why a decision happened</div><div class="c">"Trust us"</div><div class="d">Signal vector + rule chain + replay</div></div>
-      <div class="cmp-row"><div class="lbl">LLM</div><div class="c">Vendor-locked</div><div class="d">Any of 12 + local</div></div>
-      <div class="cmp-row"><div class="lbl">Cross-platform</div><div class="c">Per walled garden</div><div class="d">Neutral, optimises across</div></div>
-      <div class="cmp-row"><div class="lbl">Your data</div><div class="c">On their servers</div><div class="d">On yours, self-hosted</div></div>
-      <div class="cmp-row"><div class="lbl">Evaluation</div><div class="c">Marketing claims</div><div class="d">Drip-Bench, reproducible</div></div>
-      <div class="cmp-row"><div class="lbl">Price</div><div class="c">$99–$999+/mo</div><div class="d">Free</div></div>
+      <div class="cmp-row"><div class="lbl" data-i18n="cmp.r1">Code</div><div class="c" data-i18n="cmp.r1a">Closed</div><div class="d">Apache-2.0</div></div>
+      <div class="cmp-row"><div class="lbl" data-i18n="cmp.r2">Why a decision happened</div><div class="c">“Trust us”</div><div class="d" data-i18n="cmp.r2b">Signal vector + rule chain + replay</div></div>
+      <div class="cmp-row"><div class="lbl">LLM</div><div class="c" data-i18n="cmp.r3a">Vendor-locked</div><div class="d" data-i18n="cmp.r3b">Any of 12 + local</div></div>
+      <div class="cmp-row"><div class="lbl" data-i18n="cmp.r4">Cross-platform</div><div class="c" data-i18n="cmp.r4a">Per walled garden</div><div class="d" data-i18n="cmp.r4b">Neutral, optimises across</div></div>
+      <div class="cmp-row"><div class="lbl" data-i18n="cmp.r5">Your data</div><div class="c" data-i18n="cmp.r5a">On their servers</div><div class="d" data-i18n="cmp.r5b">On yours, self-hosted</div></div>
+      <div class="cmp-row"><div class="lbl" data-i18n="cmp.r6">Evaluation</div><div class="c" data-i18n="cmp.r6a">Marketing claims</div><div class="d" data-i18n="cmp.r6b">Drip-Bench, reproducible</div></div>
+      <div class="cmp-row"><div class="lbl" data-i18n="cmp.r7">Price</div><div class="c">$99–$999+/mo</div><div class="d" data-i18n="cmp.r7b">Free</div></div>
     </div>
   </div>
 </section>
 
 <!-- CLOSING CTA -->
-<section style="padding-top:0">
+<section class="cta-sec">
   <div class="wrap">
     <div class="cta reveal">
-      <h2>See every decision before you trust it with a dollar.</h2>
-      <p>Open the live console — no install, no signup.</p>
+      <svg class="drop" viewBox="0 0 200 192" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <g stroke="#0052d9" stroke-width="3"><ellipse cx="100" cy="123" rx="29" ry="5" opacity=".5"/><ellipse cx="100" cy="130" rx="49" ry="8" opacity=".3"/><ellipse cx="100" cy="137" rx="71" ry="11" opacity=".15"/></g>
+        <path stroke="#0052d9" stroke-width="3" d="M100 30C100 30 72 70 72 92A28 28 0 1 0 128 92C128 70 100 30 100 30Z"/>
+        <path stroke="#0052d9" stroke-width="3.4" d="M84 96 93 83 101 89 116 66"/><circle cx="116" cy="66" r="3.6" fill="#0052d9"/>
+        <path stroke="#0052d9" stroke-width="3" d="M132 66 150 46 160 55 184 28"/><path stroke="#0052d9" stroke-width="3" d="M173 27 185 27 184 39"/>
+      </svg>
+      <h2 data-i18n="cta.h2">See every decision before you trust it with a dollar.</h2>
+      <p data-i18n="cta.p">Open the live console — no install, no signup.</p>
       <div class="hero-cta">
-        <a class="btn btn-primary" href="https://yunyueli.github.io/Drip/app.html">▶&nbsp; Try the live console</a>
-        <a class="btn btn-ghost" href="https://github.com/YunyueLi/Drip">★&nbsp; Star on GitHub</a>
+        <a class="btn btn-primary" href="https://yunyueli.github.io/Drip/app.html">▶&nbsp; <span data-i18n="cta.b1">Try the live console</span></a>
+        <a class="btn btn-ghost" href="https://github.com/YunyueLi/Drip">★&nbsp; <span data-i18n="cta.b2">Star on GitHub</span></a>
       </div>
     </div>
   </div>
@@ -386,17 +400,67 @@ footer{border-top:1px solid var(--line-2);padding:46px 0;color:var(--ink-3);font
     <a class="logo" href="/" style="font-size:17px"><svg viewBox="0 0 100 100" fill="none"><path d="M50 14C42 34 26 48 26 64a24 24 0 0 0 48 0C74 48 58 34 50 14Z" fill="#0052d9"/></svg>Drip</a>
     <div class="foot-links">
       <a href="https://github.com/YunyueLi/Drip">GitHub</a>
-      <a href="https://yunyueli.github.io/Drip/app.html">Live demo</a>
-      <a href="https://github.com/YunyueLi/Drip/blob/main/docs/intraday-research.md">Research</a>
+      <a href="https://yunyueli.github.io/Drip/app.html" data-i18n="foot.demo">Live demo</a>
+      <a href="https://github.com/YunyueLi/Drip/blob/main/docs/intraday-research.md" data-i18n="foot.research">Research</a>
       <a href="https://x.com/drip_agent">@drip_agent</a>
-      <a href="index.zh-CN.html">中文</a>
     </div>
-    <span>Apache-2.0 · built in the open</span>
+    <span data-i18n="foot.tagline">Apache-2.0 · built in the open</span>
   </div>
 </footer>
 
 <script>
-// lightweight scroll-reveal
+const I18N={
+ en:{}, // English is the source-of-truth in the markup
+ zh:{
+  "nav.how":"运作原理","nav.why":"为什么是 Drip","nav.compare":"开源 vs 闭源","nav.demo":"▶ 在线体验",
+  "hero.pill":"开源 · Apache-2.0 · <b>v0.0.3</b>",
+  "hero.h1a":"增长，自动驾驶。","hero.h1b":"决策摊在明面上。",
+  "hero.lede":"Drip 用一队 agent 跑完整条买量闭环——诊断、决策、分配、创意。决策内核是<b>确定性、可审计</b>的;LLM 只负责解释。可自托管、可 fork,动钱之前看清每一个<em>为什么</em>。",
+  "hero.cta1":"体验在线控制台","hero.cta2":"去 GitHub Star",
+  "hero.t1":"12 种 LLM 任选","hero.t2":"Meta · TikTok · 跨平台","hero.t3":"数据自托管",
+  "strip.1":"规则做决策,LLM 只解释","strip.2":"<b>8 信号</b>决策引擎","strip.3":"<b>Drip-Bench</b> · 可复现","strip.4":"shadow → copilot → autonomous",
+  "feat.eyebrow":"为什么是 Drip","feat.h2":"人定策略,agent 执行,<br>中间不藏黑箱。",
+  "feat.sub":"闭源买量 agent 说“信我就好”。Drip 把过程摊开——每一次放量、暂停、调预算,都能展开完整推理。",
+  "feat1.t":"靠规则,不靠感觉","feat1.d":"八个信号 → 红黄绿 → 确定性规则链给出动作、置信度和护栏。LLM 只写给人看的“为什么”。逐字节可回放。",
+  "feat2.t":"一条命令,跑完闭环","feat2.d":"采集 → 诊断 → 策略 → 创意 → 分配 → 学习。<code>drip run</code> 跨平台走完整圈,在你的预算上限内把钱从输家挪给赢家。",
+  "feat3.t":"默认安全","feat3.d":"是阶梯,不是开关:<b>shadow</b>(只规划)→ <b>copilot</b>(每次写人工批准)→ <b>autonomous</b>(硬预算上限内)。动钱之前,有人签字。",
+  "how.eyebrow":"运作原理","how.h2":"看见它。决策它。证明它。",
+  "how.sub":"平台 AI 赢下了竞价。新战场是<em>决策</em>层——而这正是 Drip 开源的地方。",
+  "m1.num":"01 — 诊断","m1.t":"每条 campaign,8 信号打分",
+  "m1.d":"CPP、ROAS、CVR、CTR、频次、消耗、转化数、预算余量——逐项红黄绿,规则触发,产出带完整信号向量 + 规则链 + 置信度的决策卡。",
+  "m1.l1":"样本薄 → 自动保守放量并封顶置信度","m1.l2":"展开规则链,看清每一个为什么",
+  "m2.num":"02 — 分配","m2.t":"预算跨平台流向赢家",
+  "m2.d":"没人做<em>跨</em>平台优化——这正是 Drip 这个开放、中立的位置要补的。暂停释放的预算,按价值比例流向放量项,都在你的日预算上限内。",
+  "m2.l1":"跨平台、厂商中立","m2.l2":"按价值加权(默认 ROAS,可插你自己的 LTV 模型)",
+  "m3.num":"03 — 证明","m3.t":"首个可复现的买量 agent 基准",
+  "m3.d":"10 个精选决策案例、三段式评分、可插拔 agent 接口。给任何模型打分——你的、我们的、对手的——每次运行都产出可复现、可 diff 的 bundle。",
+  "m3.l1":"不再有无法验证的“CPA 降 70%”","m3.l2":"公开排行榜——赢输都publish,我们也公开自己的",
+  "cmp.eyebrow":"开源 vs 闭源","cmp.h2":"为什么透明的 agent 会赢",
+  "cmp.sub":"我们不声称 Drip 今天就在纯效果上赢过它们。我们声称:它是唯一一个你能审计、fork、并在自己环境里运行的。",
+  "cmp.r1":"代码","cmp.r1a":"闭源","cmp.r2":"决策为何发生","cmp.r2b":"信号向量 + 规则链 + 回放",
+  "cmp.r3a":"绑定厂商","cmp.r3b":"12 种任选 + 本地","cmp.r4":"跨平台","cmp.r4a":"各自为政","cmp.r4b":"中立,跨平台优化",
+  "cmp.r5":"你的数据","cmp.r5a":"在它们服务器","cmp.r5b":"在你这,自托管","cmp.r6":"评测","cmp.r6a":"营销话术","cmp.r6b":"Drip-Bench,可复现",
+  "cmp.r7":"价格","cmp.r7b":"免费",
+  "cta.h2":"在把一块钱交给它之前,看清每一个决策。","cta.p":"打开在线控制台——免安装、免注册。",
+  "cta.b1":"体验在线控制台","cta.b2":"去 GitHub Star",
+  "foot.demo":"在线体验","foot.research":"调研","foot.tagline":"Apache-2.0 · 全程开源开发"
+ }
+};
+const EN={};
+document.querySelectorAll('[data-i18n]').forEach(el=>{EN[el.getAttribute('data-i18n')]=el.innerHTML;});
+function setLang(l){
+  const dict=l==='zh'?I18N.zh:EN;
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    const k=el.getAttribute('data-i18n');
+    const v=(l==='zh'?I18N.zh[k]:EN[k]);
+    if(v!=null) el.innerHTML=v;
+  });
+  document.documentElement.lang=(l==='zh'?'zh-CN':'en');
+  document.querySelectorAll('.lang button').forEach(b=>b.classList.toggle('on',b.dataset.lang===l));
+  try{localStorage.setItem('drip_lang',l);}catch(e){}
+}
+document.querySelectorAll('.lang button').forEach(b=>b.addEventListener('click',()=>setLang(b.dataset.lang)));
+(function(){let l;try{l=localStorage.getItem('drip_lang');}catch(e){} if(!l)l=(navigator.language||'').toLowerCase().startsWith('zh')?'zh':'en'; if(l==='zh')setLang('zh');})();
 const io=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}})},{threshold:.12});
 document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
 </script>

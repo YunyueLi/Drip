@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="320" height="307" viewBox="0 0 200 192" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <!-- ripples — a drop spreads growth -->
+  <g stroke="#0052d9" stroke-width="3" fill="none">
+    <ellipse cx="100" cy="123" rx="29" ry="5" opacity=".5"/>
+    <ellipse cx="100" cy="130" rx="49" ry="8" opacity=".3"/>
+    <ellipse cx="100" cy="137" rx="71" ry="11" opacity=".15"/>
+  </g>
+  <!-- water droplet — the brand mark -->
+  <path stroke="#0052d9" stroke-width="3" fill="none" d="M100 30C100 30 72 70 72 92A28 28 0 1 0 128 92C128 70 100 30 100 30Z"/>
+  <!-- growth sparkline inside the droplet -->
+  <path stroke="#0052d9" stroke-width="3.4" fill="none" d="M84 96 93 83 101 89 116 66"/>
+  <circle cx="116" cy="66" r="3.6" fill="#0052d9"/>
+  <!-- growth arrow bursting out -->
+  <path stroke="#0052d9" stroke-width="3" fill="none" d="M132 66 150 46 160 55 184 28"/>
+  <path stroke="#0052d9" stroke-width="3" fill="none" d="M173 27 185 27 184 39"/>
+  <!-- audience target -->
+  <g transform="translate(40,56)" stroke="#2a3040" stroke-width="3" fill="none"><circle r="11"/><circle r="6"/><circle r="1.7" fill="#2a3040" stroke="none"/></g>
+  <!-- performance bars -->
+  <g transform="translate(166,90)" stroke="#2a3040" stroke-width="3" fill="none"><path d="M-12 11V5M-4 11V-3M4 11V1M12 11V-9"/></g>
+  <!-- ROAS coin -->
+  <g transform="translate(40,103)" stroke="#2a3040" stroke-width="3" fill="none"><circle r="10"/><text x="0" y="4.6" text-anchor="middle" font-family="-apple-system,Segoe UI,Roboto,sans-serif" font-size="13" font-weight="800" fill="#2a3040" stroke="none">$</text></g>
+  <!-- sparkles -->
+  <g fill="#2a3040"><path transform="translate(112,16)" d="M0 -6C.5 -2 2 -.5 6 0 2 .5 .5 2 0 6 -.5 2 -2 .5 -6 0 -2 -.5 -.5 -2 0 -6Z"/><path transform="translate(60,30) scale(.8)" d="M0 -6C.5 -2 2 -.5 6 0 2 .5 .5 2 0 6 -.5 2 -2 .5 -6 0 -2 -.5 -.5 -2 0 -6Z"/><path transform="translate(176,62) scale(.7)" d="M0 -6C.5 -2 2 -.5 6 0 2 .5 .5 2 0 6 -.5 2 -2 .5 -6 0 -2 -.5 -.5 -2 0 -6Z"/></g>
+  <!-- floating data dots -->
+  <g fill="#2a3040"><circle cx="22" cy="84" r="2.6"/><circle cx="188" cy="104" r="3"/><circle cx="150" cy="40" r="2.3"/><circle cx="146" cy="120" r="2.2"/></g>
+</svg>

@@ -27,9 +27,9 @@ you keep the wheel. Any LLM, any ad platform, fully self-hostable.
 
 <div align="center">
 
-<a href="https://yunyueli.github.io/Drip/app.html"><img src="assets/screens/console.png" alt="The Drip console — an open, auditable UA control room" width="880" /></a>
+<a href="https://yunyueli.github.io/Drip/app.html"><img src="assets/decision-card.svg" alt="A Drip decision card — 8-signal vector, rule chain, confidence, and the action" width="720" /></a>
 
-<sub>Every campaign scored on **8 signals** · rules decide, the LLM only explains · you approve before any spend · **[▶ Open the live console →](https://yunyueli.github.io/Drip/app.html)** · 10 languages</sub>
+<sub>Every campaign scored on **8 signals** → rules decide → an auditable card with the **"why"**. You approve before any spend. **[▶ Open the live console →](https://yunyueli.github.io/Drip/app.html)** · 10 languages</sub>
 
 </div>
 
@@ -90,16 +90,12 @@ Plus **`attribution`** (reconcile platform-reported vs MMP truth) and the
 
 One chat-driven control room for the whole loop — diagnose, decide, allocate, create, and prove it. It's not a black box: every decision opens its **8-signal vector + rule chain + replay** in the side panel, so you see exactly _why_ before you approve.
 
-<table>
-<tr>
-<td width="50%"><img src="assets/screens/decisions.png" alt="Decisions queue" /><br/><sub><b>Decisions queue</b> — scale / refresh / pause, each with its reason and confidence. Approve in one click.</sub></td>
-<td width="50%"><img src="assets/screens/allocation.png" alt="Cross-platform allocation" /><br/><sub><b>Allocation</b> — budget freed from losers flows to winners, across platforms, within your daily cap.</sub></td>
-</tr>
-<tr>
-<td><img src="assets/screens/strategy.png" alt="Growth strategy report" /><br/><sub><b>Strategy</b> — a consulting-grade growth plan: personas, competitive matrix, budget split, each with its rationale.</sub></td>
-<td><img src="assets/screens/bench.png" alt="Drip-Bench leaderboard" /><br/><sub><b>Drip-Bench</b> — the open, reproducible leaderboard for UA-agent decisions.</sub></td>
-</tr>
-</table>
+- **Decisions queue** — scale / refresh / pause, each opening its **8-signal vector + rule chain + confidence**. Approve in one click.
+- **Allocation** — budget freed from losers flows to winners, across platforms, within your daily cap.
+- **Strategy** — a consulting-grade growth plan: personas, competitive matrix, budget split, each with its rationale.
+- **Drip-Bench** — the open, reproducible leaderboard for UA-agent decisions.
+
+The screenshots age fast, the live console doesn't — see it for real:
 
 <div align="center"><b><a href="https://yunyueli.github.io/Drip/app.html">▶ Open the live console — no install →</a></b></div>
 
@@ -297,6 +293,8 @@ Prior art that proved the niche: [Sett](https://www.sett.ai/),
 
 <div align="center">
 <br/>
+
+<img src="assets/droplet.svg" width="116" alt="Drip" />
 
 **Drip** · built in the open by [@YunyueLi](https://github.com/YunyueLi)
 
