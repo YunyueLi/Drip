@@ -12,6 +12,14 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - First Knowledge Pack — `drip-pack-anime` — extra signals + prompt overrides for anime / gacha titles.
 - Drip-Bench grows to 20 cases.
 
+## [0.0.5] — 2026-06-02
+
+### Added
+- **Intraday spend-side control — `drip watch`.** The hourly layer above the daily engine: pacing, cost-spike, and budget-exhaustion signals → conservative **throttle / pause / small-raise** actions, every N minutes, through the same gated + audited write path as `drip apply`.
+  - `drip.engine.intraday` — `evaluate_intraday` (pace ratio · cost ratio · spike vs baseline · projected exhaustion) + `decide_intraday` (deterministic rules with a rule chain + confidence). ROI is **never** optimised here (ROAS isn't stable intraday); changes stay small to avoid resetting the learning phase, and thin recent samples can't pause or raise.
+  - `drip watch [--once] [--interval N]` — runs the cycle; offline on a sample intraday series, live with a token + hourly data. shadow by default.
+  - 9 tests for the spend-side signals + rules.
+
 ## [0.0.4] — 2026-06-02
 
 ### Added

@@ -1,6 +1,6 @@
 [project]
 name = "drip-agent"
-version = "0.0.4"
+version = "0.0.5"
 description = "Open-source reference implementation of an AI user-acquisition agent, with a reproducible decision benchmark."
 readme = "README.md"
 license = { text = "Apache-2.0" }
