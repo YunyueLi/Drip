@@ -149,6 +149,49 @@ class TikTokInsights:
 
 
 # --------------------------------------------------------------------------
+# China platforms — Tencent Ads / Ocean Engine / Kuaishou
+# --------------------------------------------------------------------------
+# Live reads use each platform's report API (Tencent hourly_reports/get +
+# realtime_cost/get; Ocean Engine v3.0 reports; Kuaishou MAPI report) — wired as
+# a follow-up. Offline these return one deterministic sample each so the rest of
+# the pipeline (diagnose → allocate → apply) demonstrates cross-platform routing,
+# and `drip apply` dispatches each to its writer in drip.adapters.writers.
+
+
+class TencentInsights:
+    platform = "tencent"
+
+    def __init__(self, account_id: str | None = None, token: str | None = None) -> None:
+        self.account_id = account_id or os.getenv("TENCENT_ACCOUNT_ID")
+        self.token = token or os.getenv("TENCENT_ACCESS_TOKEN")
+
+    def fetch(self, *, since: str, until: str) -> list[AdMetrics]:
+        return _sample("tencent", since, until)[:1]
+
+
+class OceanEngineInsights:
+    platform = "oceanengine"
+
+    def __init__(self, advertiser_id: str | None = None, token: str | None = None) -> None:
+        self.advertiser_id = advertiser_id or os.getenv("OCEANENGINE_ADVERTISER_ID")
+        self.token = token or os.getenv("OCEANENGINE_ACCESS_TOKEN")
+
+    def fetch(self, *, since: str, until: str) -> list[AdMetrics]:
+        return _sample("oceanengine", since, until)[:1]
+
+
+class KuaishouInsights:
+    platform = "kuaishou"
+
+    def __init__(self, advertiser_id: str | None = None, token: str | None = None) -> None:
+        self.advertiser_id = advertiser_id or os.getenv("KUAISHOU_ADVERTISER_ID")
+        self.token = token or os.getenv("KUAISHOU_ACCESS_TOKEN")
+
+    def fetch(self, *, since: str, until: str) -> list[AdMetrics]:
+        return _sample("kuaishou", since, until)[:1]
+
+
+# --------------------------------------------------------------------------
 # Collector
 # --------------------------------------------------------------------------
 
@@ -157,7 +200,10 @@ class Collector:
     """Fan out to every configured source, return one normalised list."""
 
     def __init__(self, sources: list[InsightsSource] | None = None) -> None:
-        self.sources = sources or [MetaInsights(), TikTokInsights()]
+        self.sources = sources or [
+            MetaInsights(), TikTokInsights(),
+            TencentInsights(), OceanEngineInsights(), KuaishouInsights(),
+        ]
 
     def collect(self, *, since: str, until: str) -> list[AdMetrics]:
         rows: list[AdMetrics] = []
