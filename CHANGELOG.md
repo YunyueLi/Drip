@@ -12,6 +12,18 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - First Knowledge Pack — `drip-pack-anime` — extra signals + prompt overrides for anime / gacha titles.
 - Drip-Bench grows to 20 cases.
 
+## [0.0.3] — 2026-06-02
+
+### Added
+- **`docs/intraday-research.md`** — a research dossier covering three things, in Drip's read-it-don't-trust-us spirit:
+  - An honest **capability self-audit** of the open-source build (what's a real deterministic/auditable path vs. what's still a shadow stub or roadmap — e.g. the decision engine, allocator, attribution, and LLM layer are real and offline-runnable; the live ad-platform *write* path is still a v0.2 stub).
+  - **Platform "minute-level" capability research** across Meta, Tencent Ads (腾讯广告), Ocean Engine (巨量引擎), Kuaishou (快手磁力), and TikTok — finest report granularity, data latency/retroactive correction, native auto-rule cadence, mutate-API write endpoints, and rate limits, with first-party sources and adversarial fact-checking. Headline: every major platform tops out at **hourly** reporting and **30-min–1-hour** native auto-rules; true "minute-level ROI optimisation" is marketing, while **spend-side pacing/cost-control** is genuinely near-real-time.
+  - A **two-tier intraday-control design** (daily strategic layer + an hourly spend-side intraday layer) and a staged plan to wire the real write path.
+
+### Changed
+- **Web console (`web/app.html`) overhaul** — unified Manus-style sidebar (collapsible, drag-resizable, identical expanded/collapsed layout with no jump), a settings modal with light/dark/auto theme, a brand-native line-art water-droplet welcome illustration, 12 authored end-to-end UA conversations, platform-logo SVG sprites, a taller chat composer, and a low-key GitHub star button. Punctuation and i18n base strings cleaned up across 10 languages.
+- The live demo now points at the chat-driven console (`web/app.html`) rather than the static landing page.
+
 ## [0.0.2] — 2026-05-28
 
 ### Added
