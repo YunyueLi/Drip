@@ -135,6 +135,18 @@ real-time-control design in [`docs/intraday-research.md`](docs/intraday-research
 
 ---
 
+## ⚙️ It executes, too — safely
+
+The loop doesn't stop at a plan. Three commands push it to the platforms, behind the same money-safety ladder:
+
+- **`drip apply`** — write the scale / pause / budget decisions to **Meta · 腾讯 · 巨量 · 快手** (auto-routed per platform). Each write snapshots the old value, re-reads to verify, and lands in an audit trail.
+- **`drip watch`** — the intraday **spend-side** guard: hourly pacing / cost-spike / anti-overspend — throttle or pause before the budget runs away.
+- **`drip autopilot`** — the whole loop, **signal-routed** (bleeding → stop-loss first, then scale / refresh / allocate) behind a **circuit breaker** that halts on a data anomaly or write failures.
+
+Every write obeys `DRIP_BUDGET_CAP` + `DRIP_MAX_CHANGE_PCT` (no learning-phase-resetting jumps) and `DRIP_MODE` — **shadow** (plan only) → **copilot** (approve each) → **autonomous** (within caps). No platform token → it stays shadow, so it's safe to run anywhere.
+
+---
+
 ## ⚡ Quickstart
 
 **Requires** Python **3.11** ([`uv`](https://docs.astral.sh/uv/) recommended).
@@ -146,8 +158,9 @@ uv pip install -e ".[dev]"
 
 drip run                       # the whole loop, end to end (offline samples)
 drip doctor                    # diagnose one account → decision cards
-drip apply                     # collect → decide → PUSH to Meta (shadow by default)
+drip apply                     # collect → decide → PUSH to Meta/腾讯/巨量/快手 (shadow default)
 drip watch --once              # intraday spend-side guard: pacing / cost-spike / overspend
+drip autopilot                 # the whole loop, signal-routed + circuit-broken (shadow default)
 drip bench run --agent claude  # score any agent on 10 UA decisions
 drip llm                       # 12 model providers, addressed as provider/model
 ```
@@ -166,14 +179,17 @@ Each is a small, framework-agnostic module you can read in one sitting:
 
 ```
 src/drip/
-  collectors.py    pull data (Meta/TikTok SDK + offline sample)
+  collectors.py    pull data — Meta · TikTok · 腾讯 · 巨量 · 快手 (+ offline sample)
   analyst.py       diagnose + anomaly scan + report
   strategist.py    next creative test from performance
   creative.py      produce variants (orchestrate external generators)
   allocator.py     cross-platform budget allocation
   attribution.py   reconcile platform-reported vs MMP truth
   feedback.py      learnings → next cycle
-  engine/          decision core: signals → rules → cards
+  engine/          decision core: signals → rules → cards · intraday spend-side
+  adapters/        ad writers (Meta + 腾讯/巨量/快手) · creative gen · bidding · LTV
+  safety.py        budget + learning-phase guards · append-only audit trail
+  supervisor.py    signal-driven autonomous orchestration (route + circuit breaker)
   pipeline.py      the one-stop loop      graph.py  LangGraph production daemon
   llm/             12-provider LLM layer  eval/     Drip-Bench
 ```
@@ -190,7 +206,7 @@ fallback — nothing locks you in.
 |---|---|---|
 | **LLM** | Claude · GPT · Gemini · Qwen · DeepSeek · Grok · local… (12 + OpenRouter fallback) | template (no key) |
 | **Creative gen** | gpt-image · Seedance · ComfyUI · Arcads | dry placeholders |
-| **Bid execution** | Meta Advantage+ · AppLovin AXON · Madgicx | shadow (record only) |
+| **Ad-platform writes** | Meta Marketing API · 腾讯 / 巨量 / 快手 REST | shadow until copilot/autonomous |
 | **LTV / value** | Kohort · Voyantis · your model | heuristic |
 | **Attribution truth** | AppsFlyer · Adjust | documented haircut |
 

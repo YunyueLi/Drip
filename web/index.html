@@ -217,7 +217,7 @@ footer{border-top:1px solid var(--line-2);padding:42px 0;color:var(--ink-3);font
       </div>
       <div class="trust">
         <span><svg viewBox="0 0 20 20" fill="currentColor"><path d="M8 14.2 4.3 10.5l1.4-1.4L8 11.4l6.3-6.3 1.4 1.4z"/></svg><span data-i18n="hero.t1">Any of 12 LLMs</span></span>
-        <span><svg viewBox="0 0 20 20" fill="currentColor"><path d="M8 14.2 4.3 10.5l1.4-1.4L8 11.4l6.3-6.3 1.4 1.4z"/></svg><span data-i18n="hero.t2">Meta · TikTok · cross-platform</span></span>
+        <span><svg viewBox="0 0 20 20" fill="currentColor"><path d="M8 14.2 4.3 10.5l1.4-1.4L8 11.4l6.3-6.3 1.4 1.4z"/></svg><span data-i18n="hero.t2">Meta · TikTok · Tencent · Ocean Engine · Kuaishou</span></span>
         <span><svg viewBox="0 0 20 20" fill="currentColor"><path d="M8 14.2 4.3 10.5l1.4-1.4L8 11.4l6.3-6.3 1.4 1.4z"/></svg><span data-i18n="hero.t3">Your data, self-hosted</span></span>
       </div>
     </div>
@@ -350,6 +350,18 @@ footer{border-top:1px solid var(--line-2);padding:42px 0;color:var(--ink-3);font
         <div class="bench"><span class="hl">$ drip bench run --agent claude</span><br>drip-bench v0 · 10 cases<br><br>▸ 001 sample on the edge&nbsp;&nbsp;<span class="ok">92/100</span><br>▸ 002 slow bleed&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="ok">88/100</span><br>▸ 003 budget reallocation&nbsp;<span class="ok">81/100</span><br>▸ 004 creative fatigue&nbsp;&nbsp;&nbsp;&nbsp;<span class="ok">95/100</span><br>…<br><br>&nbsp;&nbsp;total <span class="hl">851 / 1000</span><br>&nbsp;&nbsp;bundle → benchmarks/runs/…</div>
       </div>
     </div>
+
+    <div class="module flip reveal">
+      <div class="m-text">
+        <div class="m-num" data-i18n="m4.num">04 — EXECUTE</div>
+        <h3 data-i18n="m4.t">It writes — to Meta and China, gated</h3>
+        <p data-i18n="m4.d"><code>drip apply</code> pushes scale / pause to Meta · 腾讯 · 巨量 · 快手 (auto-routed); <code>drip watch</code> guards pacing intraday; <code>drip autopilot</code> runs the whole loop, signal-routed behind a circuit breaker. shadow → copilot → autonomous, every write capped + audited.</p>
+        <ul class="mlist"><li data-i18n="m4.l1">Cross-border: Meta · TikTok · 腾讯 · 巨量 · 快手</li><li data-i18n="m4.l2">Autonomous — but it halts on anomalies or write failures</li></ul>
+      </div>
+      <div class="m-vis">
+        <div class="bench"><span class="hl">$ drip autopilot --mode autonomous</span><br>situation: <span class="ok">scaling</span> → scale-winners → allocate<br><br>&nbsp;&nbsp;meta&nbsp;&nbsp;Prospect_v3&nbsp;&nbsp;SCALE&nbsp;&nbsp;<span class="ok">applied ✓</span><br>&nbsp;&nbsp;腾讯&nbsp;&nbsp;Prospect_v3&nbsp;&nbsp;SCALE&nbsp;&nbsp;<span class="ok">applied ✓</span><br>&nbsp;&nbsp;巨量&nbsp;&nbsp;Broad_v1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;PAUSE&nbsp;&nbsp;<span class="ok">applied ✓</span><br><br>&nbsp;&nbsp;⛔ breaker ok · audit → <span class="hl">writes.jsonl</span></div>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -417,7 +429,7 @@ const I18N={
   "hero.h1a":"增长，自动驾驶。","hero.h1b":"决策摊在明面上。",
   "hero.lede":"Drip 用一队 agent 跑完整条买量闭环——诊断、决策、分配、创意。决策内核是<b>确定性、可审计</b>的；LLM 只负责解释。可自托管、可 fork，动钱之前看清每一个<em>为什么</em>。",
   "hero.cta1":"体验在线控制台","hero.cta2":"去 GitHub Star",
-  "hero.t1":"12 种 LLM 任选","hero.t2":"Meta · TikTok · 跨平台","hero.t3":"数据自托管",
+  "hero.t1":"12 种 LLM 任选","hero.t2":"Meta · TikTok · 腾讯 · 巨量 · 快手","hero.t3":"数据自托管",
   "strip.1":"规则做决策，LLM 只解释","strip.2":"<b>8 信号</b>决策引擎","strip.3":"<b>Drip-Bench</b> · 可复现","strip.4":"shadow → copilot → autonomous",
   "feat.eyebrow":"为什么是 Drip","feat.h2":"人定策略，agent 执行，<br>中间不藏黑箱。",
   "feat.sub":"闭源买量 agent 说“信我就好”。Drip 把过程摊开——每一次放量、暂停、调预算，都能展开完整推理。",
@@ -435,6 +447,9 @@ const I18N={
   "m3.num":"03 — 证明","m3.t":"首个可复现的买量 agent 基准",
   "m3.d":"10 个精选决策案例、三段式评分、可插拔 agent 接口。给任何模型打分——你的、我们的、对手的——每次运行都产出可复现、可 diff 的 bundle。",
   "m3.l1":"不再有无法验证的“CPA 降 70%”","m3.l2":"公开排行榜——赢输都 publish，我们也公开自己的",
+  "m4.num":"04 — 执行","m4.t":"它真会写——投到 Meta 和国内，带闸",
+  "m4.d":"<code>drip apply</code> 把放量 / 暂停写到 Meta · 腾讯 · 巨量 · 快手（自动路由）；<code>drip watch</code> 盘中守 pacing；<code>drip autopilot</code> 跑完整闭环，信号路由 + 熔断。shadow → copilot → autonomous，每次写都封顶 + 审计。",
+  "m4.l1":"跨国内外：Meta · TikTok · 腾讯 · 巨量 · 快手","m4.l2":"自主，但异常或写失败会自动熔断",
   "cmp.eyebrow":"开源 vs 闭源","cmp.h2":"为什么透明的 agent 会赢",
   "cmp.sub":"我们不声称 Drip 今天就在纯效果上赢过它们。我们声称：它是唯一一个你能审计、fork、并在自己环境里运行的。",
   "cmp.r1":"代码","cmp.r1a":"闭源","cmp.r2":"决策为何发生","cmp.r2b":"信号向量 + 规则链 + 回放",
