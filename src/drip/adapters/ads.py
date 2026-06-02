@@ -35,7 +35,7 @@ _PAUSE_ACTIONS = {"PAUSE"}
 
 def _cents(amount: float | None) -> int | None:
     """Meta budgets are minor units of the account currency (e.g. cents)."""
-    return None if amount is None else int(round(float(amount) * 100))
+    return None if amount is None else round(float(amount) * 100)
 
 
 @dataclass
