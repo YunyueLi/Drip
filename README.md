@@ -1,25 +1,25 @@
 <div align="center">
 
-<img src="https://img.shields.io/badge/Drip-UA_Agents-c97f4a?style=for-the-badge&labelColor=1a1a1a" alt="Drip" />
+<img src="https://img.shields.io/badge/Drip-UA_Agents-0052d9?style=for-the-badge&labelColor=0a0a0a" alt="Drip" />
 
 # Drip
 
-### The open-source AI growth team for user acquisition.
+### The open-source growth team for user acquisition.
 
 **One command runs the whole loop** — collect → diagnose → strategize →
-create → allocate → learn. Every decision is rule-based and **auditable**;
+create → allocate → learn. Every decision is **rule-based and auditable**;
 you keep the wheel. Any LLM, any ad platform, fully self-hostable.
 
 <br/>
 
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg?style=flat-square)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.11-3776ab.svg?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
+[![Release](https://img.shields.io/badge/release-v0.0.3-0052d9.svg?style=flat-square)](https://github.com/YunyueLi/Drip/releases)
 [![CI](https://img.shields.io/github/actions/workflow/status/YunyueLi/Drip/ci.yml?branch=main&style=flat-square&label=ci)](https://github.com/YunyueLi/Drip/actions)
-[![Tests](https://img.shields.io/badge/tests-15%2F15-22c55e.svg?style=flat-square)](tests/)
+[![Tests](https://img.shields.io/badge/tests-passing-22c55e.svg?style=flat-square)](tests/)
 [![Stars](https://img.shields.io/github/stars/YunyueLi/Drip?style=flat-square&color=fbbf24)](https://github.com/YunyueLi/Drip/stargazers)
-[![X](https://img.shields.io/twitter/follow/drip_agent?style=flat-square&label=%40drip_agent&color=000)](https://x.com/drip_agent)
 
-[**Quickstart**](#-quickstart) · [**How it works**](#-how-it-works) · [**The agents**](#-the-agents) · [**vs. closed-source**](#-open-vs-closed) · [**Roadmap**](#%EF%B8%8F-roadmap) · [**Vision**](docs/vision.md)
+[**▶ Live console**](https://yunyueli.github.io/Drip/app.html) · [**Quickstart**](#-quickstart) · [**How it works**](#-how-it-works) · [**Drip-Bench**](#-drip-bench) · [**vs. closed-source**](#-open-vs-closed) · [**Roadmap**](#%EF%B8%8F-roadmap)
 
 **English** · [简体中文](README.zh-CN.md)
 
@@ -29,7 +29,7 @@ you keep the wheel. Any LLM, any ad platform, fully self-hostable.
 
 <a href="https://yunyueli.github.io/Drip/app.html"><img src="assets/screens/console.png" alt="The Drip console — an open, auditable UA control room" width="880" /></a>
 
-<sub>Every campaign scored on **8 signals** · rules decide, the LLM only explains · you approve before any spend · **[▶ Live demo](https://yunyueli.github.io/Drip/app.html)** · 10 languages</sub>
+<sub>Every campaign scored on **8 signals** · rules decide, the LLM only explains · you approve before any spend · **[▶ Open the live console →](https://yunyueli.github.io/Drip/app.html)** · 10 languages</sub>
 
 </div>
 
@@ -42,8 +42,8 @@ you keep the wheel. Any LLM, any ad platform, fully self-hostable.
 > no published cases.
 >
 > **Drip is the open answer** — the whole UA loop as a team of agents you can
-> read, run, fork, and self-host. The decision core is deterministic and
-> auditable; the LLM only explains.
+> read, run, fork, and self-host. The decision core is **deterministic and
+> auditable**; the LLM only narrates. Trust it because you can _check_ it.
 
 ```console
 $ drip run --budget 1000
@@ -55,23 +55,22 @@ $ drip run --budget 1000
                 [cut]   TikTok_Broad_v1     — test a fresh angle
   ▸ creative    3 variants produced
   ▸ allocation  meta   Meta_Prospecting_v3    SCALE  →  $500
-                meta   Meta_Broad_v1          PAUSE  →  $0
                 tiktok TikTok_Prospecting_v3  SCALE  →  $500
-                tiktok TikTok_Broad_v1        PAUSE  →  $0
+                meta   Meta_Broad_v1          PAUSE  →  $0
   ▸ feedback    winner CTR 1.40% is the bar for the next creatives
 ```
 
-<div align="center"><sub>Runs offline on samples out of the box. Plug credentials + an LLM to go live — no code change.</sub></div>
+<div align="center"><sub>Runs offline on samples out of the box. Plug credentials + an LLM to go live — the decision engine never changes.</sub></div>
 
 ---
 
 ## ✨ What Drip does
 
-A full AI growth team, six roles, one loop, one command:
+A full growth team, six roles, one loop, one command:
 
 | Step | Agent | What it does | Powered by |
 |---|---|---|---|
-| 1 · **Collect** | `collectors` | Pull cross-platform insights, normalise to one schema | Meta / TikTok SDK |
+| 1 · **Collect** | `collectors` | Pull cross-platform insights, normalise to one schema | Meta / TikTok SDK · offline sample |
 | 2 · **Diagnose** | `analyst` | Score each campaign, scan anomalies, write the report | Decision engine + LLM |
 | 3 · **Strategize** | `strategist` | Rank winners/losers, propose the next creative test | LLM |
 | 4 · **Create** | `creative` | Produce ad variants for the winning direction | gpt-image / Seedance / ComfyUI |
@@ -81,13 +80,13 @@ A full AI growth team, six roles, one loop, one command:
 Plus **`attribution`** (reconcile platform-reported vs MMP truth) and the
 **8-signal decision engine** that every scale/pause call runs through.
 
-> **The point:** the decision is computed by **rules over 8 signals** —
+> **The point:** the action is computed by **rules over 8 signals** —
 > deterministic, explainable, replayable. The LLM only writes the human "why".
 > That's what lets you trust it with real money.
 
 ---
 
-## 🖥️ Inside the console
+## 🖥️ The console
 
 One chat-driven control room for the whole loop — diagnose, decide, allocate, create, and prove it. It's not a black box: every decision opens its **8-signal vector + rule chain + replay** in the side panel, so you see exactly _why_ before you approve.
 
@@ -97,16 +96,12 @@ One chat-driven control room for the whole loop — diagnose, decide, allocate, 
 <td width="50%"><img src="assets/screens/allocation.png" alt="Cross-platform allocation" /><br/><sub><b>Allocation</b> — budget freed from losers flows to winners, across platforms, within your daily cap.</sub></td>
 </tr>
 <tr>
-<td><img src="assets/screens/creative.png" alt="Creative selector" /><br/><sub><b>Creative</b> — pick winning videos (your own, authorized, or affiliate) for the next variants.</sub></td>
 <td><img src="assets/screens/strategy.png" alt="Growth strategy report" /><br/><sub><b>Strategy</b> — a consulting-grade growth plan: personas, competitive matrix, budget split, each with its rationale.</sub></td>
-</tr>
-<tr>
-<td><img src="assets/screens/bench.png" alt="Drip-Bench leaderboard" /><br/><sub><b>Drip-Bench</b> — the open, reproducible leaderboard. The rule engine lifts the <i>same</i> model's score by ~25 points.</sub></td>
-<td><img src="assets/screens/welcome.png" alt="Multilingual UI" /><br/><sub><b>10 languages</b> — 中 · EN · 日 · 한 · ES · PT · VI · FR · DE, switchable live.</sub></td>
+<td><img src="assets/screens/bench.png" alt="Drip-Bench leaderboard" /><br/><sub><b>Drip-Bench</b> — the open, reproducible leaderboard for UA-agent decisions.</sub></td>
 </tr>
 </table>
 
-<div align="center"><b><a href="https://yunyueli.github.io/Drip/app.html">▶ Open the live console →</a></b></div>
+<div align="center"><b><a href="https://yunyueli.github.io/Drip/app.html">▶ Open the live console — no install →</a></b></div>
 
 ---
 
@@ -139,7 +134,8 @@ and an auditable rule chain. Thin sample? It scales conservatively and caps
 confidence — the same judgment a senior buyer makes.
 
 Full design: [`docs/architecture.md`](docs/architecture.md) ·
-[`docs/vision.md`](docs/vision.md).
+[`docs/vision.md`](docs/vision.md) · platform-capability research and the
+real-time-control design in [`docs/intraday-research.md`](docs/intraday-research.md).
 
 ---
 
@@ -158,8 +154,9 @@ drip bench run --agent claude  # score any agent on 10 UA decisions
 drip llm                       # 12 model providers, addressed as provider/model
 ```
 
-Go live (no code change): set `ANTHROPIC_API_KEY` + a Meta System User token,
-`uv pip install -e ".[all]"`, then `drip run --narrate anthropic/claude-sonnet-4-6`.
+Go live: set `ANTHROPIC_API_KEY` + a Meta System User token, `uv pip install -e
+".[all]"`, then `drip run --narrate anthropic/claude-sonnet-4-6`. Reads pull
+from the real platform; spend stays in **shadow** until you flip `DRIP_MODE`.
 Full path: [`docs/deploy.md`](docs/deploy.md).
 
 ---
@@ -192,7 +189,7 @@ fallback — nothing locks you in.
 
 | Slot | Plug in | Default (offline) |
 |---|---|---|
-| **LLM** | Claude · GPT · Gemini · Qwen · DeepSeek · Grok · local… (12 + OpenRouter fallback) | required for live narration |
+| **LLM** | Claude · GPT · Gemini · Qwen · DeepSeek · Grok · local… (12 + OpenRouter fallback) | template (no key) |
 | **Creative gen** | gpt-image · Seedance · ComfyUI · Arcads | dry placeholders |
 | **Bid execution** | Meta Advantage+ · AppLovin AXON · Madgicx | shadow (record only) |
 | **LTV / value** | Kohort · Voyantis · your model | heuristic |
@@ -231,9 +228,9 @@ See [`benchmarks/`](benchmarks/).
 | Evaluation | Marketing claims | **Drip-Bench, reproducible** |
 | Price | $99–$999+/mo | **Free · self-host** |
 
-We're not claiming Drip beats them on raw performance today. We're claiming
-it's the only one you can **audit, fork, and run in your own environment** —
-and the only one whose evaluation is reproducible.
+We don't claim Drip beats them on raw performance today. We claim it's the only
+one you can **audit, fork, and run in your own environment** — and the only one
+whose evaluation is reproducible.
 
 ---
 
@@ -257,13 +254,15 @@ The roadmap is **bench-driven** — every release publishes its Drip-Bench score
 
 - [x] 8-signal decision engine · 12-provider LLM layer · bid/value slots
 - [x] **7 agents + end-to-end one-stop pipeline** · `drip run`
-- [x] Drip-Bench v0 (10 cases) · LangGraph production graph · 15/15 tests
+- [x] Drip-Bench v0 (10 cases) · LangGraph production graph
+- [x] **Chat-driven console** (10 languages) + platform-capability research ([`docs/intraday-research.md`](docs/intraday-research.md))
 - [ ] Public Drip-Bench leaderboard with baseline scores
-- [ ] First live Meta/TikTok run from real credentials (copilot mode)
+- [ ] **First live Meta/TikTok write from real credentials** (copilot mode)
+- [ ] **Intraday (spend-side) control layer** — hourly pacing / cost-spike / anti-overspend
 - [ ] Knowledge Packs — vertical signal/prompt overrides (anime, DTC, app…)
-- [ ] Trace Inspector (web) · `drip.cloud` hosted (same code) · 50-case bench
+- [ ] China platforms — 巨量引擎 / 腾讯广告 / 快手 adapters
 
-Build log: [@drip_agent](https://x.com/drip_agent).
+Build log: [@drip_agent](https://x.com/drip_agent) · [CHANGELOG](CHANGELOG.md).
 
 ---
 
@@ -274,7 +273,7 @@ The highest-leverage contributions right now:
 1. **Run Drip-Bench** against any agent — yours, ours, a competitor's — and PR the bundle.
 2. **Add a benchmark case** ([`benchmarks/SCHEMA.md`](benchmarks/SCHEMA.md)) — needs ≥3 reviewer sign-offs and must discriminate.
 3. **Knowledge Packs** — YAML-only vertical baselines/prompts, no Python required.
-4. **Provider adapters** — Apple Search Ads, Pangle, 巨量引擎. ~150-line PRs.
+4. **Provider adapters** — Apple Search Ads, 巨量引擎, 腾讯广告, 快手. ~150-line PRs.
 
 Setup in [CONTRIBUTING.md](CONTRIBUTING.md). PRs pass `ruff check .`, `mypy src`, `pytest`.
 
