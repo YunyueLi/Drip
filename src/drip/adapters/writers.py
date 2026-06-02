@@ -162,16 +162,15 @@ class OceanEngineWriter(_RestWriter):
         import httpx
 
         headers = {"Access-Token": self.token or "", "Content-Type": "application/json"}
+        body: dict[str, Any]
         if is_pause:
-            url, body = f"{self.BASE}/promotion/status/update/", {
-                "advertiser_id": self.account_id, "promotion_ids": [int(res.target_id)],
-                "opt_status": "disable",
-            }
+            url = f"{self.BASE}/promotion/status/update/"
+            body = {"advertiser_id": self.account_id,
+                    "promotion_ids": [int(res.target_id)], "opt_status": "disable"}
         else:
-            url, body = f"{self.BASE}/promotion/budget/update/", {
-                "advertiser_id": self.account_id,
-                "data": [{"promotion_id": int(res.target_id), "budget": res.new_value}],
-            }
+            url = f"{self.BASE}/promotion/budget/update/"
+            body = {"advertiser_id": self.account_id,
+                    "data": [{"promotion_id": int(res.target_id), "budget": res.new_value}]}
         r = httpx.post(url, headers=headers, json=body, timeout=30)
         r.raise_for_status()
         data = r.json()
