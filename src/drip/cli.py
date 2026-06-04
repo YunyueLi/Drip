@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import asyncio
+import datetime
 import os
 import sys
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -14,13 +16,103 @@ from dotenv import load_dotenv
 from rich.console import Console
 from rich.panel import Panel
 
-from drip import __version__
+from drip import __version__, safety
+from drip.adapters.writers import build_writer
 from drip.orchestrator import DripOrchestrator, GameSpec, RunMode
 
 if TYPE_CHECKING:
     from drip.engine.intraday import IntradayMetrics
 
 console = Console()
+
+_STATUS_COLOUR: dict[str, str] = {
+    "applied": "green",
+    "shadow": "bright_black",
+    "skipped": "yellow",
+    "failed": "red",
+    "denied": "red",
+}
+
+
+@dataclass
+class WriteRequest:
+    """A single budget/status change to push to an ad platform."""
+
+    platform: str
+    campaign_id: str
+    label: str
+    action: str          # "SCALE" | "REDUCE" | "PAUSE"
+    old_budget: float
+    new_budget: float
+    change_display: str  # "→ $0/day" or "$200 → $300/day"
+
+
+@dataclass
+class WriteResult:
+    """Outcome of one attempted write."""
+
+    status: str          # applied | shadow | skipped | failed | denied
+    detail: str = ""
+    audit_file: Path | None = None
+    colour: str = "white"
+
+
+def _execute_write(
+    req: WriteRequest,
+    *,
+    caps: safety.Caps,
+    mode_enum: RunMode,
+    send_live: bool,
+    yes: bool,
+    level: str,
+    confirm_prompt: str | None = None,
+    extra_audit_fields: dict[str, object] | None = None,
+) -> WriteResult:
+    """Guard, approve, write, audit — the common write path for all commands."""
+    # 1. Money-safety guard
+    try:
+        safety.guard_change(
+            action=req.action, old_budget=req.old_budget,
+            new_budget=req.new_budget, caps=caps,
+        )
+    except safety.GuardError as exc:
+        rec: dict[str, object] = {
+            "ts": datetime.datetime.now().isoformat(timespec="seconds"),
+            "mode": mode_enum.value, "platform": req.platform,
+            "target_id": req.campaign_id, "action": req.action,
+            "status": "denied", "detail": str(exc), "label": req.label,
+        }
+        if extra_audit_fields:
+            rec.update(extra_audit_fields)
+        audit_file = safety.audit(rec)
+        return WriteResult(status="denied", detail=str(exc),
+                          audit_file=audit_file, colour="red")
+
+    # 2. Human approval (copilot mode)
+    approved = True
+    if send_live and mode_enum is RunMode.COPILOT and not yes:
+        prompt = confirm_prompt or f"  {req.action}  {req.label}  {req.change_display} ?"
+        approved = click.confirm(prompt, default=False)
+
+    # 3. Write
+    r = build_writer(req.platform, level=level).apply_decision(
+        req.campaign_id, req.action, new_budget=req.new_budget,
+        dry_run=not (send_live and approved), label=req.label,
+    )
+    if not approved:
+        r.status, r.detail = "skipped", "declined by operator"
+
+    # 4. Audit
+    rec = r.to_dict()
+    rec["ts"] = datetime.datetime.now().isoformat(timespec="seconds")
+    rec["mode"] = mode_enum.value
+    if extra_audit_fields:
+        rec.update(extra_audit_fields)
+    audit_file = safety.audit(rec)
+
+    colour = _STATUS_COLOUR.get(r.status, "white")
+    return WriteResult(status=r.status, detail=r.detail,
+                      audit_file=audit_file, colour=colour)
 
 
 def _load_env() -> None:
@@ -233,12 +325,8 @@ def apply(since: str | None, until: str | None, budget: float, cpp_target: float
     DRIP_MAX_CHANGE_PCT). With no META_ACCESS_TOKEN every write is shadow, so this
     runs safely offline. Every write — real or shadow — lands in the audit trail.
     """
-    import datetime
-
     from rich.table import Table
 
-    from drip import safety
-    from drip.adapters.writers import build_writer
     from drip.allocator import Allocator
     from drip.collectors import Collector
     from drip.engine.rules import Action
@@ -263,7 +351,7 @@ def apply(since: str | None, until: str | None, budget: float, cpp_target: float
     for col in ("platform", "campaign", "action", "change", "result"):
         tbl.add_column(col)
 
-    audit_file: object | None = None
+    audit_file: Path | None = None
     n_applied = 0
     for a in plan.allocations:
         action = a.result.decision.action
@@ -276,38 +364,22 @@ def apply(since: str | None, until: str | None, budget: float, cpp_target: float
             continue
 
         change = "→ $0/day" if action is Action.PAUSE else f"${old_b:,.0f} → ${new_b:,.0f}/day"
-
-        try:
-            safety.guard_change(action=verb, old_budget=old_b, new_budget=new_b, caps=caps)
-        except safety.GuardError as exc:
-            tbl.add_row(plat, a.metrics.label, verb, change, f"[red]denied[/red] — {exc}")
-            safety.audit({"ts": datetime.datetime.now().isoformat(timespec="seconds"),
-                          "mode": mode_enum.value, "platform": plat,
-                          "target_id": a.metrics.campaign_id, "action": verb,
-                          "status": "denied", "detail": str(exc), "label": a.metrics.label})
-            continue
-
-        approved = True
-        if send_live and mode_enum is RunMode.COPILOT and not yes:
-            approved = click.confirm(f"  apply {verb}  {a.metrics.label}  {change} ?", default=False)
-
-        r = build_writer(plat, level=level).apply_decision(
-            a.metrics.campaign_id, verb, new_budget=new_b,
-            dry_run=not (send_live and approved), label=a.metrics.label,
+        req = WriteRequest(
+            platform=plat, campaign_id=a.metrics.campaign_id, label=a.metrics.label,
+            action=verb, old_budget=old_b, new_budget=new_b, change_display=change,
         )
-        if not approved:
-            r.status, r.detail = "skipped", "declined by operator"
-
-        rec = r.to_dict()
-        rec["ts"] = datetime.datetime.now().isoformat(timespec="seconds")
-        rec["mode"] = mode_enum.value
-        audit_file = safety.audit(rec)
-
-        colour = {"applied": "green", "shadow": "bright_black", "skipped": "yellow",
-                  "failed": "red", "denied": "red"}.get(r.status, "white")
-        if r.status == "applied":
+        result = _execute_write(
+            req, caps=caps, mode_enum=mode_enum, send_live=send_live,
+            yes=yes, level=level,
+            confirm_prompt=f"  apply {verb}  {a.metrics.label}  {change} ?",
+        )
+        if result.status == "applied":
             n_applied += 1
-        tbl.add_row(plat, a.metrics.label, verb, change, f"[{colour}]{r.status}[/{colour}]")
+        if result.audit_file is not None:
+            audit_file = result.audit_file
+        detail = f" — {result.detail}" if result.detail else ""
+        tbl.add_row(plat, a.metrics.label, verb, change,
+                    f"[{result.colour}]{result.status}[/{result.colour}]{detail}")
 
     console.print(tbl)
     if audit_file is not None:
@@ -365,13 +437,10 @@ def watch(once: bool, interval: int, mode: str | None, level: str,
     daily. Offline it uses a sample intraday series; plug a token + hourly data to
     go live. shadow by default.
     """
-    import datetime
     import time
 
     from rich.table import Table
 
-    from drip import safety
-    from drip.adapters.writers import build_writer
     from drip.engine.intraday import IntradayAction, decide_intraday, evaluate_intraday
 
     mode_enum = RunMode(mode) if mode else RunMode(os.getenv("DRIP_MODE", "copilot"))
@@ -398,28 +467,20 @@ def watch(once: bool, interval: int, mode: str | None, level: str,
                 tbl.add_row(m.label, sig.summary, "HOLD", "[bright_black]—[/bright_black]")
                 continue
             verb = verb_map[d.action]
-            try:
-                safety.guard_change(action=verb, old_budget=d.current_budget,
-                                    new_budget=d.projected_budget, caps=caps)
-            except safety.GuardError as exc:
-                tbl.add_row(m.label, sig.summary, d.headline, f"[red]denied[/red] — {exc}")
-                continue
-            approved = True
-            if send_live and mode_enum is RunMode.COPILOT and not yes:
-                approved = click.confirm(f"  {d.headline}  ({m.label}) ?", default=False)
-            r = build_writer(m.platform, level=level).apply_decision(
-                m.campaign_id, verb, new_budget=d.projected_budget,
-                dry_run=not (send_live and approved), label=m.label,
+            req = WriteRequest(
+                platform=m.platform, campaign_id=m.campaign_id, label=m.label,
+                action=verb, old_budget=d.current_budget, new_budget=d.projected_budget,
+                change_display=d.headline,
             )
-            if not approved:
-                r.status, r.detail = "skipped", "declined by operator"
-            rec = r.to_dict()
-            rec["ts"] = datetime.datetime.now().isoformat(timespec="seconds")
-            rec["mode"], rec["layer"] = mode_enum.value, "intraday"
-            safety.audit(rec)
-            colour = {"applied": "green", "shadow": "bright_black", "skipped": "yellow",
-                      "failed": "red"}.get(r.status, "white")
-            tbl.add_row(m.label, sig.summary, d.headline, f"[{colour}]{r.status}[/{colour}]")
+            result = _execute_write(
+                req, caps=caps, mode_enum=mode_enum, send_live=send_live,
+                yes=yes, level=level,
+                confirm_prompt=f"  {d.headline}  ({m.label}) ?",
+                extra_audit_fields={"layer": "intraday"},
+            )
+            detail = f" — {result.detail}" if result.detail else ""
+            tbl.add_row(m.label, sig.summary, d.headline,
+                        f"[{result.colour}]{result.status}[/{result.colour}]{detail}")
         console.print(tbl)
 
     if once:
@@ -457,12 +518,8 @@ def autopilot(since: str | None, until: str | None, budget: float, cpp_target: f
     run on a data anomaly (most of the account wanting to pause) or on write
     failures. Deterministic + auditable; shadow by default.
     """
-    import datetime
-
     from rich.table import Table
 
-    from drip import safety
-    from drip.adapters.writers import build_writer
     from drip.allocator import Allocator
     from drip.collectors import Collector
     from drip.engine.rules import Action
@@ -514,32 +571,24 @@ def autopilot(since: str | None, until: str | None, budget: float, cpp_target: f
             tbl.add_row(plat, a.metrics.label, verb, "—", "[bright_black]no write[/bright_black]")
             continue
         change = "→ $0/day" if action is Action.PAUSE else f"${old_b:,.0f} → ${new_b:,.0f}/day"
-        try:
-            safety.guard_change(action=verb, old_budget=old_b, new_budget=new_b, caps=caps)
-        except safety.GuardError as exc:
-            tbl.add_row(plat, a.metrics.label, verb, change, f"[red]denied[/red] — {exc}")
-            continue
-        approved = True
-        if send_live and mode_enum is RunMode.COPILOT and not yes:
-            approved = click.confirm(f"  {verb}  {a.metrics.label}  {change} ?", default=False)
-        r = build_writer(plat, level=level).apply_decision(
-            a.metrics.campaign_id, verb, new_budget=new_b,
-            dry_run=not (send_live and approved), label=a.metrics.label,
+        req = WriteRequest(
+            platform=plat, campaign_id=a.metrics.campaign_id, label=a.metrics.label,
+            action=verb, old_budget=old_b, new_budget=new_b, change_display=change,
         )
-        if not approved:
-            r.status, r.detail = "skipped", "declined by operator"
-        rec = r.to_dict()
-        rec["ts"] = datetime.datetime.now().isoformat(timespec="seconds")
-        rec["mode"], rec["layer"] = mode_enum.value, "autopilot"
-        safety.audit(rec)
+        result = _execute_write(
+            req, caps=caps, mode_enum=mode_enum, send_live=send_live,
+            yes=yes, level=level,
+            confirm_prompt=f"  {verb}  {a.metrics.label}  {change} ?",
+            extra_audit_fields={"layer": "autopilot"},
+        )
         n_attempted += 1
-        if r.status == "applied":
+        if result.status == "applied":
             n_applied += 1
-        elif r.status == "failed":
+        elif result.status == "failed":
             n_failed += 1
-        colour = {"applied": "green", "shadow": "bright_black", "skipped": "yellow",
-                  "failed": "red"}.get(r.status, "white")
-        tbl.add_row(plat, a.metrics.label, verb, change, f"[{colour}]{r.status}[/{colour}]")
+        detail = f" — {result.detail}" if result.detail else ""
+        tbl.add_row(plat, a.metrics.label, verb, change,
+                    f"[{result.colour}]{result.status}[/{result.colour}]{detail}")
         tripped, why = breaker.post_write(n_attempted, n_failed)
         if tripped:
             halted = True
