@@ -160,7 +160,7 @@ drip run                       # the whole loop, end to end (offline samples)
 drip doctor                    # diagnose one account → decision cards
 drip apply                     # collect → decide → PUSH to Meta/腾讯/巨量/快手 (shadow default)
 drip watch --once              # intraday spend-side guard: pacing / cost-spike / overspend
-drip autopilot                 # the whole loop, signal-routed + circuit-broken (shadow default)
+drip autopilot                 # the whole loop, signal-routed + breaker-protected (shadow default)
 drip bench run --agent claude  # score any agent on 10 UA decisions
 drip llm                       # 12 model providers, addressed as provider/model
 ```
