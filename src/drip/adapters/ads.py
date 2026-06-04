@@ -118,6 +118,8 @@ class MetaWriter:
         try:
             return self._apply_live(res, is_pause, dry_run)
         except Exception as exc:  # pragma: no cover — only reachable with a live SDK
+            from drip.log import logger
+            logger.error("Meta write failed for %s: %s", res.target_id, exc, exc_info=True)
             res.status = "failed"
             res.detail = f"{type(exc).__name__}: {exc}"
             return res

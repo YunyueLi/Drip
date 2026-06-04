@@ -9,7 +9,7 @@ Gemini, DeepSeek, Qwen, Moonshot, xAI, Groq, Together, Mistral, Ollama,
 vLLM). Unknown model names fall back to OpenRouter.
 """
 
-from drip.llm.client import ChatResult, LLMError, MissingKeyError, chat
+from drip.llm.client import ChatResult, LLMError, MissingKeyError, chat, chat_or_fallback
 from drip.llm.providers import PROVIDERS, Provider, list_providers, resolve
 
 __all__ = [
@@ -19,6 +19,7 @@ __all__ = [
     "MissingKeyError",
     "Provider",
     "chat",
+    "chat_or_fallback",
     "list_providers",
     "resolve",
 ]

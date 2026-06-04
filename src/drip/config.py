@@ -26,10 +26,34 @@ DEFAULT_ROAS_TARGET = 3.0
 DEFAULT_BUDGET_CAP = 1000.0
 
 # ---------------------------------------------------------------------------
+# Analyst anomaly-detection thresholds (analyst.py)
+# ---------------------------------------------------------------------------
+
+DEFAULT_FREQ_ALARM = 3.0       # frequency multiplier that triggers a burnout warning
+DEFAULT_CTR_FLOOR = 0.005      # CTR below this floors as "creative may be weak"
+DEFAULT_ROAS_FLOOR = 1.0       # ROAS below 1.0x flags "losing money on spend"
+
+# ---------------------------------------------------------------------------
+# Intraday spend-side thresholds (engine/intraday.py)
+# ---------------------------------------------------------------------------
+
+DEFAULT_EXHAUST_EARLY = 0.85   # budget-exhaustion day-fraction that triggers overpacing
+DEFAULT_COST_THROTTLE = 1.5    # CPA / target ratio that triggers a throttle
+DEFAULT_COST_PAUSE = 2.0       # CPA / target ratio that triggers a pause
+DEFAULT_SPIKE_RATIO = 1.5      # recent-CPA / baseline ratio that counts as a spike
+DEFAULT_THIN_CONV = 5          # min conversions before a spend-side action is trusted
+
+# ---------------------------------------------------------------------------
 # Money-safety caps (safety.py)
 # ---------------------------------------------------------------------------
 
 DEFAULT_MAX_CHANGE_PCT = 0.5
+
+# ---------------------------------------------------------------------------
+# CLI tuning
+# ---------------------------------------------------------------------------
+
+DEFAULT_WATCH_INTERVAL_MIN = 30
 
 # ---------------------------------------------------------------------------
 # Run mode

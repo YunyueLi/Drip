@@ -182,13 +182,47 @@ def _post(
     try:
         with httpx.Client(timeout=timeout) as client:
             resp = client.post(url, json=body, headers=headers)
+        if resp.status_code >= 400:
+            raise LLMError(
+                f"{provider.name} returned {resp.status_code}: {resp.text[:400]}"
+            )
+        return resp.json()
     except httpx.HTTPError as exc:
         raise LLMError(f"network error calling {provider.name} ({url}): {exc}") from exc
-    if resp.status_code >= 400:
+    except (json.JSONDecodeError, ValueError) as exc:
         raise LLMError(
-            f"{provider.name} returned {resp.status_code}: {resp.text[:400]}"
+            f"unexpected response from {provider.name} (not JSON): {exc}"
+        ) from exc
+
+
+def chat_or_fallback(
+    *,
+    model: str,
+    system: str,
+    user_content: str,
+    max_tokens: int = 300,
+    temperature: float = 0.0,
+    fallback: str,
+) -> str:
+    """Call :func:`chat` for narration; return *fallback* on any error.
+
+    Logs failures so operations can detect when LLM narration degrades to
+    template mode. Used by :mod:`drip.analyst`, :mod:`drip.strategist`, and
+    :mod:`drip.engine.engine`.
+    """
+    try:
+        result = chat(
+            model=model,
+            system=system,
+            messages=[{"role": "user", "content": user_content}],
+            max_tokens=max_tokens,
+            temperature=temperature,
         )
-    return resp.json()
+        return result.text or fallback
+    except Exception:
+        from drip.log import logger
+        logger.warning("LLM chat failed, falling back to template", exc_info=True)
+        return fallback
 
 
 def _loads_lenient(text: str) -> Any:

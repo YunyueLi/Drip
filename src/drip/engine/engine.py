@@ -59,20 +59,14 @@ def narrate(
         f"rule chain:\n{rule_lines}\n\n"
         "Explain why this decision is correct."
     )
-    try:
-        from drip.llm import chat
-        result = chat(
-            model=model,
-            system=_NARRATE_SYSTEM,
-            messages=[{"role": "user", "content": user}],
-            max_tokens=300,
-            temperature=0.0,
-        )
-        return result.text or _template_why(sv, decision)
-    except Exception:
-        from drip.log import logger
-        logger.warning("LLM narration failed, falling back to template", exc_info=True)
-        return _template_why(sv, decision)
+    from drip.llm import chat_or_fallback
+    return chat_or_fallback(
+        model=model,
+        system=_NARRATE_SYSTEM,
+        user_content=user,
+        max_tokens=300, temperature=0.0,
+        fallback=_template_why(sv, decision),
+    )
 
 
 class DecisionEngine:

@@ -57,7 +57,8 @@ def print_card(
     label: str = "campaign",
     why: str = "",
 ) -> None:
-    """Pretty card via rich; falls back to plain text if rich is absent."""
+    """Pretty card via rich; falls back to plain text if rich is absent or
+    the terminal can't render Unicode (e.g. Windows GBK)."""
     try:
         from rich.console import Console
         from rich.panel import Panel
@@ -92,14 +93,18 @@ def print_card(
         body_lines.append(f"\n[italic]{why.strip()}[/italic]")
     head = "\n".join(body_lines)
 
-    console.print(Panel.fit(head, title=f"decision · {label}",
-                            border_style="bright_black"))
-    console.print(tbl)
-    if decision.reasons:
-        console.print("[bright_black]rule chain[/bright_black]")
-        for r in decision.reasons:
-            console.print(f"  [bright_black]·[/bright_black] [{r.rule_id}] {r.message}")
-    if decision.guardrails:
-        conds = "  OR  ".join(g.condition for g in decision.guardrails)
-        console.print(f"[bright_black]guardrails[/bright_black] auto-revert if {conds}")
-    console.print(f"[bright_black]next check[/bright_black] {decision.next_check_hours}h")
+    try:
+        console.print(Panel.fit(head, title=f"decision · {label}",
+                                border_style="bright_black"))
+        console.print(tbl)
+        if decision.reasons:
+            console.print("[bright_black]rule chain[/bright_black]")
+            for r in decision.reasons:
+                console.print(f"  [bright_black]·[/bright_black] [{r.rule_id}] {r.message}")
+        if decision.guardrails:
+            conds = "  OR  ".join(g.condition for g in decision.guardrails)
+            console.print(f"[bright_black]guardrails[/bright_black] auto-revert if {conds}")
+        console.print(f"[bright_black]next check[/bright_black] {decision.next_check_hours}h")
+    except UnicodeEncodeError:
+        # Terminal can't render Unicode (common on Windows GBK).
+        print(card_text(decision, sv, label=label, why=why))
