@@ -14,12 +14,12 @@ Pure stdlib — no provider deps — so it imports anywhere.
 from __future__ import annotations
 
 import json
-import os
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-DEFAULT_MAX_CHANGE_PCT = 0.5
+from drip.config import DEFAULT_MAX_CHANGE_PCT, get_audit_path, get_budget_cap, get_max_change_pct
+
 _BUDGET_ACTIONS = {"SCALE", "REDUCE"}
 
 
@@ -37,10 +37,8 @@ class Caps:
     @classmethod
     def from_env(cls) -> Caps:
         return cls(
-            budget_cap=float(os.getenv("DRIP_BUDGET_CAP", "0") or 0),
-            max_change_pct=float(
-                os.getenv("DRIP_MAX_CHANGE_PCT", str(DEFAULT_MAX_CHANGE_PCT)) or DEFAULT_MAX_CHANGE_PCT
-            ),
+            budget_cap=get_budget_cap(),
+            max_change_pct=get_max_change_pct(),
         )
 
 
@@ -67,7 +65,7 @@ def guard_change(*, action: str, old_budget: float, new_budget: float, caps: Cap
 
 
 def audit_path() -> Path:
-    return Path(os.getenv("DRIP_AUDIT_PATH", "artifacts/audit/writes.jsonl"))
+    return get_audit_path()
 
 
 def audit(record: dict[str, Any]) -> Path:

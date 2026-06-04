@@ -141,4 +141,6 @@ class SimulationAdapter:
             comments = sum(getattr(p, "comments", 0) for p in posts)
             return {"likes": likes, "comments": comments}
         except Exception:
+            from drip.log import logger
+            logger.warning("OASIS aggregation failed, returning zeroes", exc_info=True)
             return {"likes": 0, "comments": 0}

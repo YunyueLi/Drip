@@ -96,6 +96,8 @@ class _RestWriter:
             self._send(res, is_pause)
             res.status = "applied"
         except Exception as exc:  # pragma: no cover — live only
+            from drip.log import logger
+            logger.error("write failed for %s/%s: %s", self.platform, res.target_id, exc, exc_info=True)
             res.status, res.detail = "failed", f"{type(exc).__name__}: {exc}"
         return res
 

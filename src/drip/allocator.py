@@ -107,7 +107,14 @@ class Allocator:
 
     def execute(self, plan: AllocationPlan, *, executor_name: str = "shadow") -> list[dict[str, object]]:
         """Hand each non-zero budget to the bidding slot. Lazy-imports the
-        slot so the dependency only loads when you actually dispatch."""
+        slot so the dependency only loads when you actually dispatch.
+
+        .. note::
+
+           Not yet wired into the pipeline or CLI — forward-looking code kept
+           so the bidding-slot integration point is documented. Plan output is
+           used directly by the CLI write path (``cli._execute_write``).
+        """
         from drip.adapters.bidding import (
             BidInstruction,
             BidStrategy,

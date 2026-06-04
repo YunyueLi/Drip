@@ -15,7 +15,7 @@ from dotenv import load_dotenv
 from rich.console import Console
 from rich.panel import Panel
 
-from drip import __version__, safety
+from drip import __version__, config, safety
 from drip.adapters.writers import build_writer
 from drip.orchestrator import DripOrchestrator, GameSpec, RunMode
 
@@ -141,6 +141,12 @@ def _default_window(since: str | None, until: str | None,
 def main() -> None:
     """drip — open-source reference implementation for AI user-acquisition agents."""
     _load_env()
+    # Re-open stdout in UTF-8 so Rich's Unicode output (✓ ✗) doesn't crash
+    # on Windows terminals that default to the locale encoding (e.g. GBK).
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")  # type: ignore[union-attr]
+    except Exception:
+        pass
 
 
 @main.command()
@@ -157,7 +163,7 @@ def launch(game_path: Path, budget: float, regions: str, mode: str | None, dry_r
     region_list = [r.strip() for r in regions.split(",") if r.strip()]
     mode_enum = _resolve_mode(mode, "shadow")
 
-    cap = float(os.getenv("DRIP_BUDGET_CAP", "0") or 0)
+    cap = config.get_budget_cap()
     if cap and budget > cap:
         raise click.ClickException(
             f"requested budget ${budget:.2f} exceeds DRIP_BUDGET_CAP ${cap:.2f}"
@@ -262,13 +268,13 @@ def doctor(metrics_path: Path | None, narrate_model: str | None) -> None:
 @main.command()
 @click.option("--since", default=None, help="Window start YYYY-MM-DD (default: 7 days ago).")
 @click.option("--until", default=None, help="Window end YYYY-MM-DD (default: today).")
-@click.option("--budget", type=float, default=1000.0, help="Total budget to allocate.")
+@click.option("--budget", type=float, default=config.DEFAULT_BUDGET_CAP, help="Total budget to allocate.")
 @click.option("--narrate", "narrate_model", default=None,
               help="LLM for reports/briefs (any drip.llm spec). Omit for templates.")
 @click.option("--generator", default="dry",
               help="Creative generator: dry / gpt-image / seedance / comfyui.")
-@click.option("--cpp-target", type=float, default=25.0)
-@click.option("--roas-target", type=float, default=3.0)
+@click.option("--cpp-target", type=float, default=config.DEFAULT_CPP_TARGET)
+@click.option("--roas-target", type=float, default=config.DEFAULT_ROAS_TARGET)
 def run(since: str | None, until: str | None, budget: float, narrate_model: str | None,
         generator: str, cpp_target: float, roas_target: float) -> None:
     """Run the full one-stop pipeline end to end.
@@ -314,9 +320,9 @@ def run(since: str | None, until: str | None, budget: float, narrate_model: str 
 @main.command()
 @click.option("--since", default=None, help="Window start YYYY-MM-DD (default: 7 days ago).")
 @click.option("--until", default=None, help="Window end YYYY-MM-DD (default: today).")
-@click.option("--budget", type=float, default=1000.0, help="Total budget to allocate before pushing.")
-@click.option("--cpp-target", type=float, default=25.0)
-@click.option("--roas-target", type=float, default=3.0)
+@click.option("--budget", type=float, default=config.DEFAULT_BUDGET_CAP, help="Total budget to allocate before pushing.")
+@click.option("--cpp-target", type=float, default=config.DEFAULT_CPP_TARGET)
+@click.option("--roas-target", type=float, default=config.DEFAULT_ROAS_TARGET)
 @click.option("--mode", type=click.Choice([m.value for m in RunMode]), default=None,
               help="Override DRIP_MODE. `apply` defaults to copilot (approve each write).")
 @click.option("--level", type=click.Choice(["campaign", "adset"]), default="campaign",
@@ -400,11 +406,11 @@ def apply(since: str | None, until: str | None, budget: float, cpp_target: float
 
 @main.command()
 @click.option("--once", is_flag=True, help="Run a single cycle and exit (default loops).")
-@click.option("--interval", type=int, default=30, help="Minutes between cycles in continuous mode.")
+@click.option("--interval", type=int, default=config.DEFAULT_WATCH_INTERVAL_MIN, help="Minutes between cycles in continuous mode.")
 @click.option("--mode", type=click.Choice([m.value for m in RunMode]), default=None,
               help="Override DRIP_MODE. `watch` defaults to copilot.")
 @click.option("--level", type=click.Choice(["campaign", "adset"]), default="campaign")
-@click.option("--cpa-target", type=float, default=25.0, help="Acceptable cost-per-action ceiling.")
+@click.option("--cpa-target", type=float, default=config.DEFAULT_CPP_TARGET, help="Acceptable cost-per-action ceiling.")
 @click.option("--dry-run", is_flag=True, help="Plan throttles/pauses, never call the write API.")
 @click.option("--yes", is_flag=True, help="Skip per-write prompts (autonomous-style; still capped).")
 def watch(once: bool, interval: int, mode: str | None, level: str,
@@ -485,9 +491,9 @@ def watch(once: bool, interval: int, mode: str | None, level: str,
 @main.command()
 @click.option("--since", default=None, help="Window start YYYY-MM-DD (default: 7 days ago).")
 @click.option("--until", default=None, help="Window end YYYY-MM-DD (default: today).")
-@click.option("--budget", type=float, default=1000.0)
-@click.option("--cpp-target", type=float, default=25.0)
-@click.option("--roas-target", type=float, default=3.0)
+@click.option("--budget", type=float, default=config.DEFAULT_BUDGET_CAP)
+@click.option("--cpp-target", type=float, default=config.DEFAULT_CPP_TARGET)
+@click.option("--roas-target", type=float, default=config.DEFAULT_ROAS_TARGET)
 @click.option("--mode", type=click.Choice([m.value for m in RunMode]), default=None,
               help="Override DRIP_MODE. `autopilot` defaults to copilot; --mode autonomous for hands-off.")
 @click.option("--level", type=click.Choice(["campaign", "adset"]), default="campaign")
