@@ -11,6 +11,14 @@ a long-running, money-spending, accountable system needs (per the research):
 The graph nodes map 1:1 onto the agents, so the reference flow
 (``Pipeline``) and the production graph stay in sync.
 
+.. note::
+
+   This module is **not yet wired** into any CLI command or the pipeline. It is
+   forward-looking infrastructure — the nodes are individually testable, but
+   ``build_graph()`` is not called anywhere. When ``langgraph`` is ready to
+   replace :class:`~drip.pipeline.Pipeline`, wire it here (a ``drip graph``
+   command or a ``Pipeline`` backend toggle).
+
 ``langgraph`` is imported lazily inside :func:`build_graph`. Without it,
 callers get a clear message pointing back to ``Pipeline`` as the offline
 fallback — nothing else in Drip imports this module eagerly.

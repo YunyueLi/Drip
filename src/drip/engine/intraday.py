@@ -17,18 +17,16 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from enum import Enum
 
+from drip import config
 from drip.engine.rules import Confidence, Reason
 
-# A budget is "pacing early" if it will exhaust before this fraction of the day.
-EXHAUST_EARLY = 0.85
-# Cost ratios (recent CPA / target) that trip throttle / pause.
-COST_THROTTLE = 1.5
-COST_PAUSE = 2.0
-# Recent CPA / today's baseline that counts as a spike.
-SPIKE = 1.5
-# Below this many conversions in the window, the read is noise — cap confidence,
-# never pause or raise on it.
-THIN_CONV = 5
+# All thresholds are sourced from config.py so they can be overridden via env
+# vars and stay in sync across the codebase.
+EXHAUST_EARLY = config.DEFAULT_EXHAUST_EARLY   # budget-exhaustion day-fraction
+COST_THROTTLE = config.DEFAULT_COST_THROTTLE   # CPA/target ratio → throttle
+COST_PAUSE = config.DEFAULT_COST_PAUSE         # CPA/target ratio → pause
+SPIKE = config.DEFAULT_SPIKE_RATIO             # recent/baseline CPA → spike
+THIN_CONV = config.DEFAULT_THIN_CONV           # min conversions to trust
 
 
 class IntradayAction(str, Enum):

@@ -16,6 +16,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
+from drip import config
 from drip.data.metrics import AdMetrics
 from drip.engine import DecisionEngine, EngineResult
 
@@ -57,10 +58,10 @@ class AnalystReport:
 
 
 # Anomaly thresholds — deliberately conservative; the daemon can swap these
-# for Prophet/ADTK forecasts once it has history.
-FREQ_ALARM = 3.0
-CTR_FLOOR = 0.005
-ROAS_FLOOR = 1.0
+# for Prophet/ADTK forecasts once it has history. Source of truth in config.py.
+FREQ_ALARM = config.DEFAULT_FREQ_ALARM
+CTR_FLOOR = config.DEFAULT_CTR_FLOOR
+ROAS_FLOOR = config.DEFAULT_ROAS_FLOOR
 
 
 class Analyst:
@@ -110,35 +111,30 @@ class Analyst:
     def _summarize(self, report: AnalystReport) -> str:
         if not self.narrate_model:
             return self._template(report)
-        try:
-            from drip.llm import chat
+        from drip.llm import chat_or_fallback
 
-            lines = [
-                f"{v.metrics.platform} {v.metrics.label}: "
-                f"spend ${v.metrics.spend:.0f}, CPP ${v.metrics.cpp:.2f}, "
-                f"ROAS {v.metrics.roas:.2f}x -> {v.result.decision.headline} "
-                f"({v.result.decision.confidence.value})"
-                for v in report.verdicts
-            ]
-            anomalies = [f"{a.campaign}: {a.metric} {a.detail}" for a in report.anomalies]
-            user = (
-                "Write a 3-4 sentence morning report for a UA manager. Be concrete, "
-                "lead with what needs attention.\n\n"
-                f"CAMPAIGNS ({report.n_campaigns}, total spend ${report.total_spend:.0f}):\n"
-                + "\n".join(lines)
-                + ("\n\nANOMALIES:\n" + "\n".join(anomalies) if anomalies else "\n\nNo anomalies.")
-            )
-            result = chat(
-                model=self.narrate_model,
-                system="You are a senior UA manager writing a concise daily report.",
-                messages=[{"role": "user", "content": user}],
-                max_tokens=300, temperature=0.0,
-            )
-            return result.text or self._template(report)
-        except Exception:
-            from drip.log import logger
-            logger.warning("LLM narration failed, falling back to template", exc_info=True)
-            return self._template(report)
+        lines = [
+            f"{v.metrics.platform} {v.metrics.label}: "
+            f"spend ${v.metrics.spend:.0f}, CPP ${v.metrics.cpp:.2f}, "
+            f"ROAS {v.metrics.roas:.2f}x -> {v.result.decision.headline} "
+            f"({v.result.decision.confidence.value})"
+            for v in report.verdicts
+        ]
+        anomalies = [f"{a.campaign}: {a.metric} {a.detail}" for a in report.anomalies]
+        user = (
+            "Write a 3-4 sentence morning report for a UA manager. Be concrete, "
+            "lead with what needs attention.\n\n"
+            f"CAMPAIGNS ({report.n_campaigns}, total spend ${report.total_spend:.0f}):\n"
+            + "\n".join(lines)
+            + ("\n\nANOMALIES:\n" + "\n".join(anomalies) if anomalies else "\n\nNo anomalies.")
+        )
+        return chat_or_fallback(
+            model=self.narrate_model,
+            system="You are a senior UA manager writing a concise daily report.",
+            user_content=user,
+            max_tokens=300, temperature=0.0,
+            fallback=self._template(report),
+        )
 
     def _template(self, report: AnalystReport) -> str:
         actions = ", ".join(f"{n} {a}" for a, n in sorted(report.by_action.items()))

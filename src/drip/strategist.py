@@ -69,30 +69,28 @@ class Strategist:
 
     def _brief(self, direction: str, m: AdMetrics, roas_target: float) -> str:
         if self.narrate_model:
-            try:
-                from drip.llm import chat
+            from drip.llm import chat_or_fallback
 
-                ask = (
-                    "scale the winner: propose 3 creative variants on its winning hook"
-                    if direction == "scale_winner"
-                    else "cut the loser: propose a fresh angle to test instead"
-                )
-                user = (
-                    f"Campaign {m.label} on {m.platform}: ROAS {m.roas:.2f}x, "
-                    f"CTR {m.ctr:.2%}, CPP ${m.cpp:.2f}, spend ${m.spend:.0f}.\n"
-                    f"Task: {ask}. Give a 2-sentence creative brief, concrete."
-                )
-                result = chat(
-                    model=self.narrate_model,
-                    system="You are a UA creative strategist. Be concrete and brief.",
-                    messages=[{"role": "user", "content": user}],
-                    max_tokens=200, temperature=0.4,
-                )
-                if result.text:
-                    return result.text
-            except Exception:
-                from drip.log import logger
-                logger.warning("LLM creative brief failed, falling back to template", exc_info=True)
+            ask = (
+                "scale the winner: propose 3 creative variants on its winning hook"
+                if direction == "scale_winner"
+                else "cut the loser: propose a fresh angle to test instead"
+            )
+            user = (
+                f"Campaign {m.label} on {m.platform}: ROAS {m.roas:.2f}x, "
+                f"CTR {m.ctr:.2%}, CPP ${m.cpp:.2f}, spend ${m.spend:.0f}.\n"
+                f"Task: {ask}. Give a 2-sentence creative brief, concrete."
+            )
+            template = ""  # filled below if LLM returns nothing
+            text = chat_or_fallback(
+                model=self.narrate_model,
+                system="You are a UA creative strategist. Be concrete and brief.",
+                user_content=user,
+                max_tokens=200, temperature=0.4,
+                fallback=template,
+            )
+            if text:
+                return text
         # Template fallback
         if direction == "scale_winner":
             return (f"Double down on {m.label}: produce 3 variants on its winning "
