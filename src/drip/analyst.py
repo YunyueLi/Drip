@@ -136,6 +136,8 @@ class Analyst:
             )
             return result.text or self._template(report)
         except Exception:
+            from drip.log import logger
+            logger.warning("LLM narration failed, falling back to template", exc_info=True)
             return self._template(report)
 
     def _template(self, report: AnalystReport) -> str:

@@ -155,3 +155,28 @@ def decide_intraday(s: IntradaySignals, m: IntradayMetrics) -> IntradayDecision:
         action=action, delta_pct=delta, confidence=conf, reasons=reasons,
         next_check_min=30, current_budget=m.daily_budget, projected_budget=projected,
     )
+
+
+def sample_intraday(cpa_target: float) -> list[IntradayMetrics]:
+    """Deterministic within-day sample for offline ``drip watch``.
+
+    Four campaigns mid-day, each in a different spend-side state.
+    """
+    return [
+        # healthy, on pace
+        IntradayMetrics(campaign_id="meta-0001", daily_budget=200.0, spend_so_far=100.0,
+                        day_fraction=0.5, cpa_recent=18.0, cpa_baseline=18.0, cpa_target=cpa_target,
+                        conversions_recent=9, label="Meta_Prospecting_v3"),
+        # cost spiking over the ceiling → throttle/pause
+        IntradayMetrics(campaign_id="meta-0002", daily_budget=240.0, spend_so_far=150.0,
+                        day_fraction=0.5, cpa_recent=44.0, cpa_baseline=26.0, cpa_target=cpa_target,
+                        conversions_recent=7, label="Meta_Broad_v1"),
+        # burning budget too early while cost is soft → gentle trim
+        IntradayMetrics(campaign_id="meta-0003", daily_budget=180.0, spend_so_far=150.0,
+                        day_fraction=0.5, cpa_recent=27.0, cpa_baseline=26.0, cpa_target=cpa_target,
+                        conversions_recent=8, label="Meta_Lookalike_v2"),
+        # underpacing a healthy line → small raise
+        IntradayMetrics(campaign_id="meta-0004", daily_budget=160.0, spend_so_far=40.0,
+                        day_fraction=0.5, cpa_recent=15.0, cpa_baseline=16.0, cpa_target=cpa_target,
+                        conversions_recent=10, label="Meta_Retarget_v4"),
+    ]

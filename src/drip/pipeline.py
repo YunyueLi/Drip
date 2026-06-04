@@ -17,6 +17,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
+from drip import config
 from drip.allocator import AllocationPlan, Allocator
 from drip.analyst import Analyst, AnalystReport
 from drip.collectors import Collector
@@ -36,9 +37,9 @@ class PipelineResult:
 
 @dataclass
 class Pipeline:
-    cpp_target: float = 25.0
-    roas_target: float = 3.0
-    total_budget: float = 1000.0
+    cpp_target: float = config.DEFAULT_CPP_TARGET
+    roas_target: float = config.DEFAULT_ROAS_TARGET
+    total_budget: float = config.DEFAULT_BUDGET_CAP
     narrate_model: str | None = None     # plug an LLM for human reports/briefs
     creative_generator: str = "dry"      # plug gpt-image/seedance/comfyui to go live
     collector: Collector = field(default_factory=Collector)

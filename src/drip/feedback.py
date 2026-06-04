@@ -13,6 +13,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
+from drip import config
 from drip.data.metrics import AdMetrics
 
 
@@ -37,7 +38,7 @@ class FeedbackResult:
 
 
 class FeedbackLoop:
-    def __init__(self, roas_target: float = 3.0) -> None:
+    def __init__(self, roas_target: float = config.DEFAULT_ROAS_TARGET) -> None:
         self.roas_target = roas_target
 
     def review(self, metrics: list[AdMetrics]) -> FeedbackResult:

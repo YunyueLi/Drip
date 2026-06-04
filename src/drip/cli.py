@@ -8,7 +8,6 @@ import os
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import TYPE_CHECKING
 
 import click
 import yaml
@@ -19,9 +18,6 @@ from rich.panel import Panel
 from drip import __version__, safety
 from drip.adapters.writers import build_writer
 from drip.orchestrator import DripOrchestrator, GameSpec, RunMode
-
-if TYPE_CHECKING:
-    from drip.engine.intraday import IntradayMetrics
 
 console = Console()
 
@@ -122,8 +118,22 @@ def _load_env() -> None:
 def _read_game(path: Path) -> GameSpec:
     if not path.exists():
         raise click.ClickException(f"game spec not found: {path}")
-    data = yaml.safe_load(path.read_text())
+    data = yaml.safe_load(path.read_text(encoding="utf-8"))
     return GameSpec.model_validate(data)
+
+
+def _resolve_mode(mode: str | None, default: str = "shadow") -> RunMode:
+    """Resolve DRIP_MODE from CLI arg, env var, or default."""
+    return RunMode(mode) if mode else RunMode(os.getenv("DRIP_MODE", default))
+
+
+def _default_window(since: str | None, until: str | None,
+                    lookback_days: int = 7) -> tuple[str, str]:
+    """Fill in default since/until date strings when not provided via CLI."""
+    today = datetime.date.today()
+    until = until or today.isoformat()
+    since = since or (today - datetime.timedelta(days=lookback_days)).isoformat()
+    return since, until
 
 
 @click.group()
@@ -145,7 +155,7 @@ def launch(game_path: Path, budget: float, regions: str, mode: str | None, dry_r
     """Launch an end-to-end UA run."""
     game = _read_game(game_path)
     region_list = [r.strip() for r in regions.split(",") if r.strip()]
-    mode_enum = RunMode(mode) if mode else RunMode(os.getenv("DRIP_MODE", "shadow"))
+    mode_enum = _resolve_mode(mode, "shadow")
 
     cap = float(os.getenv("DRIP_BUDGET_CAP", "0") or 0)
     if cap and budget > cap:
@@ -267,14 +277,11 @@ def run(since: str | None, until: str | None, budget: float, narrate_model: str 
     Offline by default (samples + templates); plug credentials/LLM/generator
     to go live, no code change.
     """
-    import datetime
-
     from rich.table import Table
 
     from drip.pipeline import Pipeline
 
-    until = until or datetime.date.today().isoformat()
-    since = since or (datetime.date.today() - datetime.timedelta(days=7)).isoformat()
+    since, until = _default_window(since, until)
 
     console.print(Panel.fit(
         f"one-stop run · {since} → {until} · budget ${budget:,.0f}",
@@ -331,9 +338,8 @@ def apply(since: str | None, until: str | None, budget: float, cpp_target: float
     from drip.collectors import Collector
     from drip.engine.rules import Action
 
-    mode_enum = RunMode(mode) if mode else RunMode(os.getenv("DRIP_MODE", "copilot"))
-    until = until or datetime.date.today().isoformat()
-    since = since or (datetime.date.today() - datetime.timedelta(days=7)).isoformat()
+    mode_enum = _resolve_mode(mode, "copilot")
+    since, until = _default_window(since, until)
     caps = safety.Caps.from_env()
     send_live = mode_enum is not RunMode.SHADOW and not dry_run
 
@@ -392,32 +398,6 @@ def apply(since: str | None, until: str | None, budget: float, cpp_target: float
         console.print("[yellow]nothing applied — set each platform's token + --mode copilot to go live.[/yellow]")
 
 
-def _sample_intraday(cpa_target: float) -> list[IntradayMetrics]:
-    """Deterministic within-day sample so `drip watch` runs offline.
-
-    Four campaigns mid-day, each in a different spend-side state.
-    """
-    from drip.engine.intraday import IntradayMetrics
-    return [
-        # healthy, on pace
-        IntradayMetrics(campaign_id="meta-0001", daily_budget=200.0, spend_so_far=100.0,
-                        day_fraction=0.5, cpa_recent=18.0, cpa_baseline=18.0, cpa_target=cpa_target,
-                        conversions_recent=9, label="Meta_Prospecting_v3"),
-        # cost spiking over the ceiling → throttle/pause
-        IntradayMetrics(campaign_id="meta-0002", daily_budget=240.0, spend_so_far=150.0,
-                        day_fraction=0.5, cpa_recent=44.0, cpa_baseline=26.0, cpa_target=cpa_target,
-                        conversions_recent=7, label="Meta_Broad_v1"),
-        # burning budget too early while cost is soft → gentle trim
-        IntradayMetrics(campaign_id="meta-0003", daily_budget=180.0, spend_so_far=150.0,
-                        day_fraction=0.5, cpa_recent=27.0, cpa_baseline=26.0, cpa_target=cpa_target,
-                        conversions_recent=8, label="Meta_Lookalike_v2"),
-        # underpacing a healthy line → small raise
-        IntradayMetrics(campaign_id="meta-0004", daily_budget=160.0, spend_so_far=40.0,
-                        day_fraction=0.5, cpa_recent=15.0, cpa_baseline=16.0, cpa_target=cpa_target,
-                        conversions_recent=10, label="Meta_Retarget_v4"),
-    ]
-
-
 @main.command()
 @click.option("--once", is_flag=True, help="Run a single cycle and exit (default loops).")
 @click.option("--interval", type=int, default=30, help="Minutes between cycles in continuous mode.")
@@ -441,9 +421,14 @@ def watch(once: bool, interval: int, mode: str | None, level: str,
 
     from rich.table import Table
 
-    from drip.engine.intraday import IntradayAction, decide_intraday, evaluate_intraday
+    from drip.engine.intraday import (
+        IntradayAction,
+        decide_intraday,
+        evaluate_intraday,
+        sample_intraday,
+    )
 
-    mode_enum = RunMode(mode) if mode else RunMode(os.getenv("DRIP_MODE", "copilot"))
+    mode_enum = _resolve_mode(mode, "copilot")
     caps = safety.Caps.from_env()
     send_live = mode_enum is not RunMode.SHADOW and not dry_run
     verb_map = {IntradayAction.THROTTLE: "REDUCE", IntradayAction.RAISE: "SCALE",
@@ -456,7 +441,7 @@ def watch(once: bool, interval: int, mode: str | None, level: str,
     ))
 
     def cycle() -> None:
-        metrics = _sample_intraday(cpa_target)
+        metrics = sample_intraday(cpa_target)
         tbl = Table(border_style="bright_black")
         for col in ("campaign", "signals", "action", "result"):
             tbl.add_column(col)
@@ -526,9 +511,8 @@ def autopilot(since: str | None, until: str | None, budget: float, cpp_target: f
     from drip.feedback import FeedbackLoop
     from drip.supervisor import CircuitBreaker, route
 
-    mode_enum = RunMode(mode) if mode else RunMode(os.getenv("DRIP_MODE", "copilot"))
-    until = until or datetime.date.today().isoformat()
-    since = since or (datetime.date.today() - datetime.timedelta(days=7)).isoformat()
+    mode_enum = _resolve_mode(mode, "copilot")
+    since, until = _default_window(since, until)
     caps = safety.Caps.from_env()
     send_live = mode_enum is not RunMode.SHADOW and not dry_run
     breaker = CircuitBreaker()

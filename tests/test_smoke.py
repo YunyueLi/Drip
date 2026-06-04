@@ -19,7 +19,7 @@ def test_import_package() -> None:
 
 def test_game_spec_parses() -> None:
     demo_path = Path(__file__).resolve().parents[1] / "examples" / "demo_game.yaml"
-    data = yaml.safe_load(demo_path.read_text())
+    data = yaml.safe_load(demo_path.read_text(encoding="utf-8"))
     spec = GameSpec.model_validate(data)
     assert spec.title
     assert spec.key_characters
@@ -28,7 +28,7 @@ def test_game_spec_parses() -> None:
 def test_demo_pipeline_runs_dry() -> None:
     """The dry-run pipeline must not touch any external service."""
     demo_path = Path(__file__).resolve().parents[1] / "examples" / "demo_game.yaml"
-    spec = GameSpec.model_validate(yaml.safe_load(demo_path.read_text()))
+    spec = GameSpec.model_validate(yaml.safe_load(demo_path.read_text(encoding="utf-8")))
     orch = DripOrchestrator(mode=RunMode.SHADOW, dry_run=True)
     ctx = asyncio.run(orch.run(game=spec, budget=500.0, regions=["jp", "sg"]))
     assert ctx.artifacts.get("creatives")
