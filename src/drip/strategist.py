@@ -91,7 +91,8 @@ class Strategist:
                 if result.text:
                     return result.text
             except Exception:
-                pass
+                from drip.log import logger
+                logger.warning("LLM creative brief failed, falling back to template", exc_info=True)
         # Template fallback
         if direction == "scale_winner":
             return (f"Double down on {m.label}: produce 3 variants on its winning "
