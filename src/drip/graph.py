@@ -20,6 +20,8 @@ from __future__ import annotations
 
 from typing import Any, TypedDict
 
+from drip import config as _cfg
+
 
 class GraphState(TypedDict, total=False):
     since: str
@@ -50,9 +52,9 @@ def analyst_node(state: GraphState) -> dict[str, Any]:
     cfg = state.get("config", {})
     report = Analyst(narrate_model=cfg.get("narrate_model")).analyze(
         state["metrics"],
-        cpp_target=cfg.get("cpp_target", 25.0),
-        roas_target=cfg.get("roas_target", 3.0),
-        budget_cap=cfg.get("total_budget", 1000.0),
+        cpp_target=cfg.get("cpp_target", _cfg.DEFAULT_CPP_TARGET),
+        roas_target=cfg.get("roas_target", _cfg.DEFAULT_ROAS_TARGET),
+        budget_cap=cfg.get("total_budget", _cfg.DEFAULT_BUDGET_CAP),
     )
     return {"report": report}
 
@@ -61,7 +63,7 @@ def strategist_node(state: GraphState) -> dict[str, Any]:
     from drip.strategist import Strategist
     cfg = state.get("config", {})
     strategy = Strategist(narrate_model=cfg.get("narrate_model")).propose(
-        state["metrics"], roas_target=cfg.get("roas_target", 3.0),
+        state["metrics"], roas_target=cfg.get("roas_target", _cfg.DEFAULT_ROAS_TARGET),
     )
     return {"strategy": strategy}
 
@@ -82,9 +84,9 @@ def allocate_node(state: GraphState) -> dict[str, Any]:
     cfg = state.get("config", {})
     plan = Allocator().plan(
         state["metrics"],
-        total_budget=cfg.get("total_budget", 1000.0),
-        cpp_target=cfg.get("cpp_target", 25.0),
-        roas_target=cfg.get("roas_target", 3.0),
+        total_budget=cfg.get("total_budget", _cfg.DEFAULT_BUDGET_CAP),
+        cpp_target=cfg.get("cpp_target", _cfg.DEFAULT_CPP_TARGET),
+        roas_target=cfg.get("roas_target", _cfg.DEFAULT_ROAS_TARGET),
     )
     return {"plan": plan}
 
@@ -92,7 +94,7 @@ def allocate_node(state: GraphState) -> dict[str, Any]:
 def feedback_node(state: GraphState) -> dict[str, Any]:
     from drip.feedback import FeedbackLoop
     cfg = state.get("config", {})
-    feedback = FeedbackLoop(roas_target=cfg.get("roas_target", 3.0)).review(state["metrics"])
+    feedback = FeedbackLoop(roas_target=cfg.get("roas_target", _cfg.DEFAULT_ROAS_TARGET)).review(state["metrics"])
     return {"feedback": feedback}
 
 

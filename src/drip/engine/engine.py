@@ -70,6 +70,8 @@ def narrate(
         )
         return result.text or _template_why(sv, decision)
     except Exception:
+        from drip.log import logger
+        logger.warning("LLM narration failed, falling back to template", exc_info=True)
         return _template_why(sv, decision)
 
 

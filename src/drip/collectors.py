@@ -158,37 +158,40 @@ class TikTokInsights:
 # and `drip apply` dispatches each to its writer in drip.adapters.writers.
 
 
-class TencentInsights:
-    platform = "tencent"
+class _ChinaPlatformInsights:
+    """Base for China-platform collectors that share the same offline-first shape.
+
+    Each subclass only needs three class-level attributes.
+    """
+
+    platform: str = ""
+    _token_env: str = ""
+    _id_env: str = ""
 
     def __init__(self, account_id: str | None = None, token: str | None = None) -> None:
-        self.account_id = account_id or os.getenv("TENCENT_ACCOUNT_ID")
-        self.token = token or os.getenv("TENCENT_ACCESS_TOKEN")
+        self.account_id = account_id or os.getenv(self._id_env)
+        self.token = token or os.getenv(self._token_env)
 
     def fetch(self, *, since: str, until: str) -> list[AdMetrics]:
-        return _sample("tencent", since, until)[:1]
+        return _sample(self.platform, since, until)[:1]
 
 
-class OceanEngineInsights:
+class TencentInsights(_ChinaPlatformInsights):
+    platform = "tencent"
+    _token_env = "TENCENT_ACCESS_TOKEN"
+    _id_env = "TENCENT_ACCOUNT_ID"
+
+
+class OceanEngineInsights(_ChinaPlatformInsights):
     platform = "oceanengine"
-
-    def __init__(self, advertiser_id: str | None = None, token: str | None = None) -> None:
-        self.advertiser_id = advertiser_id or os.getenv("OCEANENGINE_ADVERTISER_ID")
-        self.token = token or os.getenv("OCEANENGINE_ACCESS_TOKEN")
-
-    def fetch(self, *, since: str, until: str) -> list[AdMetrics]:
-        return _sample("oceanengine", since, until)[:1]
+    _token_env = "OCEANENGINE_ACCESS_TOKEN"
+    _id_env = "OCEANENGINE_ADVERTISER_ID"
 
 
-class KuaishouInsights:
+class KuaishouInsights(_ChinaPlatformInsights):
     platform = "kuaishou"
-
-    def __init__(self, advertiser_id: str | None = None, token: str | None = None) -> None:
-        self.advertiser_id = advertiser_id or os.getenv("KUAISHOU_ADVERTISER_ID")
-        self.token = token or os.getenv("KUAISHOU_ACCESS_TOKEN")
-
-    def fetch(self, *, since: str, until: str) -> list[AdMetrics]:
-        return _sample("kuaishou", since, until)[:1]
+    _token_env = "KUAISHOU_ACCESS_TOKEN"
+    _id_env = "KUAISHOU_ADVERTISER_ID"
 
 
 # --------------------------------------------------------------------------
