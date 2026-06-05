@@ -219,7 +219,7 @@ def chat_or_fallback(
             temperature=temperature,
         )
         return result.text or fallback
-    except Exception:
+    except (LLMError, httpx.HTTPError, json.JSONDecodeError, ValueError):
         from drip.log import logger
         logger.warning("LLM chat failed, falling back to template", exc_info=True)
         return fallback

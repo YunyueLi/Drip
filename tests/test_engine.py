@@ -7,6 +7,8 @@ no provider deps — so they run anywhere.
 
 from __future__ import annotations
 
+from typing import Any
+
 from drip.engine import CampaignMetrics, DecisionEngine, decide, evaluate
 from drip.engine.rules import Action, Confidence
 from drip.engine.signals import Status
@@ -14,7 +16,7 @@ from drip.engine.signals import Status
 
 def _m(**overrides: object) -> CampaignMetrics:
     """An all-green, thick-sample campaign; override one factor per test."""
-    base: dict[str, object] = dict(
+    base: dict[str, Any] = dict(
         cpp=18.0, cpp_target=25.0,
         roas=3.8, roas_target=3.0,
         cvr=0.025, cvr_baseline=0.025,
@@ -25,7 +27,7 @@ def _m(**overrides: object) -> CampaignMetrics:
         label="test",
     )
     base.update(overrides)
-    return CampaignMetrics(**base)  # type: ignore[arg-type]
+    return CampaignMetrics(**base)
 
 
 # --- the three headline behaviours -----------------------------------------

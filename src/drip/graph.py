@@ -26,21 +26,29 @@ fallback — nothing else in Drip imports this module eagerly.
 
 from __future__ import annotations
 
-from typing import Any, TypedDict
+from typing import TYPE_CHECKING, Any, TypedDict
 
 from drip import config as _cfg
+
+if TYPE_CHECKING:
+    from drip.allocator import AllocationPlan
+    from drip.analyst import AnalystReport
+    from drip.creative import CreativeVariant
+    from drip.data.metrics import AdMetrics
+    from drip.feedback import FeedbackResult
+    from drip.strategist import StrategyOutput
 
 
 class GraphState(TypedDict, total=False):
     since: str
     until: str
     config: dict[str, Any]      # cpp_target, roas_target, total_budget, narrate_model, generator
-    metrics: list[Any]
-    report: Any
-    strategy: Any
-    variants: list[Any]
-    plan: Any
-    feedback: Any
+    metrics: list[AdMetrics]
+    report: AnalystReport
+    strategy: StrategyOutput
+    variants: list[CreativeVariant]
+    plan: AllocationPlan
+    feedback: FeedbackResult
 
 
 # --------------------------------------------------------------------------
@@ -80,7 +88,7 @@ def creative_node(state: GraphState) -> dict[str, Any]:
     from drip.creative import Creative
     cfg = state.get("config", {})
     creative = Creative(generator=cfg.get("generator", "dry"))
-    variants: list[Any] = []
+    variants: list[CreativeVariant] = []
     for h in state["strategy"].hypotheses:
         if h.direction == "scale_winner":
             variants.extend(creative.produce(h.brief, n=3))

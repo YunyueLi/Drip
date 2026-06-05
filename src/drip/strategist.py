@@ -44,8 +44,10 @@ class Strategist:
         roas_target: float,
     ) -> StrategyOutput:
         ranked = sorted(metrics, key=lambda m: m.roas, reverse=True)
-        winners = [m for m in ranked if m.roas >= roas_target]
-        losers = [m for m in ranked if m.roas < roas_target]
+        winners: list[AdMetrics] = []
+        losers: list[AdMetrics] = []
+        for m in ranked:
+            (winners if m.roas >= roas_target else losers).append(m)
 
         out = StrategyOutput(winners=winners, losers=losers)
         # Scale the top winner; cut the worst loser — the two highest-signal moves.

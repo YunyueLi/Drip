@@ -6,8 +6,10 @@ import asyncio
 import datetime
 import os
 import sys
+from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 
 import click
 import yaml
@@ -111,6 +113,94 @@ def _execute_write(
                       audit_file=audit_file, colour=colour)
 
 
+@dataclass
+class WriteLoopResult:
+    """Aggregated outcome of a write loop over allocations."""
+
+    n_applied: int = 0
+    n_attempted: int = 0
+    n_failed: int = 0
+    audit_file: Path | None = None
+    halted: bool = False
+    halt_reason: str = ""
+
+
+def _run_write_loop(
+    allocations: Sequence[Any],
+    *,
+    caps: safety.Caps,
+    mode_enum: RunMode,
+    send_live: bool,
+    yes: bool,
+    level: str,
+    confirm_prefix: str = "",
+    extra_audit_fields: dict[str, object] | None = None,
+    breaker: Any = None,
+    track_audit_file: bool = False,
+) -> tuple[Any, WriteLoopResult]:
+    """Shared allocation-write loop for ``apply`` and ``autopilot``.
+
+    Iterates over allocations, skips HOLD/REFRESH_CREATIVE, builds a
+    ``WriteRequest`` for each actionable campaign, passes it through
+    ``_execute_write``, and formats a table row.  Returns the populated
+    ``Table`` and a ``WriteLoopResult`` with counters.
+    """
+    from rich.table import Table
+
+    from drip.engine.rules import Action
+
+    tbl = Table(border_style="bright_black")
+    for col in ("platform", "campaign", "action", "change", "result"):
+        tbl.add_column(col)
+
+    result = WriteLoopResult()
+    for a in allocations:
+        action = a.result.decision.action
+        verb, plat = action.value, a.metrics.platform
+        old_b, new_b = a.old_budget, a.new_budget
+
+        if action in (Action.HOLD, Action.REFRESH_CREATIVE):
+            tbl.add_row(plat, a.metrics.label, verb, "—",
+                        "[bright_black]no write[/bright_black]")
+            continue
+
+        change = ("→ $0/day" if action is Action.PAUSE
+                  else f"${old_b:,.0f} → ${new_b:,.0f}/day")
+        prefix = f"{confirm_prefix} " if confirm_prefix else ""
+        req = WriteRequest(
+            platform=plat, campaign_id=a.metrics.campaign_id,
+            label=a.metrics.label, action=verb,
+            old_budget=old_b, new_budget=new_b, change_display=change,
+        )
+        wr = _execute_write(
+            req, caps=caps, mode_enum=mode_enum, send_live=send_live,
+            yes=yes, level=level,
+            confirm_prompt=f"  {prefix}{verb}  {a.metrics.label}  {change} ?",
+            extra_audit_fields=extra_audit_fields,
+        )
+
+        result.n_attempted += 1
+        if wr.status == "applied":
+            result.n_applied += 1
+        elif wr.status == "failed":
+            result.n_failed += 1
+        if track_audit_file and wr.audit_file is not None:
+            result.audit_file = wr.audit_file
+
+        detail = f" — {wr.detail}" if wr.detail else ""
+        tbl.add_row(plat, a.metrics.label, verb, change,
+                    f"[{wr.colour}]{wr.status}[/{wr.colour}]{detail}")
+
+        if breaker is not None:
+            tripped, why = breaker.post_write(result.n_attempted, result.n_failed)
+            if tripped:
+                result.halted = True
+                result.halt_reason = why
+                break
+
+    return tbl, result
+
+
 def _load_env() -> None:
     load_dotenv()
 
@@ -118,7 +208,14 @@ def _load_env() -> None:
 def _read_game(path: Path) -> GameSpec:
     if not path.exists():
         raise click.ClickException(f"game spec not found: {path}")
-    data = yaml.safe_load(path.read_text(encoding="utf-8"))
+    try:
+        data = yaml.safe_load(path.read_text(encoding="utf-8"))
+    except yaml.YAMLError as exc:
+        raise click.ClickException(f"invalid YAML in {path}: {exc}") from exc
+    if not isinstance(data, dict):
+        raise click.ClickException(
+            f"game spec {path} must be a YAML mapping, got {type(data).__name__}"
+        )
     return GameSpec.model_validate(data)
 
 
@@ -145,7 +242,7 @@ def main() -> None:
     # on Windows terminals that default to the locale encoding (e.g. GBK).
     try:
         sys.stdout.reconfigure(encoding="utf-8")  # type: ignore[union-attr]
-    except Exception:
+    except (OSError, ValueError):
         pass
 
 
@@ -338,11 +435,8 @@ def apply(since: str | None, until: str | None, budget: float, cpp_target: float
     DRIP_MAX_CHANGE_PCT). With no META_ACCESS_TOKEN every write is shadow, so this
     runs safely offline. Every write — real or shadow — lands in the audit trail.
     """
-    from rich.table import Table
-
     from drip.allocator import Allocator
     from drip.collectors import Collector
-    from drip.engine.rules import Action
 
     mode_enum = _resolve_mode(mode, "copilot")
     since, until = _default_window(since, until)
@@ -359,47 +453,21 @@ def apply(since: str | None, until: str | None, budget: float, cpp_target: float
     plan = Allocator().plan(metrics, total_budget=budget,
                             cpp_target=cpp_target, roas_target=roas_target)
 
-    tbl = Table(border_style="bright_black")
-    for col in ("platform", "campaign", "action", "change", "result"):
-        tbl.add_column(col)
-
-    audit_file: Path | None = None
-    n_applied = 0
-    for a in plan.allocations:
-        action = a.result.decision.action
-        verb = action.value
-        plat = a.metrics.platform
-        old_b, new_b = a.old_budget, a.new_budget
-
-        if action in (Action.HOLD, Action.REFRESH_CREATIVE):
-            tbl.add_row(plat, a.metrics.label, verb, "—", "[bright_black]no write[/bright_black]")
-            continue
-
-        change = "→ $0/day" if action is Action.PAUSE else f"${old_b:,.0f} → ${new_b:,.0f}/day"
-        req = WriteRequest(
-            platform=plat, campaign_id=a.metrics.campaign_id, label=a.metrics.label,
-            action=verb, old_budget=old_b, new_budget=new_b, change_display=change,
-        )
-        result = _execute_write(
-            req, caps=caps, mode_enum=mode_enum, send_live=send_live,
-            yes=yes, level=level,
-            confirm_prompt=f"  apply {verb}  {a.metrics.label}  {change} ?",
-        )
-        if result.status == "applied":
-            n_applied += 1
-        if result.audit_file is not None:
-            audit_file = result.audit_file
-        detail = f" — {result.detail}" if result.detail else ""
-        tbl.add_row(plat, a.metrics.label, verb, change,
-                    f"[{result.colour}]{result.status}[/{result.colour}]{detail}")
+    tbl, wlr = _run_write_loop(
+        plan.allocations,
+        caps=caps, mode_enum=mode_enum, send_live=send_live,
+        yes=yes, level=level,
+        confirm_prefix="apply",
+        track_audit_file=True,
+    )
 
     console.print(tbl)
-    if audit_file is not None:
-        console.print(f"\naudit trail → [bright_black]{audit_file}[/bright_black]")
+    if wlr.audit_file is not None:
+        console.print(f"\naudit trail → [bright_black]{wlr.audit_file}[/bright_black]")
     if mode_enum is RunMode.SHADOW:
         console.print("[yellow]shadow mode — nothing sent. Use --mode copilot to apply.[/yellow]")
-    elif n_applied:
-        console.print(f"[green]{n_applied} change(s) applied.[/green]")
+    elif wlr.n_applied:
+        console.print(f"[green]{wlr.n_applied} change(s) applied.[/green]")
     else:
         console.print("[yellow]nothing applied — set each platform's token + --mode copilot to go live.[/yellow]")
 
@@ -509,8 +577,6 @@ def autopilot(since: str | None, until: str | None, budget: float, cpp_target: f
     run on a data anomaly (most of the account wanting to pause) or on write
     failures. Deterministic + auditable; shadow by default.
     """
-    from rich.table import Table
-
     from drip.allocator import Allocator
     from drip.collectors import Collector
     from drip.engine.rules import Action
@@ -548,44 +614,17 @@ def autopilot(since: str | None, until: str | None, budget: float, cpp_target: f
         return
 
     console.print()
-    tbl = Table(border_style="bright_black")
-    for col in ("platform", "campaign", "action", "change", "result"):
-        tbl.add_column(col)
-    n_attempted = n_failed = n_applied = 0
-    halted = False
-    for a in plan.allocations:
-        action = a.result.decision.action
-        verb, plat = action.value, a.metrics.platform
-        old_b, new_b = a.old_budget, a.new_budget
-        if action in (Action.HOLD, Action.REFRESH_CREATIVE):
-            tbl.add_row(plat, a.metrics.label, verb, "—", "[bright_black]no write[/bright_black]")
-            continue
-        change = "→ $0/day" if action is Action.PAUSE else f"${old_b:,.0f} → ${new_b:,.0f}/day"
-        req = WriteRequest(
-            platform=plat, campaign_id=a.metrics.campaign_id, label=a.metrics.label,
-            action=verb, old_budget=old_b, new_budget=new_b, change_display=change,
-        )
-        result = _execute_write(
-            req, caps=caps, mode_enum=mode_enum, send_live=send_live,
-            yes=yes, level=level,
-            confirm_prompt=f"  {verb}  {a.metrics.label}  {change} ?",
-            extra_audit_fields={"layer": "autopilot"},
-        )
-        n_attempted += 1
-        if result.status == "applied":
-            n_applied += 1
-        elif result.status == "failed":
-            n_failed += 1
-        detail = f" — {result.detail}" if result.detail else ""
-        tbl.add_row(plat, a.metrics.label, verb, change,
-                    f"[{result.colour}]{result.status}[/{result.colour}]{detail}")
-        tripped, why = breaker.post_write(n_attempted, n_failed)
-        if tripped:
-            halted = True
-            break
+    tbl, wlr = _run_write_loop(
+        plan.allocations,
+        caps=caps, mode_enum=mode_enum, send_live=send_live,
+        yes=yes, level=level,
+        extra_audit_fields={"layer": "autopilot"},
+        breaker=breaker,
+    )
+
     console.print(tbl)
-    if halted:
-        console.print(f"[red]⛔ circuit breaker — {why}[/red]")
+    if wlr.halted:
+        console.print(f"[red]⛔ circuit breaker — {wlr.halt_reason}[/red]")
 
     feedback = FeedbackLoop(roas_target=roas_target).review(metrics)
     if feedback.learnings:
@@ -595,8 +634,8 @@ def autopilot(since: str | None, until: str | None, budget: float, cpp_target: f
 
     if mode_enum is RunMode.SHADOW:
         console.print("\n[yellow]shadow — planned only. --mode autonomous to run hands-off (within caps).[/yellow]")
-    elif n_applied:
-        console.print(f"\n[green]{n_applied} change(s) applied.[/green]")
+    elif wlr.n_applied:
+        console.print(f"\n[green]{wlr.n_applied} change(s) applied.[/green]")
 
 
 @main.command()

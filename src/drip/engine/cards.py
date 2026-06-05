@@ -7,6 +7,8 @@ console is available.
 
 from __future__ import annotations
 
+import textwrap
+
 from drip.engine.rules import Decision
 from drip.engine.signals import SignalVector
 
@@ -44,7 +46,6 @@ def card_text(
 
 
 def _wrap(text: str, width: int, indent: str) -> str:
-    import textwrap
     body = textwrap.fill(text.strip(), width=width,
                          subsequent_indent=indent)
     return body

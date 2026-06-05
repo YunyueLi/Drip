@@ -70,18 +70,16 @@ class Allocator:
         cpp_target: float,
         roas_target: float,
     ) -> AllocationPlan:
-        # 1. decide per campaign
+        # 1. decide per campaign + compute desired budget in one pass
         verdicts: list[tuple[AdMetrics, EngineResult]] = []
+        desired: list[float] = []
         for m in metrics:
             em = m.to_engine_metrics(
                 cpp_target=cpp_target, roas_target=roas_target,
                 budget_cap=total_budget,
             )
-            verdicts.append((m, self.engine.run(em)))
-
-        # 2. desired budget from each decision
-        desired: list[float] = []
-        for m, r in verdicts:
+            r = self.engine.run(em)
+            verdicts.append((m, r))
             action = r.decision.action
             if action is Action.PAUSE:
                 desired.append(0.0)
@@ -94,10 +92,10 @@ class Allocator:
         values = self._value_weights(metrics)
 
         # 4. normalise desired*value to the fixed total
-        weights = [d * v for d, v in zip(desired, values, strict=False)]
+        weights = [d * v for d, v in zip(desired, values, strict=True)]
         wsum = sum(weights)
         plan = AllocationPlan(total_budget=total_budget)
-        for (m, r), w in zip(verdicts, weights, strict=False):
+        for (m, r), w in zip(verdicts, weights, strict=True):
             new_budget = total_budget * (w / wsum) if wsum > 0 else 0.0
             plan.allocations.append(Allocation(
                 metrics=m, result=r,

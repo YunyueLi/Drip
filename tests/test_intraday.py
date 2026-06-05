@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 from drip.engine.intraday import (
     IntradayAction,
     IntradayMetrics,
@@ -12,12 +14,12 @@ from drip.engine.rules import Confidence
 
 
 def mk(**kw: object) -> IntradayMetrics:
-    base: dict[str, object] = dict(
+    base: dict[str, Any] = dict(
         campaign_id="c", daily_budget=200.0, spend_so_far=100.0, day_fraction=0.5,
         cpa_recent=18.0, cpa_baseline=18.0, cpa_target=25.0, conversions_recent=10, label="L",
     )
     base.update(kw)
-    return IntradayMetrics(**base)  # type: ignore[arg-type]
+    return IntradayMetrics(**base)
 
 
 def decide(**kw: object) -> tuple[object, object]:
