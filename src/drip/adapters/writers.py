@@ -24,10 +24,8 @@ from typing import Any, Protocol, runtime_checkable
 import httpx
 
 from drip.adapters.ads import MetaWriter, WriteResult, _cents
+from drip.engine.rules import BUDGET_ACTIONS, PAUSE_ACTIONS
 from drip.log import logger
-
-_BUDGET_ACTIONS = {"SCALE", "REDUCE"}
-_PAUSE_ACTIONS = {"PAUSE"}
 
 
 @runtime_checkable
@@ -83,10 +81,10 @@ class _RestWriter:
     ) -> WriteResult:
         action = action.upper()
         res = WriteResult(platform=self.platform, target_id=target_id, action=action, label=label)
-        if action not in _BUDGET_ACTIONS and action not in _PAUSE_ACTIONS:
+        if action not in BUDGET_ACTIONS and action not in PAUSE_ACTIONS:
             res.status, res.detail = "skipped", f"{action} is not a platform write"
             return res
-        is_pause = action in _PAUSE_ACTIONS
+        is_pause = action in PAUSE_ACTIONS
         self._plan(res, is_pause, new_budget)
         if not self.live:
             res.status = "shadow"
@@ -125,8 +123,6 @@ class TencentWriter(_RestWriter):
     def _send(self, res: WriteResult, is_pause: bool) -> None:  # pragma: no cover — needs creds
         import time
 
-        import httpx
-
         path = "campaigns/update" if self.level == "campaign" else "adgroups/update"
         id_field = "campaign_id" if self.level == "campaign" else "adgroup_id"
         body: dict[str, Any] = {"account_id": self.account_id, id_field: int(res.target_id)}
@@ -163,8 +159,6 @@ class OceanEngineWriter(_RestWriter):
         res.new_value = "disable" if is_pause else (None if new_budget is None else round(float(new_budget), 2))
 
     def _send(self, res: WriteResult, is_pause: bool) -> None:  # pragma: no cover — needs creds
-        import httpx
-
         headers = {"Access-Token": self.token or "", "Content-Type": "application/json"}
         body: dict[str, Any]
         if is_pause:

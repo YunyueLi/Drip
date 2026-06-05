@@ -45,7 +45,7 @@ class ImageAdapter:
     ) -> None:
         self.model = model
         self.quality = quality
-        self._client = client
+        self._client: AsyncOpenAI | None = client
 
     @classmethod
     def default(cls) -> ImageAdapter:

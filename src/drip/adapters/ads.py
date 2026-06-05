@@ -29,10 +29,8 @@ import os
 from dataclasses import dataclass
 from typing import Any
 
+from drip.engine.rules import BUDGET_ACTIONS, PAUSE_ACTIONS
 from drip.log import logger
-
-_BUDGET_ACTIONS = {"SCALE", "REDUCE"}
-_PAUSE_ACTIONS = {"PAUSE"}
 
 
 def _cents(amount: float | None) -> int | None:
@@ -103,12 +101,12 @@ class MetaWriter:
         res = WriteResult(platform="meta", target_id=target_id, action=action, label=label)
 
         # HOLD / REFRESH_CREATIVE never touch budget or status on the platform.
-        if action not in _BUDGET_ACTIONS and action not in _PAUSE_ACTIONS:
+        if action not in BUDGET_ACTIONS and action not in PAUSE_ACTIONS:
             res.status = "skipped"
             res.detail = f"{action} is not a platform write"
             return res
 
-        is_pause = action in _PAUSE_ACTIONS
+        is_pause = action in PAUSE_ACTIONS
         res.field = "status" if is_pause else "daily_budget"
         res.new_value = "PAUSED" if is_pause else _cents(new_budget)
 

@@ -19,8 +19,7 @@ from pathlib import Path
 from typing import Any
 
 from drip.config import DEFAULT_MAX_CHANGE_PCT, get_audit_path, get_budget_cap, get_max_change_pct
-
-_BUDGET_ACTIONS = {"SCALE", "REDUCE"}
+from drip.engine.rules import BUDGET_ACTIONS
 
 
 class GuardError(RuntimeError):
@@ -48,7 +47,7 @@ def guard_change(*, action: str, old_budget: float, new_budget: float, caps: Cap
     Only budget-moving actions (SCALE/REDUCE) are size-checked; PAUSE (→ $0) and
     non-spending actions are always allowed through.
     """
-    if action.upper() not in _BUDGET_ACTIONS:
+    if action.upper() not in BUDGET_ACTIONS:
         return
     if caps.budget_cap and new_budget > caps.budget_cap:
         raise GuardError(

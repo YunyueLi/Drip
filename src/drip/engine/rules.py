@@ -22,6 +22,11 @@ class Action(str, Enum):
     REFRESH_CREATIVE = "REFRESH_CREATIVE"
 
 
+# Sets derived from Action for quick membership checks in adapters and safety.
+BUDGET_ACTIONS: frozenset[str] = frozenset({Action.SCALE, Action.REDUCE})
+PAUSE_ACTIONS: frozenset[str] = frozenset({Action.PAUSE})
+
+
 class Confidence(str, Enum):
     HIGH = "HIGH"
     MEDIUM = "MEDIUM"
