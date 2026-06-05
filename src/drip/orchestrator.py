@@ -1,4 +1,4 @@
-"""Drip orchestrator — Claude-Agent-SDK supervisor over the worker pool.
+"""Drip orchestrator — deterministic pipeline over the worker pool (Agent-SDK supervisor is the v0.2 direction).
 
 Design:
 - The orchestrator owns the run lifecycle and budget. Each worker is a domain
@@ -65,7 +65,7 @@ class RunContext:
 
 
 class DripOrchestrator:
-    """Top-level supervisor. Wraps the Claude Agent SDK supervisor pattern.
+    """Top-level orchestrator over the worker pool. Deterministic pipeline today; the Agent-SDK supervisor pattern is the v0.2 plan.
 
     Today this is a deterministic pipeline (creative → audience → bidding →
     reporter). In v0.2 we replace the fixed order with an Agent-SDK-driven
