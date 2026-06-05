@@ -19,7 +19,7 @@ you keep the wheel. Any LLM, any ad platform, fully self-hostable.
 [![Tests](https://img.shields.io/badge/tests-passing-22c55e.svg?style=flat-square)](tests/)
 [![Stars](https://img.shields.io/github/stars/YunyueLi/Drip?style=flat-square&color=fbbf24)](https://github.com/YunyueLi/Drip/stargazers)
 
-[**▶ Live console**](https://yunyueli.github.io/Drip/app.html) · [**Quickstart**](#-quickstart) · [**How it works**](#-how-it-works) · [**Drip-Bench**](#-drip-bench) · [**vs. closed-source**](#-open-vs-closed) · [**Roadmap**](#%EF%B8%8F-roadmap)
+[**▶ Interactive demo**](https://yunyueli.github.io/Drip/app.html) · [**Quickstart**](#-quickstart) · [**How it works**](#-how-it-works) · [**Drip-Bench**](#-drip-bench) · [**vs. closed-source**](#-open-vs-closed) · [**Roadmap**](#%EF%B8%8F-roadmap)
 
 **English** · [简体中文](README.zh-CN.md)
 
@@ -29,7 +29,7 @@ you keep the wheel. Any LLM, any ad platform, fully self-hostable.
 
 <a href="https://yunyueli.github.io/Drip/app.html"><img src="assets/decision-card.svg" alt="A Drip decision card — 8-signal vector, rule chain, confidence, and the action" width="720" /></a>
 
-<sub>Every campaign scored on **8 signals** → rules decide → an auditable card with the **"why"**. You approve before any spend. **[▶ Open the live console →](https://yunyueli.github.io/Drip/app.html)** · 10 languages</sub>
+<sub>Every campaign scored on **8 signals** → rules decide → an auditable card with the **"why"**. You approve before any spend. **[▶ Open the interactive demo →](https://yunyueli.github.io/Drip/app.html)** · 10 languages</sub>
 
 </div>
 
@@ -95,9 +95,9 @@ One chat-driven control room for the whole loop — diagnose, decide, allocate, 
 - **Strategy** — a consulting-grade growth plan: personas, competitive matrix, budget split, each with its rationale.
 - **Drip-Bench** — the open, reproducible leaderboard for UA-agent decisions.
 
-The screenshots age fast, the live console doesn't — see it for real:
+A guided, click-through demo walks the whole loop on sample data (no install, nothing to connect):
 
-<div align="center"><b><a href="https://yunyueli.github.io/Drip/app.html">▶ Open the live console — no install →</a></b></div>
+<div align="center"><b><a href="https://yunyueli.github.io/Drip/app.html">▶ Open the interactive demo →</a></b></div>
 
 ---
 
@@ -144,6 +144,8 @@ The loop doesn't stop at a plan. Three commands push it to the platforms, behind
 - **`drip autopilot`** — the whole loop, **signal-routed** (bleeding → stop-loss first, then scale / refresh / allocate) behind a **circuit breaker** that halts on a data anomaly or write failures.
 
 Every write obeys `DRIP_BUDGET_CAP` + `DRIP_MAX_CHANGE_PCT` (no learning-phase-resetting jumps) and `DRIP_MODE` — **shadow** (plan only) → **copilot** (approve each) → **autonomous** (within caps). No platform token → it stays shadow, so it's safe to run anywhere.
+
+> **Status:** the writers, guards, and audit trail are built and run in **shadow** by default. The first verified live write on a real ad account is still on the [roadmap](#%EF%B8%8F-roadmap) — `drip apply` ships the path, not a track record yet.
 
 ---
 

@@ -17,7 +17,7 @@
 [![Tests](https://img.shields.io/badge/tests-passing-22c55e.svg?style=flat-square)](tests/)
 [![Stars](https://img.shields.io/github/stars/YunyueLi/Drip?style=flat-square&color=fbbf24)](https://github.com/YunyueLi/Drip/stargazers)
 
-[**▶ 在线控制台**](https://yunyueli.github.io/Drip/app.html) · [**快速开始**](#-快速开始) · [**运作原理**](#-运作原理) · [**Drip-Bench**](#-drip-bench) · [**开源 vs 闭源**](#-开源-vs-闭源) · [**路线图**](#%EF%B8%8F-路线图)
+[**▶ 交互演示**](https://yunyueli.github.io/Drip/app.html) · [**快速开始**](#-快速开始) · [**运作原理**](#-运作原理) · [**Drip-Bench**](#-drip-bench) · [**开源 vs 闭源**](#-开源-vs-闭源) · [**路线图**](#%EF%B8%8F-路线图)
 
 [English](README.md) · **简体中文**
 
@@ -27,7 +27,7 @@
 
 <a href="https://yunyueli.github.io/Drip/app.html"><img src="assets/decision-card.svg" alt="Drip 决策卡 —— 8 信号向量、规则链、置信度与动作" width="720" /></a>
 
-<sub>每条 campaign 用 **8 个信号**打分 → 规则给出决策 → 一张带**「为什么」**的可审计决策卡。动钱之前你拍板。**[▶ 打开在线控制台 →](https://yunyueli.github.io/Drip/app.html)** · 10 种语言</sub>
+<sub>每条 campaign 用 **8 个信号**打分 → 规则给出决策 → 一张带**「为什么」**的可审计决策卡。动钱之前你拍板。**[▶ 打开交互演示 →](https://yunyueli.github.io/Drip/app.html)** · 10 种语言</sub>
 
 </div>
 
@@ -84,9 +84,9 @@ $ drip run --budget 1000
 - **增长策略** —— 咨询级增长方案:人群画像、竞争矩阵、预算切分,每项都带理由。
 - **Drip-Bench** —— 买量 agent 决策的开放、可复现排行榜。
 
-截图会过时,在线控制台不会 —— 直接上手看真的:
+一个引导式的点击演示,用样本数据走完整条闭环(免安装、无需连接任何账户):
 
-<div align="center"><b><a href="https://yunyueli.github.io/Drip/app.html">▶ 打开在线控制台,免安装 →</a></b></div>
+<div align="center"><b><a href="https://yunyueli.github.io/Drip/app.html">▶ 打开交互演示 →</a></b></div>
 
 ---
 
@@ -127,6 +127,8 @@ $ drip run --budget 1000
 - **`drip autopilot`** —— 整条闭环,**按信号路由**(止血优先 → 再放量 / 换创意 / 分配),背后有**熔断器**,遇数据异常或写入失败即停。
 
 每次写入都遵守 `DRIP_BUDGET_CAP` + `DRIP_MAX_CHANGE_PCT`(不做会重置学习期的大跳)和 `DRIP_MODE` —— **shadow**(只规划)→ **copilot**(逐条批准)→ **autonomous**(闸内自动)。没有平台 token 就保持 shadow,所以放哪跑都安全。
+
+> **状态说明:** 写入器、护栏、审计留痕都已建好,默认跑在 **shadow**。真实广告账户上的首次 live 写入验证仍在[路线图](#%EF%B8%8F-路线图)上 —— `drip apply` 交付的是这条路径,目前还不是一份实战战绩。
 
 ---
 
