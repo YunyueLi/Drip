@@ -220,7 +220,7 @@ def chat_or_fallback(
             temperature=temperature,
         )
         return result.text or fallback
-    except Exception:
+    except LLMError:
         logger.warning("LLM chat failed, falling back to template", exc_info=True)
         return fallback
 

@@ -12,6 +12,7 @@ Design:
 from __future__ import annotations
 
 import asyncio
+from collections.abc import Coroutine
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
@@ -94,7 +95,7 @@ class DripOrchestrator:
         self._final_summary(ctx)
         return ctx
 
-    async def _step(self, name: str, coro: Any) -> WorkerResult:
+    async def _step(self, name: str, coro: Coroutine[Any, Any, WorkerResult]) -> WorkerResult:
         console.print(f"\n[bold cyan]▸ {name}[/bold cyan]")
         result: WorkerResult = await coro
         for line in result.lines:
