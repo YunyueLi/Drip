@@ -12,7 +12,7 @@ import os
 import uuid
 from dataclasses import dataclass
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 import httpx
 
@@ -50,7 +50,7 @@ class VideoAdapter:
         self.model = model or os.getenv("SEEDANCE_MODEL", "doubao-seedance-2-0-260128")
         self.resolution = resolution
         self.ratio = ratio
-        self._client: Any = None
+        self._client: Ark | None = None
 
     @classmethod
     def default(cls) -> VideoAdapter:

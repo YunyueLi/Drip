@@ -21,7 +21,10 @@ from __future__ import annotations
 import os
 from typing import Any, Protocol, runtime_checkable
 
+import httpx
+
 from drip.adapters.ads import MetaWriter, WriteResult, _cents
+from drip.log import logger
 
 _BUDGET_ACTIONS = {"SCALE", "REDUCE"}
 _PAUSE_ACTIONS = {"PAUSE"}
@@ -95,8 +98,7 @@ class _RestWriter:
         try:
             self._send(res, is_pause)
             res.status = "applied"
-        except Exception as exc:  # pragma: no cover — live only
-            from drip.log import logger
+        except (RuntimeError, OSError, ValueError, KeyError, TypeError, httpx.HTTPError) as exc:  # pragma: no cover — live only
             logger.error("write failed for %s/%s: %s", self.platform, res.target_id, exc, exc_info=True)
             res.status, res.detail = "failed", f"{type(exc).__name__}: {exc}"
         return res

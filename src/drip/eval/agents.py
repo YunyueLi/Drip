@@ -135,7 +135,7 @@ class LLMAgent:
 
         try:
             data = result.json()
-        except Exception as exc:
+        except (ValueError, KeyError, TypeError) as exc:
             raise RuntimeError(
                 f"agent '{self.name}' returned non-JSON: {result.text[:200]}"
             ) from exc

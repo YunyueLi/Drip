@@ -29,6 +29,8 @@ import os
 from dataclasses import dataclass
 from typing import Any
 
+from drip.log import logger
+
 _BUDGET_ACTIONS = {"SCALE", "REDUCE"}
 _PAUSE_ACTIONS = {"PAUSE"}
 
@@ -46,8 +48,8 @@ class WriteResult:
     target_id: str
     action: str
     field: str = ""              # "daily_budget" | "status" | ""
-    old_value: Any = None
-    new_value: Any = None
+    old_value: str | int | float | None = None
+    new_value: str | int | float | None = None
     status: str = "shadow"       # applied | shadow | skipped | denied | failed
     detail: str = ""
     label: str = ""
@@ -117,8 +119,7 @@ class MetaWriter:
 
         try:
             return self._apply_live(res, is_pause, dry_run)
-        except Exception as exc:  # pragma: no cover — only reachable with a live SDK
-            from drip.log import logger
+        except (RuntimeError, OSError, KeyError, TypeError, ValueError) as exc:  # pragma: no cover — only reachable with a live SDK
             logger.error("Meta write failed for %s: %s", res.target_id, exc, exc_info=True)
             res.status = "failed"
             res.detail = f"{type(exc).__name__}: {exc}"
@@ -173,7 +174,7 @@ def _read(obj: Any, key: str) -> Any:
         return getter(key)
     try:
         return obj[key]
-    except Exception:  # pragma: no cover
+    except (KeyError, TypeError):  # pragma: no cover
         return None
 
 

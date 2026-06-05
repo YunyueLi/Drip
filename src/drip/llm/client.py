@@ -17,6 +17,7 @@ from typing import Any
 import httpx
 
 from drip.llm.providers import Provider, resolve
+from drip.log import logger
 
 
 class LLMError(RuntimeError):
@@ -220,7 +221,6 @@ def chat_or_fallback(
         )
         return result.text or fallback
     except Exception:
-        from drip.log import logger
         logger.warning("LLM chat failed, falling back to template", exc_info=True)
         return fallback
 

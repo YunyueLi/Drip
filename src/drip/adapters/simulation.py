@@ -15,6 +15,8 @@ from __future__ import annotations
 import hashlib
 from typing import Any
 
+from drip.log import logger
+
 # OASIS imports — these are only required at runtime; we import lazily so
 # unit tests / dry-runs don't need camel-oasis installed.
 try:
@@ -140,7 +142,6 @@ class SimulationAdapter:
             likes = sum(getattr(p, "likes", 0) for p in posts)
             comments = sum(getattr(p, "comments", 0) for p in posts)
             return {"likes": likes, "comments": comments}
-        except Exception:
-            from drip.log import logger
+        except (AttributeError, RuntimeError):
             logger.warning("OASIS aggregation failed, returning zeroes", exc_info=True)
             return {"likes": 0, "comments": 0}
