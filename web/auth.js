@@ -8,7 +8,7 @@
   var cfg = window.DRIP_SUPABASE || {};
   var configured = !!(cfg.url && cfg.anonKey);
   var LLM_KEY = "drip-llm";
-  var sb = null, user = null;
+  var sb = null, user = null, session = null;
 
   // ---- LLM config (BYOK) — local + account roaming ----
   function getLlm() { try { return JSON.parse(localStorage.getItem(LLM_KEY) || "{}") || {}; } catch (e) { return {}; } }
@@ -168,12 +168,26 @@
     sb = window.supabase.createClient(cfg.url, cfg.anonKey, {
       auth: { flowType: "pkce", detectSessionInUrl: true, persistSession: true, autoRefreshToken: true, storageKey: "drip-auth" },
     });
-    sb.auth.getSession().then(function (r) { user = (r.data.session && r.data.session.user) || null; if (user) pullLlm(user); paint(); });
-    sb.auth.onAuthStateChange(function (_e, s) { user = (s && s.user) || null; if (user) pullLlm(user); paint(); });
+    sb.auth.getSession().then(function (r) { session = (r.data && r.data.session) || null; user = (session && session.user) || null; if (user) pullLlm(user); paint(); onAuth(); });
+    sb.auth.onAuthStateChange(function (_e, s) { session = s || null; user = (s && s.user) || null; if (user) pullLlm(user); paint(); onAuth(); });
+  }
+
+  // ---- live backend access (Edge Functions) ----
+  var authCbs = [];
+  function onAuth() { authCbs.forEach(function (fn) { try { fn(user); } catch (e) {} }); }
+  function token() { return (session && session.access_token) || null; }
+  function connections() {
+    if (!sb || !user) return Promise.resolve([]);
+    return sb.from("ad_connections").select("platform,account_id,updated_at")
+      .then(function (r) { return (r && r.data) || []; }, function () { return []; });
   }
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
   else boot();
   // expose for console/debug
-  window.DripAuth = { login: loginModal, signOut: signOut, getLlm: getLlm, setLlm: setLlm };
+  window.DripAuth = {
+    login: loginModal, signOut: signOut, getLlm: getLlm, setLlm: setLlm,
+    token: token, user: function () { return user; }, configured: function () { return configured; },
+    connections: connections, onAuth: function (fn) { authCbs.push(fn); if (user !== null || !configured) { try { fn(user); } catch (e) {} } },
+  };
 })();
