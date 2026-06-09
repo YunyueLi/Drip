@@ -1,0 +1,23 @@
+[
+  {
+    "id": "cross-platform-triage",
+    "title": "跨平台体检与预算重分配",
+    "subtitle": "7 campaigns · Meta / TikTok / 腾讯 / 巨量 / 快手",
+    "steps": 6,
+    "model": "deepseek/deepseek-v4-pro"
+  },
+  {
+    "id": "intraday-guard",
+    "title": "盘中超支止血",
+    "subtitle": "小时级 · pacing / 成本突刺 / 防超投",
+    "steps": 2,
+    "model": "deepseek/deepseek-v4-pro"
+  },
+  {
+    "id": "autopilot",
+    "title": "自主托管一轮",
+    "subtitle": "信号路由 + 熔断器 · 确定性可审计",
+    "steps": 4,
+    "model": "deepseek/deepseek-v4-pro"
+  }
+]

@@ -1,0 +1,51 @@
+{
+  "id": "intraday-guard",
+  "title": "盘中超支止血",
+  "subtitle": "小时级 · pacing / 成本突刺 / 防超投",
+  "model": "deepseek/deepseek-v4-pro",
+  "prompt": "盘中帮我盯着花费侧：哪条 pacing 过快、成本突刺或要超投了，在预算失控前限速或暂停。",
+  "steps": [
+    {
+      "agent": "collect",
+      "title": "拉取盘中数据",
+      "icon": "database",
+      "summary": "拉取 4 条 campaign 的小时级花费/成本序列。"
+    },
+    {
+      "agent": "watch",
+      "title": "盘中信号 + 决策",
+      "icon": "gauge",
+      "summary": "3 条触发限速/暂停，其余 HOLD。",
+      "rows": [
+        {
+          "campaign": "Meta_Prospecting_v3",
+          "platform": "meta",
+          "signals": "pace 1.00× · cost 0.72× target · spike 1.00× · exhausts at 100% of day",
+          "action": "HOLD",
+          "headline": "HOLD"
+        },
+        {
+          "campaign": "Meta_Broad_v1",
+          "platform": "meta",
+          "signals": "pace 1.25× · cost 1.76× target · spike 1.69× · exhausts at 80% of day",
+          "action": "THROTTLE",
+          "headline": "THROTTLE · $240 → $168/day (-30%)"
+        },
+        {
+          "campaign": "Meta_Lookalike_v2",
+          "platform": "meta",
+          "signals": "pace 1.67× · cost 1.08× target · spike 1.04× · exhausts at 60% of day",
+          "action": "THROTTLE",
+          "headline": "THROTTLE · $180 → $153/day (-15%)"
+        },
+        {
+          "campaign": "Meta_Retarget_v4",
+          "platform": "meta",
+          "signals": "pace 0.50× · cost 0.60× target · spike 0.94× · exhausts at 100% of day",
+          "action": "RAISE",
+          "headline": "RAISE · $160 → $176/day (+10%)"
+        }
+      ]
+    }
+  ]
+}

@@ -743,3 +743,34 @@ body.demo-on.demo-cap-on::before{opacity:1}
 /* audit = hero of the decision moment */
 .rrail .rp-audit{order:-1}
 @media(max-width:720px){.grows{grid-template-columns:1fr}.kpis-4{grid-template-columns:repeat(2,1fr)}}
+
+/* ── Real-run replay: chooser + step reveal + completion bar (Demo button) ── */
+.rp-hide{opacity:0;transform:translateY(8px)}
+.rp-in{animation:rpIn .42s cubic-bezier(.22,.61,.36,1) both}
+@keyframes rpIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.rp-back{position:fixed;inset:0;z-index:120;background:rgba(15,18,24,.5);backdrop-filter:blur(3px);display:grid;place-items:center;padding:24px;animation:rpFade .18s ease}
+@keyframes rpFade{from{opacity:0}to{opacity:1}}
+.rp-modal{width:100%;max-width:540px;background:var(--bg);border:1px solid var(--border-strong);border-radius:14px;box-shadow:0 24px 64px rgba(0,0,0,.28);overflow:hidden}
+.rp-mhead{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:18px 20px 14px}
+.rp-mt{font-size:16px;font-weight:700;letter-spacing:-.01em}
+.rp-ms{font-size:12.5px;color:var(--text-2);margin-top:4px;line-height:1.5}
+.rp-x{border:none;background:none;color:var(--text-3);font-size:15px;cursor:pointer;padding:4px;border-radius:6px}
+.rp-x:hover{background:var(--surface-2);color:var(--text)}
+.rp-grid{display:flex;flex-direction:column;gap:8px;padding:0 16px 18px}
+.rp-card{display:flex;align-items:center;gap:12px;width:100%;text-align:left;border:1px solid var(--border);border-radius:10px;background:var(--surface);padding:13px 14px;cursor:pointer;transition:border-color .18s ease,transform .18s ease,box-shadow .18s ease;font-family:var(--font)}
+.rp-card:hover{border-color:var(--accent);transform:translateY(-1px);box-shadow:0 6px 20px rgba(0,82,217,.1)}
+.rp-card:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.rp-ic{flex:none;width:34px;height:34px;border-radius:9px;background:var(--accent-subtle);color:var(--accent);display:grid;place-items:center}
+.rp-cmain{flex:1;min-width:0}
+.rp-cn{display:block;font-size:13.5px;font-weight:650;color:var(--text)}
+.rp-cs{display:block;font-size:11.5px;color:var(--text-2);margin-top:2px}
+.rp-go{flex:none;font-size:12px;font-weight:650;color:var(--accent)}
+.rp-bar{position:sticky;bottom:0;margin-top:16px;display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--bg);border:1px solid var(--border-strong);border-radius:11px;padding:11px 13px;box-shadow:0 -2px 12px rgba(0,0,0,.04)}
+.rp-st{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:650;color:var(--text)}
+.rp-ok{width:18px;height:18px;border-radius:50%;background:var(--green);color:#fff;display:grid;place-items:center;font-size:11px}
+.rp-acts{display:flex;gap:7px}
+.rp-btn{border:1px solid var(--border-strong);background:var(--bg);color:var(--text);font-family:var(--font);font-size:12.5px;font-weight:600;padding:7px 13px;border-radius:8px;cursor:pointer;transition:all .15s ease}
+.rp-btn:hover{border-color:var(--accent);color:var(--accent)}
+.rp-btn.ink{background:var(--accent);border-color:var(--accent);color:#fff}
+.rp-btn.ink:hover{background:var(--accent-hover);color:#fff}
+@media(prefers-reduced-motion:reduce){.rp-in{animation:none}.rp-hide{opacity:1;transform:none}.rp-back{animation:none}}
