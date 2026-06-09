@@ -12,8 +12,12 @@
 (function () {
   "use strict";
   var cfg = window.DRIP_SUPABASE || {};
-  function base() { return (cfg.url || "").replace(/\/+$/, "") + "/functions/v1/"; }
-  function ready() { return !!(cfg.url && cfg.anonKey && window.DripAuth && window.DripAuth.token && window.DripAuth.token()); }
+  // DRIP_FN_BASE overrides the function endpoint (self-host proxy, or local dev).
+  function base() { return window.DRIP_FN_BASE || ((cfg.url || "").replace(/\/+$/, "") + "/functions/v1/"); }
+  function ready() {
+    var tok = window.DripAuth && window.DripAuth.token && window.DripAuth.token();
+    return !!((window.DRIP_FN_BASE || (cfg.url && cfg.anonKey)) && tok);
+  }
 
   function headers() {
     var tok = window.DripAuth && window.DripAuth.token && window.DripAuth.token();

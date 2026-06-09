@@ -11,7 +11,7 @@
 // } → { results: WriteResult[] }
 import { json, preflight } from "../_shared/cors.ts";
 import { admin, userFromRequest } from "../_shared/auth.ts";
-import { applyDecision, type Caps, guardChange, type WriteResult } from "../_shared/meta.ts";
+import { applyDecision, type Caps, gateWrite, type WriteResult } from "../_shared/meta.ts";
 
 Deno.serve(async (req) => {
   const pre = preflight(req); if (pre) return pre;
@@ -43,18 +43,16 @@ Deno.serve(async (req) => {
     const newBudget = c.new_budget == null ? null : Number(c.new_budget);
     const oldBudget = Number(c.old_budget ?? 0) || 0;
 
-    // money-safety guard (before any network call)
-    const denied = guardChange(action, oldBudget, newBudget ?? 0, caps);
+    // money-safety gate (pure, before any network call)
+    const gate = gateWrite(action, oldBudget, newBudget ?? 0, mode, caps, !!conn?.access_token);
     let res: WriteResult;
-    if (denied) {
-      res = { platform, target_id: targetId, label, action, field: action === "PAUSE" ? "status" : "daily_budget",
-        old_value: oldBudget, new_value: newBudget, status: "denied", detail: denied };
-    } else if (mode === "shadow" || !conn?.access_token) {
-      res = { platform, target_id: targetId, label, action, field: action === "PAUSE" ? "status" : "daily_budget",
-        old_value: oldBudget, new_value: action === "PAUSE" ? "PAUSED" : newBudget,
-        status: "shadow", detail: "shadow mode — planned, not sent" };
+    if (gate.decision === "send") {
+      res = await applyDecision(conn!.access_token, targetId, action, { newBudget, label });
     } else {
-      res = await applyDecision(conn.access_token, targetId, action, { newBudget, label });
+      res = { platform, target_id: targetId, label, action,
+        field: action === "PAUSE" ? "status" : "daily_budget",
+        old_value: oldBudget, new_value: action === "PAUSE" ? "PAUSED" : newBudget,
+        status: gate.decision, detail: gate.detail };
     }
     results.push(res);
 
