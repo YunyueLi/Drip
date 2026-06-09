@@ -650,7 +650,12 @@
         </div>
         <div class="set-pane" data-spane="connect">
           <h2>连接器</h2>
-          <div class="set-grp">连接的账户</div>
+          <div class="set-grp">真实连接 · 跑你自己的账户</div>
+          <div class="fcard" id="liveConnect">
+            <div class="acct-row"><span class="plogo-tile"><svg class="plogo"><use href="#lg-meta"/></svg></span><div class="acct-info"><div class="acct-nm">Meta Ads <span class="acct-badge off" id="metaBadge">○ 未连接</span></div><div class="acct-tags"><span class="atag mut" id="metaAcct">登录后用 OAuth 授权，拉真实 campaign</span></div></div><button class="btn primary sm" id="metaConnect">连接</button></div>
+            <div style="font-size:12px;color:var(--text-3);padding:8px 2px 0;line-height:1.6">连接后：控制台输入「诊断我的真实账户」→ 拉真实数据 → 规则决策 → 你批准后写回预算（受运行模式与上限保护）。<br>需先登录并配置 Supabase + Meta 应用 —— 见仓库 <span class="mono">SETUP-LIVE.md</span>。</div>
+          </div>
+          <div class="set-grp">连接的账户（示例）</div>
           <div class="fcard">
             <div class="acct-row"><span class="plogo-tile"><svg class="plogo"><use href="#lg-meta"/></svg></span><div class="acct-info"><div class="acct-nm">Meta Ads <span class="acct-badge ok" data-i18n="st.connected">● 已连接</span></div><div class="acct-tags"><span class="atag">act_10293847</span><span class="atag">Graph API v19.0</span><span class="atag mut" data-i18n="st.synca">2 分钟前同步</span></div></div><div class="sw on" data-sw></div></div>
             <div class="acct-row"><span class="plogo-tile"><svg class="plogo"><use href="#lg-tt"/></svg></span><div class="acct-info"><div class="acct-nm">TikTok Ads <span class="acct-badge ok" data-i18n="st.connected">● 已连接</span></div><div class="acct-tags"><span class="atag">7545763527</span><span class="atag">Marketing API v1.3</span><span class="atag mut" data-i18n="st.syncb">5 分钟前同步</span></div></div><div class="sw on" data-sw></div></div>
@@ -752,6 +757,7 @@
 <script src="llm.js"></script>
 <script src="app.js"></script>
 <script src="auth.js"></script>
+<script src="live.js"></script>
 <script src="run.js"></script>
 </body>
 </html>

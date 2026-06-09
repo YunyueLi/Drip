@@ -77,14 +77,26 @@
   }
 
   // ── flow: cross-platform triage (drip run) ─────────────────────────────────
-  function buildTriage(prompt) {
-    var metrics = E.sampleMetrics();
-    var opts = { cpp_target: TG.cpp_target, roas_target: TG.roas_target, budget_cap: TG.budget };
+  // src.metrics (live AdMetrics) overrides the offline sample; src.total sets the
+  // reallocation pool (sum of real spends when live). src.live stashes the
+  // platform change-set so the console can offer "apply to platform".
+  var liveCtx = null;
+  function buildTriage(prompt, src) {
+    src = src || {};
+    var metrics = src.metrics || E.sampleMetrics();
+    var total = src.total || TG.budget;
+    var opts = { cpp_target: TG.cpp_target, roas_target: TG.roas_target, budget_cap: total };
     var verdicts = metrics.map(function (m) {
       var em = E.toEngine(m, opts), sv = E.evaluate(em);
       return { m: m, em: em, sv: sv, d: E.decide(sv, em) };
     });
-    var plan = E.allocate(metrics, { total_budget: TG.budget, cpp_target: TG.cpp_target, roas_target: TG.roas_target });
+    var plan = E.allocate(metrics, { total_budget: total, cpp_target: TG.cpp_target, roas_target: TG.roas_target });
+    if (src.live) {
+      liveCtx = { changes: plan.allocations
+        .filter(function (a) { return a.decision.action === "SCALE" || a.decision.action === "PAUSE"; })
+        .map(function (a) { return { target_id: a.metrics.campaign_id, action: a.decision.action,
+          new_budget: a.new_budget, old_budget: a.old_budget, label: a.metrics.label }; }) };
+    } else { liveCtx = null; }
     var budgetBy = {};
     plan.allocations.forEach(function (a) {
       budgetBy[a.metrics.label] = E.fmt.money(a.old_budget, 0) + " → " + E.fmt.money(a.new_budget, 0);
@@ -119,12 +131,12 @@
           "Scored each on 8 signals (CPP/ROAS/CVR/spend/purchases/CTR/freq/headroom)"),
         t("规则引擎 → " + nScale + " SCALE / " + nPause + " PAUSE，确定性可审计",
           "Rule engine → " + nScale + " SCALE / " + nPause + " PAUSE, deterministic & auditable"),
-        t("Allocator 在 $1,400 内按 ROAS 权重重分，止损预算回流赢家",
-          "Allocator reallocated within $1,400 by ROAS weight; freed budget to winners"),
+        t("Allocator 在 " + E.fmt.money(total, 0) + " 内按 ROAS 权重重分，止损预算回流赢家",
+          "Allocator reallocated within " + E.fmt.money(total, 0) + " by ROAS weight; freed budget to winners"),
       ] });
       if (winner) blocks.push(cardBlock(winner, budgetBy[winner.m.label], winWhy));
       if (loser) blocks.push(cardBlock(loser, budgetBy[loser.m.label], loseWhy));
-      blocks.push({ t: "kpis", head: t("跨平台再分配", "Cross-platform reallocation"), sub: t("$1,400 总预算", "$1,400 budget"),
+      blocks.push({ t: "kpis", head: t("跨平台再分配", "Cross-platform reallocation"), sub: E.fmt.money(total, 0) + t(" 总预算", " budget"),
         items: [
           { k: t("放量", "Scale"), v: String(nScale), d: t("条 campaign", "campaigns"), dc: "up" },
           { k: t("止损", "Stop-loss"), v: String(nPause), d: t("归零", "→ $0"), dc: "down" },
@@ -231,6 +243,57 @@
     b.scrollIntoView({ behavior: reduce() ? "auto" : "smooth", block: "end" });
   }
 
+  // ── live: pull the connected account's real campaigns, decide on real data ──
+  function runLive(prompt) {
+    return window.DripLive.pull({ platform: "meta" }).then(function (d) {
+      var metrics = (d.metrics || []).map(E.adMetrics);
+      if (!metrics.length) throw new window.DripLive.Error(t("账户近 7 天没有可诊断的 campaign", "no campaigns to diagnose in the last 7 days"));
+      var total = metrics.reduce(function (s, m) { return s + m.spend; }, 0) || TG.budget;
+      return buildTriage(prompt, { metrics: metrics, total: total, live: true });
+    });
+  }
+
+  // read the run mode + caps from Settings → 运行与模型 (radios in shadow/copilot/auto order)
+  function getMode() {
+    var radios = document.querySelectorAll('.set-pane[data-spane="run"] input[name="mode"]');
+    var names = ["shadow", "copilot", "autonomous"];
+    for (var i = 0; i < radios.length; i++) if (radios[i].checked) return names[i] || "shadow";
+    return "shadow";
+  }
+  function getCaps() {
+    var inp = document.querySelector('.set-pane[data-spane="run"] .fcard input.inp');
+    var cap = inp ? Number(String(inp.value).replace(/[^0-9.]/g, "")) || 0 : 0;
+    return { budget_cap: cap, max_change_pct: 0.5 };
+  }
+
+  // apply bar shown after a live run — writes the change-set back, gated by mode
+  function applyBar(host, changes) {
+    if (!host || document.getElementById("rpBar") || !changes || !changes.length) return;
+    var mode = getMode();
+    var b = document.createElement("div"); b.id = "rpBar"; b.className = "rp-bar";
+    var nScale = changes.filter(function (c) { return c.action === "SCALE"; }).length;
+    var nPause = changes.filter(function (c) { return c.action === "PAUSE"; }).length;
+    var verb = mode === "shadow" ? t("预演写回(shadow)", "Preview (shadow)") : t("应用到平台", "Apply to platform");
+    b.innerHTML = '<span class="rp-st"><span class="rp-ok">✓</span>' +
+      t("真实账户 · " + nScale + " 放量 / " + nPause + " 止损", "Live · " + nScale + " scale / " + nPause + " stop-loss") +
+      '</span><span class="rp-acts"><button class="rp-btn ink" id="rpApply">' + verb + ' · ' + mode + '</button></span>';
+    host.appendChild(b);
+    b.querySelector("#rpApply").onclick = function () {
+      var btn = this; btn.disabled = true; btn.textContent = t("写回中…", "applying…");
+      window.DripLive.apply(changes, mode, getCaps()).then(function (r) {
+        var res = r.results || [];
+        var applied = res.filter(function (x) { return x.status === "applied"; }).length;
+        var shadow = res.filter(function (x) { return x.status === "shadow"; }).length;
+        var denied = res.filter(function (x) { return x.status === "denied" || x.status === "failed"; }).length;
+        (window.showToast || alert)(t("写回完成：", "done: ") + applied + " applied · " + shadow + " shadow" + (denied ? (" · " + denied + " denied/failed") : ""));
+        btn.textContent = t("已处理 ", "processed ") + res.length;
+      }).catch(function (e) {
+        (window.showToast || alert)(t("写回失败：", "apply failed: ") + (e.message || e)); btn.disabled = false; btn.textContent = verb + " · " + mode;
+      });
+    };
+    b.scrollIntoView({ behavior: reduce() ? "auto" : "smooth", block: "end" });
+  }
+
   var running = false;
   function run(prompt) {
     if (running) return;
@@ -239,21 +302,35 @@
     if (typeof setView === "function") setView("console");
     var build = detect(prompt);
     var hasKey = window.DripLLM && window.DripLLM.hasKey();
+    var live = build === buildTriage && window.DripLive && window.DripLive.ready();
 
-    // immediate placeholder so the run feels live while the engine + model work
-    var pending = hasKey
-      ? t("⚙️ 规则引擎已出决策，正在用你的模型生成解释…", "⚙️ Rules decided. Generating the explanation with your model…")
-      : t("⚙️ 规则引擎已出决策（解释为模板；登录并配置模型后由你的 LLM 实时生成）。",
-          "⚙️ Rules decided (template explanation; configure your model to narrate live).");
+    var pending = live
+      ? t("⚙️ 正在拉取你的真实账户数据…", "⚙️ Pulling your live account data…")
+      : (hasKey
+        ? t("⚙️ 规则引擎已出决策，正在用你的模型生成解释…", "⚙️ Rules decided. Generating the explanation with your model…")
+        : t("⚙️ 规则引擎已出决策（解释为模板；登录并配置模型后由你的 LLM 实时生成）。",
+            "⚙️ Rules decided (template explanation; configure your model to narrate live)."));
     if (window.__setConv) window.__setConv("__live", { q: prompt, blocks: [{ t: "intro", h: pending }] });
     if (window.__showConv) window.__showConv("__live");
 
-    build(prompt).then(function (blocks) {
+    // live triage, falling back to the offline sample if no account is connected
+    var built = live
+      ? runLive(prompt).catch(function (e) {
+          if (e && e.status === 409) { return buildTriage(prompt).then(function (bl) {
+            bl.unshift({ t: "intro", h: t("（未连接真实账户，下面用样本演示。去 设置→连接器 连接 Meta。）",
+              "(No live account connected — sample demo below. Connect Meta in Settings → Connectors.)") }); return bl; }); }
+          throw e;
+        })
+      : build(prompt);
+
+    built.then(function (blocks) {
+      var isLive = live && liveCtx && liveCtx.changes;
       if (window.__setConv) window.__setConv("__live", { q: prompt, blocks: blocks });
       if (window.__showConv) window.__showConv("__live");
       reveal(function () {
         var host = document.getElementById("convHost");
-        note(host, hasKey
+        if (isLive) applyBar(host, liveCtx.changes);
+        else note(host, hasKey
           ? t("运行完成 · 规则决策，你的模型解释", "Run complete · rules decided, your model explained")
           : t("运行完成 · 配置模型后解释由你的 LLM 实时生成", "Run complete · configure your model for live narration"));
       });
@@ -264,5 +341,5 @@
     }).then(function () { running = false; });
   }
 
-  window.DripRun = { run: run, detect: detect, buildTriage: buildTriage, buildIntraday: buildIntraday, buildAutopilot: buildAutopilot };
+  window.DripRun = { run: run, runLive: runLive, detect: detect, buildTriage: buildTriage, buildIntraday: buildIntraday, buildAutopilot: buildAutopilot };
 })();
