@@ -7,7 +7,13 @@
 //
 // Graph API v21.0, plain REST (no SDK).
 
-const GRAPH = "https://graph.facebook.com/v21.0";
+// Graph base is overridable via META_GRAPH_BASE (self-host proxy, or a test
+// double). Works under Deno (prod) and Node (tests) — defaults to live Graph.
+function graphBase(): string {
+  try { const d = (globalThis as { Deno?: { env: { get(k: string): string | undefined } } }).Deno; if (d?.env) return d.env.get("META_GRAPH_BASE") || "https://graph.facebook.com/v21.0"; } catch { /* not deno */ }
+  try { const p = (globalThis as { process?: { env: Record<string, string | undefined> } }).process; if (p?.env) return p.env.META_GRAPH_BASE || "https://graph.facebook.com/v21.0"; } catch { /* not node */ }
+  return "https://graph.facebook.com/v21.0";
+}
 
 export interface AdMetrics {
   platform: string; campaign_id: string; date_start: string; date_end: string;
@@ -47,7 +53,7 @@ export async function pullInsights(
     limit: "200",
     access_token: token,
   });
-  const resp = await fetch(`${GRAPH}/${acct}/insights?${params}`);
+  const resp = await fetch(`${graphBase()}/${acct}/insights?${params}`);
   const data = await resp.json();
   if (!resp.ok) throw new Error(`meta insights ${resp.status}: ${JSON.stringify(data?.error ?? data).slice(0, 300)}`);
   const days = windowDays(since, until);
@@ -90,6 +96,19 @@ export function guardChange(action: string, oldBudget: number, newBudget: number
   return null;
 }
 
+// Decide one change BEFORE any network call (pure → unit-testable):
+//   denied → a money-safety cap blocked it
+//   shadow → shadow mode (or no token): plan only, never send
+//   send   → write it
+export function gateWrite(
+  action: string, oldBudget: number, newBudget: number, mode: string, caps: Caps, hasToken: boolean,
+): { decision: "denied" | "shadow" | "send"; detail: string } {
+  const denied = guardChange(action, oldBudget, newBudget, caps);
+  if (denied) return { decision: "denied", detail: denied };
+  if (mode === "shadow" || !hasToken) return { decision: "shadow", detail: "shadow mode — planned, not sent" };
+  return { decision: "send", detail: "" };
+}
+
 const cents = (a: number | null | undefined) => (a == null ? null : Math.round(Number(a) * 100));
 
 export interface WriteResult {
@@ -117,7 +136,7 @@ export async function applyDecision(
   res.new_value = isPause ? "PAUSED" : cents(opts.newBudget ?? null);
 
   try {
-    const snap = await fetch(`${GRAPH}/${targetId}?fields=name,status,daily_budget&access_token=${token}`).then((r) => r.json());
+    const snap = await fetch(`${graphBase()}/${targetId}?fields=name,status,daily_budget&access_token=${token}`).then((r) => r.json());
     if (snap.error) throw new Error(JSON.stringify(snap.error).slice(0, 300));
     res.old_value = isPause ? snap.status : snap.daily_budget;
     if (isPause && String(res.old_value) === "PAUSED") {
@@ -127,9 +146,9 @@ export async function applyDecision(
       isPause ? { status: "PAUSED", access_token: token }
               : { daily_budget: String(res.new_value), access_token: token },
     );
-    const upd = await fetch(`${GRAPH}/${targetId}`, { method: "POST", body }).then((r) => r.json());
+    const upd = await fetch(`${graphBase()}/${targetId}`, { method: "POST", body }).then((r) => r.json());
     if (upd.error) throw new Error(JSON.stringify(upd.error).slice(0, 300));
-    const after = await fetch(`${GRAPH}/${targetId}?fields=status,daily_budget&access_token=${token}`).then((r) => r.json());
+    const after = await fetch(`${graphBase()}/${targetId}?fields=status,daily_budget&access_token=${token}`).then((r) => r.json());
     const got = isPause ? after.status : after.daily_budget;
     if (String(got) === String(res.new_value)) { res.status = "applied"; }
     else { res.status = "failed"; res.detail = `post-write ${got} != intended ${res.new_value}`; }
@@ -151,12 +170,12 @@ export function authorizeUrl(appId: string, redirect: string, state: string): st
 export async function exchangeCode(
   appId: string, secret: string, redirect: string, code: string,
 ): Promise<{ token: string; expiresIn: number }> {
-  const short = await fetch(`${GRAPH}/oauth/access_token?` + new URLSearchParams({
+  const short = await fetch(`${graphBase()}/oauth/access_token?` + new URLSearchParams({
     client_id: appId, client_secret: secret, redirect_uri: redirect, code,
   })).then((r) => r.json());
   if (short.error || !short.access_token) throw new Error(JSON.stringify(short.error ?? short).slice(0, 300));
   // upgrade to a long-lived (~60d) token
-  const long = await fetch(`${GRAPH}/oauth/access_token?` + new URLSearchParams({
+  const long = await fetch(`${graphBase()}/oauth/access_token?` + new URLSearchParams({
     grant_type: "fb_exchange_token", client_id: appId, client_secret: secret, fb_exchange_token: short.access_token,
   })).then((r) => r.json());
   const token = long.access_token || short.access_token;
@@ -166,7 +185,7 @@ export async function exchangeCode(
 
 // Pick the first ad account the token can see (so the user needn't paste an ID).
 export async function firstAdAccount(token: string): Promise<string> {
-  const r = await fetch(`${GRAPH}/me/adaccounts?fields=account_id,name&limit=1&access_token=${token}`).then((x) => x.json());
+  const r = await fetch(`${graphBase()}/me/adaccounts?fields=account_id,name&limit=1&access_token=${token}`).then((x) => x.json());
   const acct = r?.data?.[0];
   return acct ? String(acct.account_id ?? acct.id ?? "") : "";
 }

@@ -73,6 +73,22 @@ supabase secrets set \
 - **caps**：`budget_cap`（日预算硬顶）+ 单步变更 ≤ 50%（防重置平台学习期）。
 - **audit**：每笔写入 `drip_audit`，含 shadow/denied/applied/failed。
 
+## 本地联调 / 测试（无需 Supabase 或 Meta App）
+后端逻辑（拉数归一、上限/模式/token 门、快照→写→回读、OAuth 换 token）已用真实代码对一个忠实的 Meta 模拟做过端到端验证：
+
+```bash
+# 1) 后端逻辑集成测试（跑真实 supabase/functions/_shared/meta.ts，21 断言）
+node --experimental-strip-types scripts/itest_backend.ts
+
+# 2) 本地 dev 后端（复用同一份 meta.ts + 假 Meta + 内存审计），给浏览器端到端联调用
+node --experimental-strip-types scripts/dev_backend.ts 8787
+#   然后在 app.html 控制台执行（或临时写进 config.js 调试）：
+#   window.DRIP_FN_BASE = "http://127.0.0.1:8787/functions/v1/"
+#   登录后输入「诊断我的真实账户」→ 拉数→决策→批准→写回（假 Meta）→ GET /audit 看审计
+```
+
+已验证（浏览器内，真实前端 + 真实后端逻辑 + 假 Meta）：拉 7 条 campaign → 引擎 5 放量/2 止损 → copilot 写回 7 笔全部 applied + 7 条审计；shadow 模式 0 写入；预算上限不足时 SCALE 全 denied、PAUSE 照常。`DRIP_FN_BASE` 也可用于自托管代理。
+
 ## 现状与边界
 - 已实现：**Meta** 全链路（连接/拉数/写回）。
 - 待加：TikTok（同 `_shared` 模式，加 `tiktok-oauth` + pull/apply 分支即可）；国内三家（腾讯/巨量真实读未实现，快手写未确认——见 `docs/intraday-research.md`）。
