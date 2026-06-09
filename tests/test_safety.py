@@ -66,9 +66,10 @@ def test_caps_from_env_no_vars_uses_safe_defaults(monkeypatch: pytest.MonkeyPatc
 
 
 def test_caps_from_env_invalid_budget_cap(monkeypatch: pytest.MonkeyPatch) -> None:
+    # A malformed safety cap must fail loud, not silently disable the cap.
     monkeypatch.setenv("DRIP_BUDGET_CAP", "not-a-number")
-    c = Caps.from_env()
-    assert c.budget_cap == 0.0            # gracefully defaults to 0
+    with pytest.raises(ValueError, match="DRIP_BUDGET_CAP"):
+        Caps.from_env()
 
 
 # ---------------------------------------------------------------------------

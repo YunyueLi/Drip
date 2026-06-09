@@ -9,8 +9,8 @@ money safely".
 
 1. **Credentials** — connect the ad platforms and an LLM.
 2. **Extras** — install the provider SDKs (lazy-imported; only needed live).
-3. **Orchestration** — switch from the lightweight Pipeline to the LangGraph
-   graph (checkpointing + approval + retries) for a long-running daemon.
+3. **Mode** — climb the `DRIP_MODE` ladder (shadow → copilot → autonomous) and
+   schedule the gated write commands (`drip apply` / `watch` / `autopilot`).
 
 Each is independent — you can connect Meta and stay in shadow mode for weeks
 before flipping a single campaign to live.
@@ -21,7 +21,6 @@ before flipping a single campaign to live.
 uv venv -p 3.11 && source .venv/bin/activate
 uv pip install -e ".[dev]"          # core + tests, runs offline
 uv pip install -e ".[all]"          # + provider SDKs for live runs
-uv pip install langgraph            # for the production graph (step 3)
 ```
 
 ## 2. Credentials
@@ -49,22 +48,28 @@ ROAS by default. For ground truth, plug an MMP (AppsFlyer/Adjust) into
 
 ## 3. Production orchestration
 
-The lightweight `drip run` (Pipeline) is fine for one-shot and cron. For a
-long-running daemon that survives crashes and pauses for human approval before
-spending, use the LangGraph graph:
+The lightweight `drip run` (Pipeline) is fine for one-shot and cron. To actually
+push decisions on a schedule, use the gated write commands — each snapshots the
+old value, re-reads to verify it landed, and appends to the audit trail:
 
-```python
-from drip.graph import build_graph
-from langgraph.checkpoint.postgres import PostgresSaver  # or SqliteSaver
+```bash
+# daily: diagnose → allocate → push (copilot asks before each write)
+drip apply --mode copilot
 
-graph = build_graph(checkpointer=PostgresSaver(...), approve_before_spend=True)
-# interrupt_before=["allocate"] pauses before budget moves; resume after sign-off.
+# intraday: pacing / cost-spike / anti-overspend guard, every 30 min
+drip watch --interval 30
+
+# the whole loop, signal-routed, behind a circuit breaker
+drip autopilot --mode autonomous
 ```
 
-- **checkpointing** → resume mid-run after a crash, don't restart the cycle.
-- **interrupt-before-spend** → the accountability gate; a human approves the
-  budget move, then you resume the graph from that checkpoint.
-- wrap in **Temporal** if you need scheduled runs + crash-replay at scale.
+- **approval gate** (`copilot`) → every budget move waits for a human y/N before it's sent.
+- **circuit breaker** (`autopilot`) → halts on a data anomaly (most of the
+  account wanting to pause) or repeated write failures.
+- **audit trail** → every write, real or shadow, lands in `DRIP_AUDIT_PATH` as
+  append-only JSONL.
+- wrap any of these in **cron / systemd / Temporal** for scheduled runs +
+  crash-replay at scale.
 
 ## 4. Run modes (the money safety ladder)
 
@@ -86,7 +91,7 @@ accidental `autonomous` run can't exceed it.
 - [ ] `drip run --narrate <model>` produces a real AI report
 - [ ] one campaign in `copilot` mode, approve one decision, verify the platform write
 - [ ] `drip bench run --agent drip` — record your decision-quality score
-- [ ] LangGraph graph with a Postgres checkpointer for the daemon
+- [ ] schedule `drip apply` / `autopilot` (cron / systemd) with the audit trail wired
 - [ ] monitoring: Langfuse via OpenTelemetry (traces, token cost, audit)
 - [ ] only then consider `autonomous` for proven campaigns
 ```

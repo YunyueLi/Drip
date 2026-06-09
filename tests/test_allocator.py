@@ -88,8 +88,8 @@ def test_plan_paused_campaign_gets_zero() -> None:
     plan = Allocator().plan([blown], total_budget=500.0,
                             cpp_target=25.0, roas_target=3.0)
     verdict = plan.allocations[0].result.decision
-    if verdict.action.value == "PAUSE":
-        assert plan.allocations[0].new_budget == 0.0
+    assert verdict.action.value == "PAUSE"   # CPP + ROAS both red → stop the bleed
+    assert plan.allocations[0].new_budget == 0.0
 
 
 def test_plan_scale_campaign_gets_more() -> None:
@@ -99,8 +99,8 @@ def test_plan_scale_campaign_gets_more() -> None:
     plan = Allocator().plan([healthy], total_budget=500.0,
                             cpp_target=25.0, roas_target=3.0)
     verdict = plan.allocations[0].result.decision
-    if verdict.action.value == "SCALE":
-        assert plan.allocations[0].new_budget > plan.allocations[0].old_budget
+    assert verdict.action.value == "SCALE"   # 7/8 green, headroom + sample clear
+    assert plan.allocations[0].new_budget > plan.allocations[0].old_budget
 
 
 def test_plan_hold_keeps_spend() -> None:

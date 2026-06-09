@@ -7,10 +7,9 @@ Wires every agent into the full cycle:
        → Feedback (learnings, fed back next cycle)
 
 Runs offline on sample data (dry/template/null paths); plug credentials,
-an LLM, and a creative generator to go live — no code change. This is the
-framework-agnostic reference flow; the production daemon upgrades it to a
-LangGraph supervisor (checkpointing + interrupt() approval + retries), and
-the agent boundaries here map 1:1 onto graph nodes.
+an LLM, and a creative generator to go live — no code change. The write
+commands (`drip apply` / `watch` / `autopilot`) reuse these same agents and
+add the money-safety gate (approval / circuit breaker) before any spend.
 """
 
 from __future__ import annotations
@@ -41,7 +40,7 @@ class Pipeline:
     roas_target: float = config.DEFAULT_ROAS_TARGET
     total_budget: float = config.DEFAULT_BUDGET_CAP
     narrate_model: str | None = None     # plug an LLM for human reports/briefs
-    creative_generator: str = "dry"      # plug gpt-image/seedance/comfyui to go live
+    creative_generator: str = "dry"      # gpt-image/seedance (with a key) to go live
     collector: Collector = field(default_factory=Collector)
 
     def run(self, *, since: str, until: str) -> PipelineResult:

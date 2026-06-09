@@ -4,7 +4,7 @@ version = "0.0.7"
 description = "Open-source reference implementation of an AI user-acquisition agent, with a reproducible decision benchmark."
 readme = "README.md"
 license = { text = "Apache-2.0" }
-requires-python = ">=3.11,<3.12"  # locked by OASIS upper bound
+requires-python = ">=3.11,<3.13"  # CI verifies 3.11; deps support 3.12
 authors = [{ name = "Drip Contributors" }]
 keywords = ["agent", "marketing", "user-acquisition", "benchmark", "claude", "open-source"]
 classifiers = [
@@ -15,8 +15,8 @@ classifiers = [
 ]
 
 # Core deps are intentionally minimal and all rock-solid on PyPI, so a fresh
-# install + `drip demo` (dry-run) works with zero heavy SDKs. Provider SDKs
-# live in extras and are imported lazily — see src/drip/adapters/.
+# install + `drip run` (offline samples) works with zero heavy SDKs. Provider
+# SDKs live in extras and are imported lazily — see src/drip/adapters/.
 dependencies = [
   "anyio>=4.0",
   "click>=8.1",
@@ -30,14 +30,12 @@ dependencies = [
 [project.optional-dependencies]
 orchestrator = ["claude-agent-sdk>=0.1.0"]
 providers = ["openai>=1.50", "volcengine-python-sdk"]  # volcengine-python-sdk → import volcenginesdkarkruntime
-sim = ["camel-oasis>=0.2.5"]
 obs = ["langfuse>=2.0"]
 data = ["pandas>=2.0"]
 all = [
   "claude-agent-sdk>=0.1.0",
   "openai>=1.50",
   "volcengine-python-sdk",  # import name: volcenginesdkarkruntime
-  "camel-oasis>=0.2.5",
   "langfuse>=2.0",
   "pandas>=2.0",
 ]

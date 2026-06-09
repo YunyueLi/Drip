@@ -1,23 +1,30 @@
-"""drip CLI — `drip launch`, `drip demo`, `drip bench {list,show,run}`."""
+"""drip CLI — `drip run · doctor · apply · watch · autopilot · bench · llm`."""
 
 from __future__ import annotations
 
-import asyncio
 import datetime
 import os
 import sys
 from dataclasses import dataclass
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import click
 import yaml
 from dotenv import load_dotenv
 from rich.console import Console
 from rich.panel import Panel
+from rich.table import Table
 
 from drip import __version__, config, safety
+from drip.adapters.ads import WriteResult as AdWriteResult
 from drip.adapters.writers import build_writer
-from drip.orchestrator import DripOrchestrator, GameSpec, RunMode
+from drip.config import RunMode
+from drip.engine.rules import Action
+
+if TYPE_CHECKING:
+    from drip.allocator import Allocation
+    from drip.supervisor import CircuitBreaker
 
 console = Console()
 
@@ -72,12 +79,19 @@ def _execute_write(
             new_budget=req.new_budget, caps=caps,
         )
     except safety.GuardError as exc:
-        rec: dict[str, object] = {
-            "ts": datetime.datetime.now().isoformat(timespec="seconds"),
-            "mode": mode_enum.value, "platform": req.platform,
-            "target_id": req.campaign_id, "action": req.action,
-            "status": "denied", "detail": str(exc), "label": req.label,
-        }
+        # Same record shape as the applied/shadow path (via WriteResult.to_dict),
+        # so every audit line has a stable schema regardless of outcome.
+        is_pause = req.action.upper() == "PAUSE"
+        denied = AdWriteResult(
+            platform=req.platform, target_id=req.campaign_id, action=req.action.upper(),
+            field="status" if is_pause else "daily_budget",
+            old_value=req.old_budget,
+            new_value="PAUSED" if is_pause else req.new_budget,
+            status="denied", detail=str(exc), label=req.label,
+        )
+        rec = denied.to_dict()
+        rec["ts"] = datetime.datetime.now().isoformat(timespec="seconds")
+        rec["mode"] = mode_enum.value
         if extra_audit_fields:
             rec.update(extra_audit_fields)
         audit_file = safety.audit(rec)
@@ -111,20 +125,95 @@ def _execute_write(
                       audit_file=audit_file, colour=colour)
 
 
+@dataclass
+class _ApplyOutcome:
+    """Result of writing a batch of allocations (shared by apply + autopilot)."""
+
+    table: Table
+    n_attempted: int = 0
+    n_applied: int = 0
+    n_failed: int = 0
+    audit_file: Path | None = None
+    halted: bool = False
+    breaker_why: str = ""
+
+
+def _apply_allocations(
+    allocations: list[Allocation],
+    *,
+    caps: safety.Caps,
+    mode_enum: RunMode,
+    send_live: bool,
+    yes: bool,
+    level: str,
+    layer: str | None = None,
+    confirm_prefix: str = "",
+    breaker: CircuitBreaker | None = None,
+) -> _ApplyOutcome:
+    """Write each budget-moving allocation through ``_execute_write``, rendering the
+    standard 5-column table. Shared by ``drip apply`` and ``drip autopilot``; the
+    optional ``breaker`` halts the loop after a write trips it.
+    """
+    extra: dict[str, object] | None = {"layer": layer} if layer else None
+    table = Table(border_style="bright_black")
+    for col in ("platform", "campaign", "action", "change", "result"):
+        table.add_column(col)
+    out = _ApplyOutcome(table=table)
+
+    for a in allocations:
+        action = a.result.decision.action
+        verb, plat = action.value, a.metrics.platform
+        old_b, new_b = a.old_budget, a.new_budget
+
+        if action in (Action.HOLD, Action.REFRESH_CREATIVE):
+            table.add_row(plat, a.metrics.label, verb, "—", "[bright_black]no write[/bright_black]")
+            continue
+
+        change = "→ $0/day" if action is Action.PAUSE else f"${old_b:,.0f} → ${new_b:,.0f}/day"
+        req = WriteRequest(
+            platform=plat, campaign_id=a.metrics.campaign_id, label=a.metrics.label,
+            action=verb, old_budget=old_b, new_budget=new_b, change_display=change,
+        )
+        result = _execute_write(
+            req, caps=caps, mode_enum=mode_enum, send_live=send_live, yes=yes, level=level,
+            confirm_prompt=f"  {confirm_prefix}{verb}  {a.metrics.label}  {change} ?",
+            extra_audit_fields=extra,
+        )
+        out.n_attempted += 1
+        if result.status == "applied":
+            out.n_applied += 1
+        elif result.status == "failed":
+            out.n_failed += 1
+        if result.audit_file is not None:
+            out.audit_file = result.audit_file
+        detail = f" — {result.detail}" if result.detail else ""
+        table.add_row(plat, a.metrics.label, verb, change,
+                      f"[{result.colour}]{result.status}[/{result.colour}]{detail}")
+
+        if breaker is not None:
+            tripped, why = breaker.post_write(out.n_attempted, out.n_failed)
+            if tripped:
+                out.halted, out.breaker_why = True, why
+                break
+    return out
+
+
 def _load_env() -> None:
     load_dotenv()
-
-
-def _read_game(path: Path) -> GameSpec:
-    if not path.exists():
-        raise click.ClickException(f"game spec not found: {path}")
-    data = yaml.safe_load(path.read_text(encoding="utf-8"))
-    return GameSpec.model_validate(data)
 
 
 def _resolve_mode(mode: str | None, default: str = "shadow") -> RunMode:
     """Resolve DRIP_MODE from CLI arg, env var, or default."""
     return RunMode(mode) if mode else RunMode(os.getenv("DRIP_MODE", default))
+
+
+def _caps() -> safety.Caps:
+    """Load money-safety caps, surfacing a malformed DRIP_* value as a clean
+    CLI error instead of a traceback."""
+    try:
+        return safety.Caps.from_env()
+    except ValueError as exc:
+        raise click.ClickException(str(exc)) from exc
 
 
 def _default_window(since: str | None, until: str | None,
@@ -147,50 +236,6 @@ def main() -> None:
         sys.stdout.reconfigure(encoding="utf-8")  # type: ignore[union-attr]
     except Exception:
         pass
-
-
-@main.command()
-@click.option("--game", "game_path", required=True, type=click.Path(exists=True, path_type=Path),
-              help="Path to game spec YAML (see examples/demo_game.yaml).")
-@click.option("--budget", type=float, required=True, help="Total USD budget for this run.")
-@click.option("--regions", required=True, help="Comma-separated region codes, e.g. jp,sg,tw.")
-@click.option("--mode", type=click.Choice([m.value for m in RunMode]),
-              default=None, help="Override DRIP_MODE env var.")
-@click.option("--dry-run", is_flag=True, help="Plan only, do not call any external API.")
-def launch(game_path: Path, budget: float, regions: str, mode: str | None, dry_run: bool) -> None:
-    """Launch an end-to-end UA run."""
-    game = _read_game(game_path)
-    region_list = [r.strip() for r in regions.split(",") if r.strip()]
-    mode_enum = _resolve_mode(mode, "shadow")
-
-    cap = config.get_budget_cap()
-    if cap and budget > cap:
-        raise click.ClickException(
-            f"requested budget ${budget:.2f} exceeds DRIP_BUDGET_CAP ${cap:.2f}"
-        )
-
-    console.print(Panel.fit(
-        f"[bold]{game.title}[/bold]  ·  ${budget:,.0f}  ·  {', '.join(region_list)}\n"
-        f"mode = [yellow]{mode_enum.value}[/yellow]   dry-run = {dry_run}",
-        title="drip launch", border_style="bright_black",
-    ))
-
-    orchestrator = DripOrchestrator(mode=mode_enum, dry_run=dry_run)
-    try:
-        asyncio.run(orchestrator.run(game=game, budget=budget, regions=region_list))
-    except KeyboardInterrupt:
-        console.print("[red]interrupted[/red]")
-        sys.exit(130)
-
-
-@main.command()
-def demo() -> None:
-    """Run a dry-run against the bundled demo game (no API calls)."""
-    demo_path = Path(__file__).resolve().parents[2] / "examples" / "demo_game.yaml"
-    game = _read_game(demo_path)
-    console.print(Panel.fit(f"running demo: {game.title}", border_style="bright_black"))
-    orchestrator = DripOrchestrator(mode=RunMode.SHADOW, dry_run=True)
-    asyncio.run(orchestrator.run(game=game, budget=500.0, regions=["jp", "sg", "tw"]))
 
 
 @main.group()
@@ -252,7 +297,7 @@ def doctor(metrics_path: Path | None, narrate_model: str | None) -> None:
 
     engine = DecisionEngine(narrate_model=narrate_model)
     if metrics_path:
-        data = yaml.safe_load(Path(metrics_path).read_text())
+        data = yaml.safe_load(Path(metrics_path).read_text(encoding="utf-8"))
         records = data if isinstance(data, list) else [data]
         campaigns = [CampaignMetrics(**rec) for rec in records]
     else:
@@ -272,7 +317,7 @@ def doctor(metrics_path: Path | None, narrate_model: str | None) -> None:
 @click.option("--narrate", "narrate_model", default=None,
               help="LLM for reports/briefs (any drip.llm spec). Omit for templates.")
 @click.option("--generator", default="dry",
-              help="Creative generator: dry / gpt-image / seedance / comfyui.")
+              help="Creative generator: dry / gpt-image / seedance (no key → dry).")
 @click.option("--cpp-target", type=float, default=config.DEFAULT_CPP_TARGET)
 @click.option("--roas-target", type=float, default=config.DEFAULT_ROAS_TARGET)
 def run(since: str | None, until: str | None, budget: float, narrate_model: str | None,
@@ -283,8 +328,6 @@ def run(since: str | None, until: str | None, budget: float, narrate_model: str 
     Offline by default (samples + templates); plug credentials/LLM/generator
     to go live, no code change.
     """
-    from rich.table import Table
-
     from drip.pipeline import Pipeline
 
     since, until = _default_window(since, until)
@@ -338,15 +381,12 @@ def apply(since: str | None, until: str | None, budget: float, cpp_target: float
     DRIP_MAX_CHANGE_PCT). With no META_ACCESS_TOKEN every write is shadow, so this
     runs safely offline. Every write — real or shadow — lands in the audit trail.
     """
-    from rich.table import Table
-
     from drip.allocator import Allocator
     from drip.collectors import Collector
-    from drip.engine.rules import Action
 
     mode_enum = _resolve_mode(mode, "copilot")
     since, until = _default_window(since, until)
-    caps = safety.Caps.from_env()
+    caps = _caps()
     send_live = mode_enum is not RunMode.SHADOW and not dry_run
 
     console.print(Panel.fit(
@@ -359,47 +399,17 @@ def apply(since: str | None, until: str | None, budget: float, cpp_target: float
     plan = Allocator().plan(metrics, total_budget=budget,
                             cpp_target=cpp_target, roas_target=roas_target)
 
-    tbl = Table(border_style="bright_black")
-    for col in ("platform", "campaign", "action", "change", "result"):
-        tbl.add_column(col)
-
-    audit_file: Path | None = None
-    n_applied = 0
-    for a in plan.allocations:
-        action = a.result.decision.action
-        verb = action.value
-        plat = a.metrics.platform
-        old_b, new_b = a.old_budget, a.new_budget
-
-        if action in (Action.HOLD, Action.REFRESH_CREATIVE):
-            tbl.add_row(plat, a.metrics.label, verb, "—", "[bright_black]no write[/bright_black]")
-            continue
-
-        change = "→ $0/day" if action is Action.PAUSE else f"${old_b:,.0f} → ${new_b:,.0f}/day"
-        req = WriteRequest(
-            platform=plat, campaign_id=a.metrics.campaign_id, label=a.metrics.label,
-            action=verb, old_budget=old_b, new_budget=new_b, change_display=change,
-        )
-        result = _execute_write(
-            req, caps=caps, mode_enum=mode_enum, send_live=send_live,
-            yes=yes, level=level,
-            confirm_prompt=f"  apply {verb}  {a.metrics.label}  {change} ?",
-        )
-        if result.status == "applied":
-            n_applied += 1
-        if result.audit_file is not None:
-            audit_file = result.audit_file
-        detail = f" — {result.detail}" if result.detail else ""
-        tbl.add_row(plat, a.metrics.label, verb, change,
-                    f"[{result.colour}]{result.status}[/{result.colour}]{detail}")
-
-    console.print(tbl)
-    if audit_file is not None:
-        console.print(f"\naudit trail → [bright_black]{audit_file}[/bright_black]")
+    out = _apply_allocations(
+        plan.allocations, caps=caps, mode_enum=mode_enum, send_live=send_live,
+        yes=yes, level=level, confirm_prefix="apply ",
+    )
+    console.print(out.table)
+    if out.audit_file is not None:
+        console.print(f"\naudit trail → [bright_black]{out.audit_file}[/bright_black]")
     if mode_enum is RunMode.SHADOW:
         console.print("[yellow]shadow mode — nothing sent. Use --mode copilot to apply.[/yellow]")
-    elif n_applied:
-        console.print(f"[green]{n_applied} change(s) applied.[/green]")
+    elif out.n_applied:
+        console.print(f"[green]{out.n_applied} change(s) applied.[/green]")
     else:
         console.print("[yellow]nothing applied — set each platform's token + --mode copilot to go live.[/yellow]")
 
@@ -425,8 +435,6 @@ def watch(once: bool, interval: int, mode: str | None, level: str,
     """
     import time
 
-    from rich.table import Table
-
     from drip.engine.intraday import (
         IntradayAction,
         decide_intraday,
@@ -435,7 +443,7 @@ def watch(once: bool, interval: int, mode: str | None, level: str,
     )
 
     mode_enum = _resolve_mode(mode, "copilot")
-    caps = safety.Caps.from_env()
+    caps = _caps()
     send_live = mode_enum is not RunMode.SHADOW and not dry_run
     verb_map = {IntradayAction.THROTTLE: "REDUCE", IntradayAction.RAISE: "SCALE",
                 IntradayAction.PAUSE: "PAUSE"}
@@ -509,17 +517,14 @@ def autopilot(since: str | None, until: str | None, budget: float, cpp_target: f
     run on a data anomaly (most of the account wanting to pause) or on write
     failures. Deterministic + auditable; shadow by default.
     """
-    from rich.table import Table
-
     from drip.allocator import Allocator
     from drip.collectors import Collector
-    from drip.engine.rules import Action
     from drip.feedback import FeedbackLoop
     from drip.supervisor import CircuitBreaker, route
 
     mode_enum = _resolve_mode(mode, "copilot")
     since, until = _default_window(since, until)
-    caps = safety.Caps.from_env()
+    caps = _caps()
     send_live = mode_enum is not RunMode.SHADOW and not dry_run
     breaker = CircuitBreaker()
 
@@ -548,44 +553,13 @@ def autopilot(since: str | None, until: str | None, budget: float, cpp_target: f
         return
 
     console.print()
-    tbl = Table(border_style="bright_black")
-    for col in ("platform", "campaign", "action", "change", "result"):
-        tbl.add_column(col)
-    n_attempted = n_failed = n_applied = 0
-    halted = False
-    for a in plan.allocations:
-        action = a.result.decision.action
-        verb, plat = action.value, a.metrics.platform
-        old_b, new_b = a.old_budget, a.new_budget
-        if action in (Action.HOLD, Action.REFRESH_CREATIVE):
-            tbl.add_row(plat, a.metrics.label, verb, "—", "[bright_black]no write[/bright_black]")
-            continue
-        change = "→ $0/day" if action is Action.PAUSE else f"${old_b:,.0f} → ${new_b:,.0f}/day"
-        req = WriteRequest(
-            platform=plat, campaign_id=a.metrics.campaign_id, label=a.metrics.label,
-            action=verb, old_budget=old_b, new_budget=new_b, change_display=change,
-        )
-        result = _execute_write(
-            req, caps=caps, mode_enum=mode_enum, send_live=send_live,
-            yes=yes, level=level,
-            confirm_prompt=f"  {verb}  {a.metrics.label}  {change} ?",
-            extra_audit_fields={"layer": "autopilot"},
-        )
-        n_attempted += 1
-        if result.status == "applied":
-            n_applied += 1
-        elif result.status == "failed":
-            n_failed += 1
-        detail = f" — {result.detail}" if result.detail else ""
-        tbl.add_row(plat, a.metrics.label, verb, change,
-                    f"[{result.colour}]{result.status}[/{result.colour}]{detail}")
-        tripped, why = breaker.post_write(n_attempted, n_failed)
-        if tripped:
-            halted = True
-            break
-    console.print(tbl)
-    if halted:
-        console.print(f"[red]⛔ circuit breaker — {why}[/red]")
+    out = _apply_allocations(
+        plan.allocations, caps=caps, mode_enum=mode_enum, send_live=send_live,
+        yes=yes, level=level, layer="autopilot", breaker=breaker,
+    )
+    console.print(out.table)
+    if out.halted:
+        console.print(f"[red]⛔ circuit breaker — {out.breaker_why}[/red]")
 
     feedback = FeedbackLoop(roas_target=roas_target).review(metrics)
     if feedback.learnings:
@@ -595,8 +569,8 @@ def autopilot(since: str | None, until: str | None, budget: float, cpp_target: f
 
     if mode_enum is RunMode.SHADOW:
         console.print("\n[yellow]shadow — planned only. --mode autonomous to run hands-off (within caps).[/yellow]")
-    elif n_applied:
-        console.print(f"\n[green]{n_applied} change(s) applied.[/green]")
+    elif out.n_applied:
+        console.print(f"\n[green]{out.n_applied} change(s) applied.[/green]")
 
 
 @main.command()

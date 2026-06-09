@@ -1,8 +1,10 @@
-"""Centralised configuration — one place for every env var and shared default.
+"""Centralised configuration — shared numeric defaults, the run-mode ladder,
+and the money-safety env knobs, in one place.
 
-Every ``os.getenv`` call and magic number that's scattered across the codebase
-should migrate here. This module documents every knob in one file so a new
-developer doesn't have to grep for ``os.getenv`` to understand what's tunable.
+Tunable thresholds and the ``DRIP_*`` money-safety vars live here so they're
+discoverable without grepping. Platform credentials (``META_ACCESS_TOKEN`` etc.)
+are intentionally read at their point of use (``collectors``/``adapters``), next
+to the SDK call that needs them.
 
 Import convention::
 
@@ -15,10 +17,11 @@ Import convention::
 from __future__ import annotations
 
 import os
+from enum import Enum
 from pathlib import Path
 
 # ---------------------------------------------------------------------------
-# Shared numeric defaults — used by pipeline, graph, feedback, allocator
+# Shared numeric defaults — used by pipeline, feedback, allocator
 # ---------------------------------------------------------------------------
 
 DEFAULT_CPP_TARGET = 25.0
@@ -56,13 +59,17 @@ DEFAULT_MAX_CHANGE_PCT = 0.5
 DEFAULT_WATCH_INTERVAL_MIN = 30
 
 # ---------------------------------------------------------------------------
-# Run mode
+# Run mode — the money-safety ladder (DRIP_MODE)
 # ---------------------------------------------------------------------------
 
 
-def get_mode(default: str = "shadow") -> str:
-    """Resolve ``DRIP_MODE``. Default is ``"shadow"`` — plan only, no writes."""
-    return os.getenv("DRIP_MODE", default)
+class RunMode(str, Enum):
+    """Money-safety ladder. ``shadow`` plans only and never writes; ``copilot``
+    needs per-write human approval; ``autonomous`` writes within the caps."""
+
+    SHADOW = "shadow"          # plan-only, no platform writes
+    COPILOT = "copilot"        # writes require human approval
+    AUTONOMOUS = "autonomous"  # writes freely up to budget caps
 
 
 # ---------------------------------------------------------------------------
@@ -71,78 +78,35 @@ def get_mode(default: str = "shadow") -> str:
 
 
 def get_budget_cap() -> float:
-    """Return ``DRIP_BUDGET_CAP`` (0 means unset / no cap)."""
-    raw = os.getenv("DRIP_BUDGET_CAP", "")
+    """Return ``DRIP_BUDGET_CAP`` (0 means unset / no cap).
+
+    A malformed value raises rather than silently returning 0 — a money-safety
+    limit must never fail open (a typo'd cap should stop the run, not disable it).
+    """
+    raw = os.getenv("DRIP_BUDGET_CAP", "").strip()
     if not raw:
         return 0.0
     try:
         return float(raw)
-    except ValueError:
-        return 0.0
+    except ValueError as exc:
+        raise ValueError(
+            f"DRIP_BUDGET_CAP must be a number (got {raw!r}); unset it for no cap."
+        ) from exc
 
 
 def get_max_change_pct() -> float:
     """Return ``DRIP_MAX_CHANGE_PCT``, defaulting to :data:`DEFAULT_MAX_CHANGE_PCT`."""
-    return float(os.getenv("DRIP_MAX_CHANGE_PCT", str(DEFAULT_MAX_CHANGE_PCT))
-                 or DEFAULT_MAX_CHANGE_PCT)
+    raw = os.getenv("DRIP_MAX_CHANGE_PCT", "").strip()
+    if not raw:
+        return DEFAULT_MAX_CHANGE_PCT
+    try:
+        return float(raw)
+    except ValueError as exc:
+        raise ValueError(
+            f"DRIP_MAX_CHANGE_PCT must be a number (got {raw!r})."
+        ) from exc
 
 
 def get_audit_path() -> Path:
     """Return the audit trail path (``DRIP_AUDIT_PATH``)."""
     return Path(os.getenv("DRIP_AUDIT_PATH", "artifacts/audit/writes.jsonl"))
-
-
-# ---------------------------------------------------------------------------
-# Platform credentials — documented here so they're discoverable
-# ---------------------------------------------------------------------------
-
-# Each function mirrors the pattern already used by collectors.py / providers.py.
-# They stay tiny so the config module is importable with zero side effects.
-
-
-def get_meta_token() -> str | None:
-    return os.getenv("META_ACCESS_TOKEN")
-
-
-def get_meta_account_id() -> str | None:
-    return os.getenv("META_AD_ACCOUNT_ID")
-
-
-def get_tiktok_token() -> str | None:
-    return os.getenv("TIKTOK_ACCESS_TOKEN")
-
-
-def get_tiktok_advertiser_id() -> str | None:
-    return os.getenv("TIKTOK_ADVERTISER_ID")
-
-
-def get_tencent_token() -> str | None:
-    return os.getenv("TENCENT_ACCESS_TOKEN")
-
-
-def get_tencent_account_id() -> str | None:
-    return os.getenv("TENCENT_ACCOUNT_ID")
-
-
-def get_oceanengine_token() -> str | None:
-    return os.getenv("OCEANENGINE_ACCESS_TOKEN")
-
-
-def get_oceanengine_advertiser_id() -> str | None:
-    return os.getenv("OCEANENGINE_ADVERTISER_ID")
-
-
-def get_kuaishou_token() -> str | None:
-    return os.getenv("KUAISHOU_ACCESS_TOKEN")
-
-
-def get_kuaishou_advertiser_id() -> str | None:
-    return os.getenv("KUAISHOU_ADVERTISER_ID")
-
-
-def get_openai_key() -> str | None:
-    return os.getenv("OPENAI_API_KEY")
-
-
-def get_anthropic_key() -> str | None:
-    return os.getenv("ANTHROPIC_API_KEY")

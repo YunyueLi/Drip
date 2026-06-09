@@ -25,6 +25,11 @@ class AdMetrics:
     These are *observations*. Targets and baselines (needed by the decision
     engine) are injected by the caller via :meth:`to_engine_metrics`, because
     they come from the business profile / history, not from the platform.
+
+    Flow fields (``spend``, ``conversions``, ``impressions``, ``clicks``) are
+    **per-day** rates: the live collectors divide cumulative window totals by the
+    window length, and the offline samples emit per-day magnitudes directly. That
+    keeps ``daily_spend`` / daily ``purchases`` meaningful for the decision engine.
     """
 
     platform: str             # "meta" | "tiktok" | "google"

@@ -118,29 +118,32 @@ LTV/MMM model training (data moat). Both are slots, not gaps.
 
 ## Tech choices (from the research, not invented)
 
-- **Orchestration:** LangGraph (native checkpointing + `interrupt()` approval +
-  retries); Temporal as the long-running outer layer at scale.
+- **Orchestration:** shipped as a lightweight `Pipeline` + a signal-routed
+  `supervisor` with a circuit breaker; LangGraph / Temporal are the scale-up
+  options (checkpointing + `interrupt()` approval + retries), not yet wired in.
 - **Ad APIs:** official SDKs as the floor (`facebook-business`,
   `tiktok-business-api-sdk`), MCP as an optional upper入口. System User token,
   async insights, parse `actions[]`, honour the 2026-01 attribution-window change.
 - **Analytics:** reuse PyMC-Marketing (MMM+LTV), GeoLift (incrementality),
   WrenAI/Vanna (NL query + semantic layer), Prophet+ADTK (anomaly). SKAN value
   mapping and MMP ground-truth stay as interfaces.
-- **Creative:** ComfyUI + Wan for generation; the performance→creative feedback
-  loop is self-built (open source's weak spot).
+- **Creative:** orchestrate external generators (gpt-image, Seedance shipped;
+  ComfyUI/Wan as further options); the performance→creative feedback loop is
+  self-built (open source's weak spot).
 
 ---
 
 ## Roadmap (bench-driven)
 
 ```
-done      decision engine · LLM layer · bid/value slots · Drip-Bench
+done      decision engine · LLM layer · value slot · Drip-Bench
 done      7 agents + end-to-end pipeline (offline samples)
-next      drip run CLI · docs · tests/CI
-then      LangGraph supervisor (checkpoint + approval + retry)
-then      live Meta/TikTok via SDK (needs credentials)
-v1.0      drip.cloud (same code, hosted) · 50-case bench · first enterprise
+done      drip run / apply / watch / autopilot · signal-routed supervisor
+done      chat-driven console (10 languages) · docs · tests/CI
+next      first live Meta write verified on a real account (needs credentials)
+next      public Drip-Bench leaderboard with baseline scores
+later     Knowledge Packs · LangGraph/Temporal daemon at scale · drip.cloud
 ```
 
-Every release publishes its own Drip-Bench score. We don't claim "we're
-accurate" — we show a reproducible number.
+The aim is to publish a reproducible Drip-Bench score with each release — a
+number you can re-run, not a "we're accurate" claim.

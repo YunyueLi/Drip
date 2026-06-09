@@ -4,7 +4,7 @@
 
 ## Prereqs
 
-- Python **3.11** (OASIS does not yet support 3.12)
+- Python **3.11+**
 - [uv](https://docs.astral.sh/uv/) — strongly recommended
 
 ## Install
@@ -53,31 +53,37 @@ After each run, look at `benchmarks/runs/<timestamp>__<agent>/` — that bundle 
 ### 2. The end-to-end agent pipeline
 
 ```bash
-# Validate the CLI wiring and demo campaign spec
+# Validate the CLI wiring
 drip --help
-drip demo
+
+# Walk the whole loop on offline samples (no keys, no writes)
+drip run
+
+# Diagnose a campaign into 8-signal decision cards
+drip doctor --metrics ./examples/account.yaml
 ```
 
-This walks the orchestrator through creative → audience → bidding → reporter against the bundled `examples/demo_game.yaml`, with no external API calls.
+`drip run` chains collect → diagnose → strategize → create → allocate → learn on
+deterministic sample data — entirely offline and plan-only.
 
-### 3. A real run (shadow mode)
+### 3. A real run (shadow → copilot)
 
-Install the provider SDKs (they're not in the core install):
+Push the budget / pause decisions to the platforms. `shadow` plans only;
+`copilot` asks before each write; both land in the audit trail:
 
 ```bash
-uv pip install -e ".[all]"   # openai, volcenginesdkarkruntime, camel-oasis…
+drip apply --mode copilot     # diagnose → allocate → push (per-write approval)
+drip watch --once             # intraday spend-side guard (pacing / cost-spike)
+drip autopilot                # the whole loop, signal-routed + circuit breaker
 ```
 
-Then:
+With no `META_ACCESS_TOKEN` every write stays shadow, so this is safe offline.
+For real creative assets, install the generator SDKs and set a key:
 
 ```bash
-drip launch \
-  --game ./examples/demo_game.yaml \
-  --budget 500 \
-  --regions jp,sg,tw
+uv pip install -e ".[providers]"   # openai, volcenginesdkarkruntime
+OPENAI_API_KEY=sk-... drip run --generator gpt-image   # else falls back to dry
 ```
-
-Even in shadow mode, this hits the image, video, and (if installed) OASIS adapters — so you'll burn a small amount of OpenAI / ARK credits.
 
 ## Copilot / autonomous
 
@@ -91,6 +97,6 @@ You will also need `META_ACCESS_TOKEN` / `TIKTOK_ACCESS_TOKEN` / a configured Ap
 ## What to look at next
 
 - [`benchmarks/README.md`](../benchmarks/README.md) — why Drip-Bench exists, how scoring works, how to contribute a case.
-- [`docs/architecture.md`](./architecture.md) — how the layers (orchestrator, workers, adapters, bench) fit together.
-- [`src/drip/orchestrator.py`](../src/drip/orchestrator.py) — the supervisor today is a fixed pipeline; v0.2 replaces it with Claude Agent SDK subagent routing.
+- [`docs/architecture.md`](./architecture.md) — how the layers (CLI, pipeline, agents, decision engine, slots) fit together.
+- [`src/drip/engine/`](../src/drip/engine/) — the deterministic core: 8 signals → rules → card, the part you can audit.
 - [`src/drip/eval/`](../src/drip/eval/) — the bench harness; this is where Drip earned its place in the open vs. the closed-source crowd.

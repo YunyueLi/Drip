@@ -1,30 +1,24 @@
 """Ads adapter — the WRITE side (reads live in ``drip.collectors``).
 
-Two operations, deliberately separate:
+:class:`MetaWriter` pushes a SCALE / REDUCE / PAUSE decision to an **existing**
+Meta campaign through the official Marketing API (``facebook-business`` SDK,
+lazy-imported, same path the collector reads through). This is the real
+money-moving write, gated three ways:
 
-* :class:`MetaWriter` — push a SCALE / REDUCE / PAUSE decision to an **existing**
-  Meta campaign through the official Marketing API (``facebook-business`` SDK,
-  lazy-imported, same path the collector reads through). This is the real
-  money-moving write, gated three ways:
+1. **DRIP_MODE** (upstream) — ``shadow`` never sends, ``copilot`` needs
+   per-write human approval, ``autonomous`` sends within caps.
+2. **token** — no ``META_ACCESS_TOKEN`` → returns a *shadow* result and never
+   calls the API, so an accidental run can't move money before keys exist.
+3. **money-safety guards** (:mod:`drip.safety`) — budget cap + max single-step
+   change, checked by the caller before ``apply_decision``.
 
-  1. **DRIP_MODE** (upstream) — ``shadow`` never sends, ``copilot`` needs
-     per-write human approval, ``autonomous`` sends within caps.
-  2. **token** — no ``META_ACCESS_TOKEN`` → returns a *shadow* result and never
-     calls the API, so an accidental run can't move money before keys exist.
-  3. **money-safety guards** (:mod:`drip.safety`) — budget cap + max single-step
-     change, checked by the caller before ``apply_decision``.
-
-  Every live write snapshots the old value first (verify + manual rollback) and
-  re-reads after to confirm the change actually landed.
-
-* :class:`AdsAdapter` — the legacy *create-new-ad-group* launch path. Still a
-  planning stub (real creation lands with the MCP work); kept so existing
-  workers keep running.
+Every live write snapshots the old value first (verify + manual rollback) and
+re-reads after to confirm the change actually landed. China-platform writers
+live in :mod:`drip.adapters.writers`.
 """
 
 from __future__ import annotations
 
-import asyncio
 import os
 from dataclasses import dataclass
 from typing import Any
@@ -175,48 +169,3 @@ def _read(obj: Any, key: str) -> Any:
         return obj[key]
     except Exception:  # pragma: no cover
         return None
-
-
-# --------------------------------------------------------------------------
-# Legacy launch path (create new ad groups) — still a planning stub.
-# --------------------------------------------------------------------------
-
-
-@dataclass
-class LaunchResult:
-    platform: str
-    region: str
-    ad_group_id: str
-    budget: float
-    status: str = "active"
-
-    def to_dict(self) -> dict[str, Any]:
-        return dict(self.__dict__)
-
-
-class AdsAdapter:
-    """Create-new-ad-group launch path. Real creation lands with the MCP work;
-    the budget/status WRITE path is :class:`MetaWriter`."""
-
-    def __init__(self) -> None:
-        self.meta_token = os.getenv("META_ACCESS_TOKEN")
-        self.tiktok_token = os.getenv("TIKTOK_ACCESS_TOKEN")
-
-    @classmethod
-    def default(cls) -> AdsAdapter:
-        return cls()
-
-    async def launch_many(self, plan: list[dict[str, Any]]) -> list[dict[str, Any]]:
-        results = await asyncio.gather(*(self._launch_one(item) for item in plan))
-        return [r.to_dict() for r in results]
-
-    async def _launch_one(self, item: dict[str, Any]) -> LaunchResult:
-        platform = item["platform"]
-        region = item.get("region", "")
-        budget = float(item.get("budget", 0.0))
-        if platform == "meta" and not self.meta_token:
-            return LaunchResult(platform, region, "dry-no-token", budget, "skipped")
-        if platform == "tiktok" and not self.tiktok_token:
-            return LaunchResult(platform, region, "dry-no-token", budget, "skipped")
-        ad_group_id = f"{platform}-{region}-{abs(hash(item.get('concept', ''))) % 10_000:04d}"
-        return LaunchResult(platform=platform, region=region, ad_group_id=ad_group_id, budget=budget)

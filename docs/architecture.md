@@ -8,51 +8,50 @@ hard part we can't win or lack data for is a slot, not a self-build. See
 ## Layers
 
 ```
-┌──────────────────────────────────────────────────────────────────┐
+┌────────────────────────────────────────────────────────────────────┐
 │  Entry — CLI                                                       │
-│  drip  run · doctor · bench · llm · launch · demo                  │
-└──────────────────────────────────────────────────────────────────┘
+│  drip  run · doctor · apply · watch · autopilot · bench · llm      │
+└────────────────────────────────────────────────────────────────────┘
                                │
-┌──────────────────────────────────────────────────────────────────┐
+┌────────────────────────────────────────────────────────────────────┐
 │  Orchestration                                                     │
-│  Pipeline   — lightweight, framework-agnostic, runs offline        │
-│  Graph      — LangGraph: checkpointing + interrupt() approval +    │
-│               retries (production daemon). Nodes map 1:1 to agents.│
-└──────────────────────────────────────────────────────────────────┘
+│  Pipeline    — the one-stop loop (drip run): collect → … → learn   │
+│  Supervisor  — signal-routed autopilot (route + circuit breaker)   │
+│  Intraday    — spend-side guard (drip watch): pacing / cost-spike  │
+└────────────────────────────────────────────────────────────────────┘
                                │
-┌──────────────────────────────────────────────────────────────────┐
+┌────────────────────────────────────────────────────────────────────┐
 │  Agents                                                            │
-│   investing            analytics                                   │
 │   Strategist  drip.strategist     Collector    drip.collectors     │
 │   Creative    drip.creative       Analyst      drip.analyst        │
 │   Allocator   drip.allocator      Attribution  drip.attribution    │
-│   Audience    drip.workers        Feedback     drip.feedback       │
-└──────────────────────────────────────────────────────────────────┘
+│   Feedback    drip.feedback                                        │
+└────────────────────────────────────────────────────────────────────┘
                                │ every "should I scale/pause?" goes through ↓
-┌──────────────────────────────────────────────────────────────────┐
+┌────────────────────────────────────────────────────────────────────┐
 │  Decision Engine (deterministic core)   drip.engine                │
 │  signals (8) → rules → card    + LLM narration (why)               │
-└──────────────────────────────────────────────────────────────────┘
+└────────────────────────────────────────────────────────────────────┘
                                │ speaks one data contract ↓
-┌──────────────────────────────────────────────────────────────────┐
+┌────────────────────────────────────────────────────────────────────┐
 │  Data contract   drip.data.AdMetrics  (normalised across platforms)│
-└──────────────────────────────────────────────────────────────────┘
+└────────────────────────────────────────────────────────────────────┘
                                │
-┌──────────────────────────────────────────────────────────────────┐
+┌────────────────────────────────────────────────────────────────────┐
 │  Slots — all swappable                                             │
-│  LLM (drip.llm · 12 providers)   bidding (adapters.bidding)        │
-│  value/LTV (adapters.prediction) image/video/sim (adapters.*)      │
-│  ads write (adapters.ads)                                          │
-└──────────────────────────────────────────────────────────────────┘
+│  LLM (drip.llm · 12 providers)    value/LTV (adapters.prediction)  │
+│  creative gen (adapters.image/video)   ads write (adapters.ads,    │
+│  adapters.writers)                                                 │
+└────────────────────────────────────────────────────────────────────┘
                                │
-        External: Meta/TikTok API · Claude/GPT/Qwen/… · OASIS · Kohort
+        External: Meta/TikTok API · Claude/GPT/Qwen/… · AppsFlyer/Adjust
 
    ═══ cross-cutting: Drip-Bench (drip.eval) — scores any agent ═══
 ```
 
 ## The one-stop loop
 
-`drip run` (or the LangGraph graph) walks the full cycle:
+`drip run` walks the full cycle:
 
 ```
 Collector  pull insights → AdMetrics (samples offline, Meta/TikTok SDK live)
@@ -63,10 +62,10 @@ Collector  pull insights → AdMetrics (samples offline, Meta/TikTok SDK live)
    → Feedback    distil learnings (platform weights, CTR bar) → next cycle
 ```
 
-Each agent is a pure-ish function of `AdMetrics`; `Pipeline` chains them, the
-LangGraph `Graph` adds checkpointing + a human-approval interrupt before the
-Allocator spends. Reference flow and production graph share the same agent
-boundaries, so they never drift.
+Each agent is a pure-ish function of `AdMetrics`; `Pipeline` chains them for
+`drip run`. The write commands (`apply`/`watch`/`autopilot`) reuse the same
+agent boundaries and add the money-safety gate (approval in copilot, a circuit
+breaker in autopilot) before any spend, so the read and write paths never drift.
 
 ## Decision engine
 
@@ -87,11 +86,10 @@ Drip-Bench case 001). Decisions are deterministic and replayable.
 
 | Slot | Module | Plug in | Fallback |
 |---|---|---|---|
-| LLM | `drip.llm` | 12 providers + OpenRouter | — |
-| bidding | `adapters.bidding` | platform auto / Madgicx | shadow |
-| value/LTV | `adapters.prediction` | Kohort/Voyantis | null / heuristic |
-| creative gen | `adapters.image/video` | gpt-image / Seedance / ComfyUI | dry |
-| ads write | `adapters.ads` | Meta/TikTok MCP | shadow |
+| LLM | `drip.llm` | 12 providers + OpenRouter | template (no key) |
+| value/LTV | `adapters.prediction` | Kohort/Voyantis (BYO) | null / heuristic |
+| creative gen | `adapters.image/video` | gpt-image / Seedance | dry placeholders |
+| ads write | `adapters.ads` · `adapters.writers` | Meta SDK · 腾讯/巨量 REST | shadow |
 | attribution truth | `attribution` | AppsFlyer/Adjust | documented haircut |
 
 ## Run modes (money safety)
@@ -102,10 +100,12 @@ Drip-Bench case 001). Decisions are deterministic and replayable.
 
 ## Tech choices (from research, not invented)
 
-- **Orchestration**: LangGraph (checkpoint + `interrupt()` + retries); Temporal at scale.
+- **Orchestration**: shipped today as a lightweight, framework-agnostic `Pipeline`
+  + a signal-routed `supervisor` with a circuit breaker. LangGraph (checkpoint +
+  `interrupt()` + retries) / Temporal are the scale-up options, not yet wired in.
 - **Ad APIs**: official SDKs as the floor (`facebook-business`, `tiktok-business-api-sdk`); MCP optional. System User token, async insights, parse `actions[]`, 2026-01 attribution window.
 - **Analytics**: reuse PyMC-Marketing (MMM/LTV), GeoLift (incrementality), WrenAI/Vanna (NL query), Prophet+ADTK (anomaly). SKAN/MMP truth as interfaces.
-- **Creative**: ComfyUI + Wan; performance→creative feedback self-built.
+- **Creative**: orchestrate external generators (gpt-image, Seedance); performance→creative feedback self-built.
 
 ## What Drip deliberately doesn't build
 
