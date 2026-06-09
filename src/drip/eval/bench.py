@@ -154,7 +154,13 @@ def run_bench(
     scores: list[CaseScore] = []
     for case in cases:
         console.print(f"\n[bold cyan]▸ {case.id:03d}[/bold cyan]  {case.title}")
-        resp = agent.answer(case)
+        try:
+            resp = agent.answer(case)
+        except Exception as exc:
+            # One bad/empty model response shouldn't abort the whole run — score
+            # the case zero and carry on, keeping the error in the bundle.
+            console.print(f"  [red]agent error — scored 0:[/red] {str(exc)[:160]}")
+            resp = AgentResponse(chosen_action="", reasoning="", raw={"error": str(exc)})
         checks = judge.evaluate(
             resp.reasoning, case.ground_truth.reasoning_must_mention
         )

@@ -64,7 +64,7 @@ def narrate(
         model=model,
         system=_NARRATE_SYSTEM,
         user_content=user,
-        max_tokens=300, temperature=0.0,
+        max_tokens=2048, temperature=0.0,  # headroom for reasoning models
         fallback=_template_why(sv, decision),
     )
 

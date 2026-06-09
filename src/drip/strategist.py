@@ -86,7 +86,7 @@ class Strategist:
                 model=self.narrate_model,
                 system="You are a UA creative strategist. Be concrete and brief.",
                 user_content=user,
-                max_tokens=200, temperature=0.4,
+                max_tokens=2048, temperature=0.4,  # headroom for reasoning models
                 fallback=template,
             )
             if text:

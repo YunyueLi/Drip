@@ -132,7 +132,9 @@ class Analyst:
             model=self.narrate_model,
             system="You are a senior UA manager writing a concise daily report.",
             user_content=user,
-            max_tokens=300, temperature=0.0,
+            # Generous cap (not a target): reasoning models burn most of the
+            # budget on hidden chain-of-thought before the narration text.
+            max_tokens=2048, temperature=0.0,
             fallback=self._template(report),
         )
 

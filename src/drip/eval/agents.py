@@ -115,10 +115,15 @@ class LLMAgent:
         *,
         system: str = AGENT_SYSTEM,
         name: str | None = None,
+        max_tokens: int = 8192,
     ) -> None:
         self.model = model
         self.system = system
         self.name = name or model
+        # Reasoning models (e.g. deepseek-v4-pro, o-series) spend most of the
+        # token budget on hidden chain-of-thought before the answer, so the cap
+        # must be generous or the JSON answer gets truncated mid-string.
+        self.max_tokens = max_tokens
 
     def answer(self, case: Case) -> AgentResponse:
         try:
@@ -127,7 +132,7 @@ class LLMAgent:
                 system=self.system,
                 messages=[{"role": "user", "content": _user_message(case)}],
                 json_mode=True,
-                max_tokens=1024,
+                max_tokens=self.max_tokens,
                 temperature=0.0,
             )
         except LLMError as exc:
