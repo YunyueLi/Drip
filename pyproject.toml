@@ -65,6 +65,8 @@ packages = ["src/drip"]
 line-length = 100
 target-version = "py311"
 src = ["src"]
+# Vendored 3rd-party skill (installed via uipro-cli) — not project code, not linted.
+extend-exclude = [".claude"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP", "RUF"]
