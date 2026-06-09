@@ -1,0 +1,96 @@
+{
+  "id": "autopilot",
+  "title": "自主托管一轮",
+  "subtitle": "信号路由 + 熔断器 · 确定性可审计",
+  "model": "deepseek/deepseek-v4-pro",
+  "prompt": "按信号自主跑一轮：先止血、再放量/换创意/分配，全程有熔断器，数据异常就停手。shadow 模式先不真写。",
+  "steps": [
+    {
+      "agent": "route",
+      "title": "局面分类与路由",
+      "icon": "route",
+      "summary": "局面：bleeding。",
+      "plan": [
+        {
+          "step": "stop-loss",
+          "why": "pause units with broken unit economics before anything else"
+        },
+        {
+          "step": "reallocate",
+          "why": "move the freed budget to the survivors, within the daily cap"
+        },
+        {
+          "step": "hold-rest",
+          "why": "leave mixed/thin reads untouched until they clear"
+        }
+      ]
+    },
+    {
+      "agent": "breaker",
+      "title": "熔断器预检",
+      "icon": "shield",
+      "summary": "通过：2/7 暂停，未触发异常阈值。",
+      "tripped": false
+    },
+    {
+      "agent": "apply",
+      "title": "写入（shadow）",
+      "icon": "send",
+      "summary": "shadow 模式：规划每笔 scale/pause/预算，落审计，不真写。",
+      "rows": [
+        {
+          "platform": "meta",
+          "campaign": "Meta_Prospecting_v3",
+          "action": "SCALE",
+          "new": 280.0
+        },
+        {
+          "platform": "meta",
+          "campaign": "Meta_Broad_v1",
+          "action": "PAUSE",
+          "new": 0.0
+        },
+        {
+          "platform": "tiktok",
+          "campaign": "Tiktok_Prospecting_v3",
+          "action": "SCALE",
+          "new": 280.0
+        },
+        {
+          "platform": "tiktok",
+          "campaign": "Tiktok_Broad_v1",
+          "action": "PAUSE",
+          "new": 0.0
+        },
+        {
+          "platform": "tencent",
+          "campaign": "Tencent_Prospecting_v3",
+          "action": "SCALE",
+          "new": 280.0
+        },
+        {
+          "platform": "oceanengine",
+          "campaign": "Oceanengine_Prospecting_v3",
+          "action": "SCALE",
+          "new": 280.0
+        },
+        {
+          "platform": "kuaishou",
+          "campaign": "Kuaishou_Prospecting_v3",
+          "action": "SCALE",
+          "new": 280.0
+        }
+      ]
+    },
+    {
+      "agent": "learn",
+      "title": "反馈",
+      "icon": "refresh",
+      "summary": "萃取赢点。",
+      "learnings": [
+        "tencent outperforms meta on ROAS (3.80x vs 2.60x) — shift weight toward tencent",
+        "5 campaigns beat 3x ROAS; their avg CTR 1.40% is the bar for the next creatives"
+      ]
+    }
+  ]
+}

@@ -369,6 +369,9 @@ const CONV = {
  {t:"narr",h:{zh:"<strong>下一步：</strong>先用 $1,200/天起测 1% LAL，跑稳后再考虑 2–3%。务必排除已有再营销受众，避免左右手互搏抬高 CPM。",en:"<strong>Next:</strong> start the 1% LAL at $1,200/day; once stable, consider 2–3%. Exclude existing retargeting audiences to avoid self-competition raising CPM."}}
 ]}
 };
+// Merge the REAL DeepSeek runs (web/real-cases.js) into CONV so the existing
+// console renderer replays them natively — same intro/cot/card/kpis/narr UI.
+if (window.DRIP_REAL_CASES) Object.assign(CONV, window.DRIP_REAL_CASES);
 (function(){
   const t = document.querySelector(".thread-in"); if (!t) return;
   if (!window.__origThread) window.__origThread = t.innerHTML;
@@ -851,4 +854,82 @@ setLang(localStorage.getItem("drip-lang") || (function(){ const n = (navigator.l
   }
   const pill = $("demoPill"); if (pill) pill.onclick = start;
   try { if (new URLSearchParams(location.search).get("demo") === "1") setTimeout(start, 450); } catch(e){}
+})();
+
+// ── Real-run replay: the Demo button opens a chooser of 3 REAL DeepSeek runs,
+// each replayed step-by-step inside this same console. (web/real-cases.js) ──
+(function(){
+  const order = window.DRIP_REAL_ORDER || [];
+  const cases = window.DRIP_REAL_CASES || {};
+  if (!order.length) return;
+  const L = () => (curLang && curLang.indexOf("zh") !== 0) ? "en" : "zh";
+  const tx = o => o == null ? "" : (typeof o === "string" ? o : (o[L()] || o.zh || ""));
+  const reduce = () => window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const PLAY = '<svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';
+
+  function closeChooser(){ const o = document.getElementById("rpChooser"); if (o) o.remove(); }
+  function openChooser(){
+    closeChooser();
+    const o = document.createElement("div"); o.id = "rpChooser"; o.className = "rp-back";
+    o.setAttribute("role", "dialog"); o.setAttribute("aria-modal", "true");
+    o.innerHTML =
+      '<div class="rp-modal"><div class="rp-mhead"><div><div class="rp-mt">' +
+      (L()==="en" ? "Watch a real run" : "看一个真实运行") + '</div><div class="rp-ms">' +
+      (L()==="en" ? "Replayed in the console — rules decide, your LLM narrates. Real DeepSeek output."
+                  : "在控制台里回放 —— 规则定决策，模型写「为什么」。真实 DeepSeek 输出。") +
+      '</div></div><button class="rp-x" id="rpX" aria-label="close">✕</button></div><div class="rp-grid">' +
+      order.map(id => { const c = cases[id]; return '<button class="rp-card" data-id="' + id + '">' +
+        '<span class="rp-ic">' + PLAY + '</span><span class="rp-cmain"><span class="rp-cn">' + tx(c.title) +
+        '</span><span class="rp-cs">' + tx(c.sub) + '</span></span><span class="rp-go">' +
+        (L()==="en" ? "Replay" : "看回放") + ' →</span></button>'; }).join("") +
+      '</div></div>';
+    document.body.appendChild(o);
+    o.addEventListener("click", e => { if (e.target === o) closeChooser(); });
+    o.querySelector("#rpX").onclick = closeChooser;
+    o.querySelectorAll(".rp-card").forEach(b => b.onclick = () => playCase(b.getAttribute("data-id")));
+  }
+
+  function bar(id){
+    const host = document.getElementById("convHost"); if (!host || document.getElementById("rpBar")) return;
+    const b = document.createElement("div"); b.id = "rpBar"; b.className = "rp-bar";
+    b.innerHTML = '<span class="rp-st"><span class="rp-ok">✓</span>' +
+      (L()==="en" ? "Replay complete · Drip" : "回放完成 · Drip") + '</span><span class="rp-acts">' +
+      '<button class="rp-btn" id="rpAgain">' + (L()==="en"?"Replay":"看回放") + '</button>' +
+      '<button class="rp-btn" id="rpAnother">' + (L()==="en"?"Another":"换一个") + '</button>' +
+      '<button class="rp-btn ink" id="rpSame">' + (L()==="en"?"Try it yourself":"做同款") + '</button></span>';
+    host.appendChild(b);
+    b.querySelector("#rpAgain").onclick = () => playCase(id);
+    b.querySelector("#rpAnother").onclick = openChooser;
+    b.querySelector("#rpSame").onclick = () => {
+      const inp = document.querySelector("#view-console textarea, #view-console input[type=text], .composer textarea, .composer input");
+      if (inp) { inp.focus(); try { inp.value = tx(cases[id].q); } catch(e){} }
+    };
+    b.scrollIntoView({ behavior: reduce() ? "auto" : "smooth", block: "end" });
+  }
+
+  function playCase(id){
+    closeChooser();
+    if (typeof hideAll === "function") { /* keep tour chrome off */ }
+    if (typeof setView === "function") setView("console");
+    if (!window.__showConv) return;
+    window.__showConv(id);
+    const old = document.getElementById("rpBar"); if (old) old.remove();
+    const host = document.getElementById("convHost");
+    const content = host && host.querySelector(".msg.bot .content");
+    if (!content) { bar(id); return; }
+    const blocks = [...content.children];
+    if (reduce()) { bar(id); return; }
+    blocks.forEach(el => el.classList.add("rp-hide"));
+    let i = 0;
+    (function step(){
+      if (i < blocks.length){
+        const el = blocks[i++]; el.classList.remove("rp-hide"); el.classList.add("rp-in");
+        const sc = document.querySelector(".thread"); if (sc) sc.scrollTop = sc.scrollHeight;
+        setTimeout(step, 720);
+      } else { bar(id); }
+    })();
+  }
+
+  const pill = document.getElementById("demoPill");
+  if (pill) { pill.style.display = ""; pill.onclick = openChooser; }
 })();

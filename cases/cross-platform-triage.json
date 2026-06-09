@@ -1,0 +1,630 @@
+{
+  "id": "cross-platform-triage",
+  "title": "跨平台体检与预算重分配",
+  "subtitle": "7 campaigns · Meta / TikTok / 腾讯 / 巨量 / 快手",
+  "model": "deepseek/deepseek-v4-pro",
+  "prompt": "我有跨 Meta/TikTok/腾讯/巨量/快手的多条 campaign，今天预算 $1,400，帮我体检一遍、决定每条该放量还是止损、并把预算重新分配到赢家。",
+  "steps": [
+    {
+      "agent": "collect",
+      "title": "采集",
+      "icon": "database",
+      "summary": "从 5 个平台拉取 7 条 campaign，归一到 AdMetrics。",
+      "platforms": [
+        "kuaishou",
+        "meta",
+        "oceanengine",
+        "tencent",
+        "tiktok"
+      ]
+    },
+    {
+      "agent": "diagnose",
+      "title": "诊断",
+      "icon": "stethoscope",
+      "summary": "Pause Meta_Broad_v1 and Tiktok_Broad_v1 immediately—CPP is $40 (vs. $16.67 on prospecting) and ROAS just 1.40x. All five prospecting campaigns (Meta, Tiktok, Tencent, OceanEngine, Kuaishou) delivered a 3.80x ROAS with CPP $16.67 yesterday. Scale each of them +10% to $220/day today. Total spend was $1,480 with no anomalies.",
+      "cards": [
+        {
+          "label": "Meta_Prospecting_v3",
+          "action": "SCALE",
+          "delta": 0.1,
+          "confidence": "MEDIUM",
+          "green": 7,
+          "total": 8,
+          "signals": [
+            {
+              "name": "CPP",
+              "status": "g",
+              "value": "$16.67",
+              "target": "$25.00",
+              "note": "33% below target"
+            },
+            {
+              "name": "ROAS",
+              "status": "g",
+              "value": "3.8x",
+              "target": "3.0x",
+              "note": "exceeding"
+            },
+            {
+              "name": "Purchase CVR",
+              "status": "g",
+              "value": "0.86%",
+              "target": "0.86% base",
+              "note": "3-day stable"
+            },
+            {
+              "name": "Daily Spend",
+              "status": "g",
+              "value": "$200",
+              "target": "$1,400 cap",
+              "note": "14% of cap"
+            },
+            {
+              "name": "Purchases",
+              "status": "y",
+              "value": "12",
+              "target": "min 10",
+              "note": "thin sample"
+            },
+            {
+              "name": "CTR",
+              "status": "g",
+              "value": "1.40%",
+              "target": "1.40% base",
+              "note": "3-day stable"
+            },
+            {
+              "name": "Frequency",
+              "status": "g",
+              "value": "1.8",
+              "target": "cap 2.5",
+              "note": "room to run"
+            },
+            {
+              "name": "Budget",
+              "status": "g",
+              "value": "86% headroom",
+              "target": ">15% to scale",
+              "note": "room to scale"
+            }
+          ],
+          "reasons": [
+            "7/8 green but sample/headroom not fully clear — take the conservative step"
+          ],
+          "why": "The decision to scale by just 10% is correct because while nearly all performance signals are firmly green—CPP is 33% below target, ROAS is 3.8x against a 3.0x goal, and budget headroom sits at 86%—the 12 purchases are still a thin sample, limiting our confidence in the stability of those strong metrics. By only moving to $220/day, we prudently begin to feed more volume into a clearly efficient campaign without risking a sudden efficiency drop from overscaling before the sample size matures."
+        },
+        {
+          "label": "Meta_Broad_v1",
+          "action": "PAUSE",
+          "delta": 0.0,
+          "confidence": "LOW",
+          "green": 4,
+          "total": 8,
+          "signals": [
+            {
+              "name": "CPP",
+              "status": "r",
+              "value": "$40.00",
+              "target": "$25.00",
+              "note": "60% above target"
+            },
+            {
+              "name": "ROAS",
+              "status": "r",
+              "value": "1.4x",
+              "target": "3.0x",
+              "note": "below target"
+            },
+            {
+              "name": "Purchase CVR",
+              "status": "g",
+              "value": "0.75%",
+              "target": "0.75% base",
+              "note": "3-day stable"
+            },
+            {
+              "name": "Daily Spend",
+              "status": "g",
+              "value": "$240",
+              "target": "$1,400 cap",
+              "note": "17% of cap"
+            },
+            {
+              "name": "Purchases",
+              "status": "r",
+              "value": "6",
+              "target": "min 10",
+              "note": "thin sample"
+            },
+            {
+              "name": "CTR",
+              "status": "g",
+              "value": "0.80%",
+              "target": "0.80% base",
+              "note": "3-day stable"
+            },
+            {
+              "name": "Frequency",
+              "status": "y",
+              "value": "2.5",
+              "target": "cap 2.5",
+              "note": "near saturation"
+            },
+            {
+              "name": "Budget",
+              "status": "g",
+              "value": "83% headroom",
+              "target": ">15% to scale",
+              "note": "room to scale"
+            }
+          ],
+          "reasons": [
+            "CPP and ROAS both red — unit economics broken",
+            "Sample below minimum — confidence capped low"
+          ],
+          "why": "The campaign's unit economics are broken with a $40 cost per purchase running 60% above target and a 1.4x ROAS far below the 3.0x target, meaning every dollar spent is clearly unprofitable. With only 6 purchases on a thin sample below the 10-purchase minimum, there isn't enough data to justify letting it continue and hope for improvement, so pausing protects the budget until performance can be retested."
+        },
+        {
+          "label": "Tiktok_Prospecting_v3",
+          "action": "SCALE",
+          "delta": 0.1,
+          "confidence": "MEDIUM",
+          "green": 7,
+          "total": 8,
+          "signals": [
+            {
+              "name": "CPP",
+              "status": "g",
+              "value": "$16.67",
+              "target": "$25.00",
+              "note": "33% below target"
+            },
+            {
+              "name": "ROAS",
+              "status": "g",
+              "value": "3.8x",
+              "target": "3.0x",
+              "note": "exceeding"
+            },
+            {
+              "name": "Purchase CVR",
+              "status": "g",
+              "value": "0.86%",
+              "target": "0.86% base",
+              "note": "3-day stable"
+            },
+            {
+              "name": "Daily Spend",
+              "status": "g",
+              "value": "$200",
+              "target": "$1,400 cap",
+              "note": "14% of cap"
+            },
+            {
+              "name": "Purchases",
+              "status": "y",
+              "value": "12",
+              "target": "min 10",
+              "note": "thin sample"
+            },
+            {
+              "name": "CTR",
+              "status": "g",
+              "value": "1.40%",
+              "target": "1.40% base",
+              "note": "3-day stable"
+            },
+            {
+              "name": "Frequency",
+              "status": "g",
+              "value": "1.8",
+              "target": "cap 2.5",
+              "note": "room to run"
+            },
+            {
+              "name": "Budget",
+              "status": "g",
+              "value": "86% headroom",
+              "target": ">15% to scale",
+              "note": "room to scale"
+            }
+          ],
+          "reasons": [
+            "7/8 green but sample/headroom not fully clear — take the conservative step"
+          ],
+          "why": "The decision to scale conservatively by 10% is justified because the campaign’s core efficiency signals are excellent—CPP is 33% below target at $16.67, ROAS exceeds the 3.0x goal at 3.8x, and both CVR and CTR are holding steady—indicating a well-optimized audience. However, the purchase count of 12 is barely above the 10 minimum and remains a thin sample, so immediately ramping spend risks instability that these efficiency numbers might not sustain at higher volume. With frequency still low at 1.8 and budget headroom at 86%, this small, data-safe increase to $220 tests scalability without overcommitting before more purchases confirm the trend."
+        },
+        {
+          "label": "Tiktok_Broad_v1",
+          "action": "PAUSE",
+          "delta": 0.0,
+          "confidence": "LOW",
+          "green": 4,
+          "total": 8,
+          "signals": [
+            {
+              "name": "CPP",
+              "status": "r",
+              "value": "$40.00",
+              "target": "$25.00",
+              "note": "60% above target"
+            },
+            {
+              "name": "ROAS",
+              "status": "r",
+              "value": "1.4x",
+              "target": "3.0x",
+              "note": "below target"
+            },
+            {
+              "name": "Purchase CVR",
+              "status": "g",
+              "value": "0.75%",
+              "target": "0.75% base",
+              "note": "3-day stable"
+            },
+            {
+              "name": "Daily Spend",
+              "status": "g",
+              "value": "$240",
+              "target": "$1,400 cap",
+              "note": "17% of cap"
+            },
+            {
+              "name": "Purchases",
+              "status": "r",
+              "value": "6",
+              "target": "min 10",
+              "note": "thin sample"
+            },
+            {
+              "name": "CTR",
+              "status": "g",
+              "value": "0.80%",
+              "target": "0.80% base",
+              "note": "3-day stable"
+            },
+            {
+              "name": "Frequency",
+              "status": "y",
+              "value": "2.5",
+              "target": "cap 2.5",
+              "note": "near saturation"
+            },
+            {
+              "name": "Budget",
+              "status": "g",
+              "value": "83% headroom",
+              "target": ">15% to scale",
+              "note": "room to scale"
+            }
+          ],
+          "reasons": [
+            "CPP and ROAS both red — unit economics broken",
+            "Sample below minimum — confidence capped low"
+          ],
+          "why": "Pausing is correct because the core unit economics clearly violate thresholds — a $40 cost per purchase is 60% above the $25 target while the 1.4x ROAS falls far short of the required 3.0x — indicating the campaign is unprofitably spending. With only 6 purchases, the sample is too thin to override these red signals, and because both primary efficiency metrics are simultaneously broken, even low-confidence evidence demands a protective stop to prevent further loss."
+        },
+        {
+          "label": "Tencent_Prospecting_v3",
+          "action": "SCALE",
+          "delta": 0.1,
+          "confidence": "MEDIUM",
+          "green": 7,
+          "total": 8,
+          "signals": [
+            {
+              "name": "CPP",
+              "status": "g",
+              "value": "$16.67",
+              "target": "$25.00",
+              "note": "33% below target"
+            },
+            {
+              "name": "ROAS",
+              "status": "g",
+              "value": "3.8x",
+              "target": "3.0x",
+              "note": "exceeding"
+            },
+            {
+              "name": "Purchase CVR",
+              "status": "g",
+              "value": "0.86%",
+              "target": "0.86% base",
+              "note": "3-day stable"
+            },
+            {
+              "name": "Daily Spend",
+              "status": "g",
+              "value": "$200",
+              "target": "$1,400 cap",
+              "note": "14% of cap"
+            },
+            {
+              "name": "Purchases",
+              "status": "y",
+              "value": "12",
+              "target": "min 10",
+              "note": "thin sample"
+            },
+            {
+              "name": "CTR",
+              "status": "g",
+              "value": "1.40%",
+              "target": "1.40% base",
+              "note": "3-day stable"
+            },
+            {
+              "name": "Frequency",
+              "status": "g",
+              "value": "1.8",
+              "target": "cap 2.5",
+              "note": "room to run"
+            },
+            {
+              "name": "Budget",
+              "status": "g",
+              "value": "86% headroom",
+              "target": ">15% to scale",
+              "note": "room to scale"
+            }
+          ],
+          "reasons": [
+            "7/8 green but sample/headroom not fully clear — take the conservative step"
+          ],
+          "why": "The campaign's core efficiency metrics are strongly green, with CPP 33% below target and ROAS at 3.8x, while daily spend sits at just 14% of its $1,400 cap and budget headroom is 86%, signaling ample room to scale. The sole yellow signal—Purchases at 12, barely above the 10 minimum—correctly flags thin sample data, so a conservative 10% step-up to $220 mitigates risk while beginning to exploit the favorable cost and return environment. This guarded approach respects the sample size uncertainty without ignoring the clear scalability potential shown by the low frequency (1.8) and stable CTR."
+        },
+        {
+          "label": "Oceanengine_Prospecting_v3",
+          "action": "SCALE",
+          "delta": 0.1,
+          "confidence": "MEDIUM",
+          "green": 7,
+          "total": 8,
+          "signals": [
+            {
+              "name": "CPP",
+              "status": "g",
+              "value": "$16.67",
+              "target": "$25.00",
+              "note": "33% below target"
+            },
+            {
+              "name": "ROAS",
+              "status": "g",
+              "value": "3.8x",
+              "target": "3.0x",
+              "note": "exceeding"
+            },
+            {
+              "name": "Purchase CVR",
+              "status": "g",
+              "value": "0.86%",
+              "target": "0.86% base",
+              "note": "3-day stable"
+            },
+            {
+              "name": "Daily Spend",
+              "status": "g",
+              "value": "$200",
+              "target": "$1,400 cap",
+              "note": "14% of cap"
+            },
+            {
+              "name": "Purchases",
+              "status": "y",
+              "value": "12",
+              "target": "min 10",
+              "note": "thin sample"
+            },
+            {
+              "name": "CTR",
+              "status": "g",
+              "value": "1.40%",
+              "target": "1.40% base",
+              "note": "3-day stable"
+            },
+            {
+              "name": "Frequency",
+              "status": "g",
+              "value": "1.8",
+              "target": "cap 2.5",
+              "note": "room to run"
+            },
+            {
+              "name": "Budget",
+              "status": "g",
+              "value": "86% headroom",
+              "target": ">15% to scale",
+              "note": "room to scale"
+            }
+          ],
+          "reasons": [
+            "7/8 green but sample/headroom not fully clear — take the conservative step"
+          ],
+          "why": "This is the right call because nearly all performance signals are green, with cost per purchase well below target at $16.67 and ROAS exceeding 3.8x, while purchase conversion rate and CTR remain stable — confirming efficiency. The only caution is the yellow purchases count (12) being a thin sample, so the conservative 10% spend bump to $220 is a measured way to test scalability without overextending, especially given 86% budget headroom and low frequency of 1.8."
+        },
+        {
+          "label": "Kuaishou_Prospecting_v3",
+          "action": "SCALE",
+          "delta": 0.1,
+          "confidence": "MEDIUM",
+          "green": 7,
+          "total": 8,
+          "signals": [
+            {
+              "name": "CPP",
+              "status": "g",
+              "value": "$16.67",
+              "target": "$25.00",
+              "note": "33% below target"
+            },
+            {
+              "name": "ROAS",
+              "status": "g",
+              "value": "3.8x",
+              "target": "3.0x",
+              "note": "exceeding"
+            },
+            {
+              "name": "Purchase CVR",
+              "status": "g",
+              "value": "0.86%",
+              "target": "0.86% base",
+              "note": "3-day stable"
+            },
+            {
+              "name": "Daily Spend",
+              "status": "g",
+              "value": "$200",
+              "target": "$1,400 cap",
+              "note": "14% of cap"
+            },
+            {
+              "name": "Purchases",
+              "status": "y",
+              "value": "12",
+              "target": "min 10",
+              "note": "thin sample"
+            },
+            {
+              "name": "CTR",
+              "status": "g",
+              "value": "1.40%",
+              "target": "1.40% base",
+              "note": "3-day stable"
+            },
+            {
+              "name": "Frequency",
+              "status": "g",
+              "value": "1.8",
+              "target": "cap 2.5",
+              "note": "room to run"
+            },
+            {
+              "name": "Budget",
+              "status": "g",
+              "value": "86% headroom",
+              "target": ">15% to scale",
+              "note": "room to scale"
+            }
+          ],
+          "reasons": [
+            "7/8 green but sample/headroom not fully clear — take the conservative step"
+          ],
+          "why": "This campaign is fundamentally outperforming its targets—cost per purchase is 33% below goal, ROAS is 26% over, and engagement signals like CTR and CVR are perfectly stable with healthy frequency and 86% budget headroom—so increasing spend is clearly justified. The only soft spot is purchase count sitting at 12 against a minimum of 10, making the sample thin and adding uncertainty to these strong ratios. A modest 10% step is the correct call because it captures the available headroom while keeping spend limited enough that if the sample is misleading, the downside risk remains contained."
+        }
+      ]
+    },
+    {
+      "agent": "strategize",
+      "title": "策略",
+      "icon": "target",
+      "summary": "排出赢家方向，给出下一个创意测试。",
+      "hypotheses": [
+        {
+          "direction": "scale_winner",
+          "target": "Meta_Prospecting_v3",
+          "brief": "Winning hook: “I wasted $500/month on [common solution] until I found this.”\n\n**Creative variants:**\n1. “Stop doing [common mistake] – here’s the 1-step fix that saves me $200/day.”\n2. “The silent [pain point] killer you’ve been ignoring – and how I eradicated it.”\n3. “I went from [bad metric] to [good metric] in 7 days – no gimmicks.”\n\n**Creative brief:** Test loss-aversion vs. curiosity-driven headlines to broaden cold-audience attention. Keep the before/after structure tight and tie them directly to our product’s core ROI for seamless scaling."
+        },
+        {
+          "direction": "cut_loser",
+          "target": "Tiktok_Broad_v1",
+          "brief": "**New Angle Brief:**  \n“I almost returned this – then I tried it *this* way.” Show an unscripted first-person clip of a real user demonstrating a surprising, non-obvious application hack that instantly solves a common frustration, ending with a visible “aha” result."
+        }
+      ]
+    },
+    {
+      "agent": "create",
+      "title": "创意",
+      "icon": "spark",
+      "summary": "为赢家方向产出 3 个变体。",
+      "variants": [
+        {
+          "id": "f05241-1",
+          "kind": "image",
+          "ref": "(dry-run)"
+        },
+        {
+          "id": "f05241-2",
+          "kind": "image",
+          "ref": "(dry-run)"
+        },
+        {
+          "id": "f05241-3",
+          "kind": "image",
+          "ref": "(dry-run)"
+        }
+      ]
+    },
+    {
+      "agent": "allocate",
+      "title": "分配",
+      "icon": "split",
+      "summary": "在 $1,400 总预算内重分：5 放量 / 2 止损。",
+      "rows": [
+        {
+          "platform": "meta",
+          "campaign": "Meta_Prospecting_v3",
+          "action": "SCALE",
+          "old": 200.0,
+          "new": 280.0
+        },
+        {
+          "platform": "meta",
+          "campaign": "Meta_Broad_v1",
+          "action": "PAUSE",
+          "old": 240.0,
+          "new": 0.0
+        },
+        {
+          "platform": "tiktok",
+          "campaign": "Tiktok_Prospecting_v3",
+          "action": "SCALE",
+          "old": 200.0,
+          "new": 280.0
+        },
+        {
+          "platform": "tiktok",
+          "campaign": "Tiktok_Broad_v1",
+          "action": "PAUSE",
+          "old": 240.0,
+          "new": 0.0
+        },
+        {
+          "platform": "tencent",
+          "campaign": "Tencent_Prospecting_v3",
+          "action": "SCALE",
+          "old": 200.0,
+          "new": 280.0
+        },
+        {
+          "platform": "oceanengine",
+          "campaign": "Oceanengine_Prospecting_v3",
+          "action": "SCALE",
+          "old": 200.0,
+          "new": 280.0
+        },
+        {
+          "platform": "kuaishou",
+          "campaign": "Kuaishou_Prospecting_v3",
+          "action": "SCALE",
+          "old": 200.0,
+          "new": 280.0
+        }
+      ]
+    },
+    {
+      "agent": "learn",
+      "title": "反馈",
+      "icon": "refresh",
+      "summary": "萃取赢点，回灌下一轮。",
+      "learnings": [
+        "tencent outperforms meta on ROAS (3.80x vs 2.60x) — shift weight toward tencent",
+        "5 campaigns beat 3x ROAS; their avg CTR 1.40% is the bar for the next creatives"
+      ]
+    }
+  ]
+}
