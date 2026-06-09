@@ -678,7 +678,10 @@
           </div>
           <div class="set-grp">模型与归因</div>
           <div class="fcard">
-            <div class="frow"><div class="fl"><span data-i18n="st.llm">LLM 提供方</span><div class="h" data-i18n="st.llmh">12 家 + OpenRouter 兜底</div></div><div class="fc"><select class="inp"><option>anthropic / claude-sonnet-4-6</option><option>openai / gpt-4o</option><option>google / gemini-2.5-pro</option><option>deepseek / deepseek-v3</option><option data-i18n="st.local">本地 / ollama</option></select></div></div>
+            <div class="frow"><div class="fl"><span>模型</span><div class="h">OpenAI 兼容 · 默认 DeepSeek</div></div><div class="fc"><input id="setLlmModel" class="inp" placeholder="deepseek-v4-pro"></div></div>
+            <div class="frow"><div class="fl"><span>API Key</span><div class="h">随账号漫游 · 仅存浏览器</div></div><div class="fc"><input id="setLlmKey" class="inp" type="password" placeholder="sk-..." autocomplete="off"></div></div>
+            <div class="frow"><div class="fl"><span>Base URL</span><div class="h">留空即用默认 DeepSeek</div></div><div class="fc"><input id="setLlmBase" class="inp" placeholder="https://api.deepseek.com"></div></div>
+            <div class="frow"><div class="fl"><span>状态</span><div class="h"><span data-llm-status>未配置 LLM</span></div></div><div class="fc"><button class="btn primary" id="setLlmSave" style="height:34px;padding:0 18px">保存</button></div></div>
             <div class="frow"><div class="fl" data-i18n="st.attr">归因来源</div><div class="fc"><select class="inp"><option>AppsFlyer</option><option>Adjust</option><option data-i18n="st.attrlast">平台口径（打折）</option></select></div></div>
           </div>
         </div>
