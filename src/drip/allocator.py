@@ -11,11 +11,10 @@ The flow:
   3. weight by value (ROAS by default; a plugged ValueModel if you want)
   4. normalise to the fixed total budget — freed budget from pauses flows to
      the scalers in proportion to value
-  5. (optional) hand each new budget to the bidding slot for execution
 
-``plan()`` is pure (engine + data only) so it runs and tests offline.
-``execute()`` lazily uses the bidding slot, so the dependency only loads when
-you actually dispatch.
+``plan()`` is pure (engine + data only) so it runs and tests offline. The CLI
+write path (``drip apply``) takes the plan and pushes each change through the
+gated, audited writers in :mod:`drip.adapters.writers`.
 """
 
 from __future__ import annotations
@@ -104,35 +103,6 @@ class Allocator:
                 old_budget=m.spend, new_budget=round(new_budget, 2),
             ))
         return plan
-
-    def execute(self, plan: AllocationPlan, *, executor_name: str = "shadow") -> list[dict[str, object]]:
-        """Hand each non-zero budget to the bidding slot. Lazy-imports the
-        slot so the dependency only loads when you actually dispatch.
-
-        .. note::
-
-           Not yet wired into the pipeline or CLI — forward-looking code kept
-           so the bidding-slot integration point is documented. Plan output is
-           used directly by the CLI write path (``cli._execute_write``).
-        """
-        from drip.adapters.bidding import (
-            BidInstruction,
-            BidStrategy,
-            build_bid_executor,
-        )
-
-        executor = build_bid_executor(executor_name)
-        results: list[dict[str, object]] = []
-        for a in plan.allocations:
-            if a.new_budget <= 0:
-                continue
-            instr = BidInstruction(
-                platform=a.metrics.platform,
-                budget=a.new_budget,
-                strategy=BidStrategy.PLATFORM_AUTO,
-            )
-            results.append(executor.execute(instr).to_dict())
-        return results
 
     def _value_weights(self, metrics: list[AdMetrics]) -> list[float]:
         if self.value_model_name == "null":

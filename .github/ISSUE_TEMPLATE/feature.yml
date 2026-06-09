@@ -14,7 +14,7 @@ body:
     id: proposal
     attributes:
       label: Proposed solution
-      placeholder: A new worker / a new adapter / a new flag on `drip launch`…
+      placeholder: A new agent / a new adapter / a new flag on `drip run` or `drip apply`…
 
   - type: textarea
     id: alternatives

@@ -6,6 +6,27 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+### Removed
+- **Dead parallel orchestration stack** (~1k LOC, never reachable from the shipped `run`/`apply`/`watch`/`autopilot`/`doctor`/`bench` path): `orchestrator.py`, the `workers/` pool (audience/bidding/creative/reporter), `graph.py` (the unwired LangGraph scaffold), `adapters/bidding.py`, `adapters/simulation.py` (OASIS), the `AdsAdapter` launch stub, `Allocator.execute()`, and the `drip launch` / `drip demo` commands. Dropped the now-unused `camel-oasis` dependency (`sim` extra).
+- Dead `config` credential getters and `config.get_mode()`; `RunMode` now lives in `drip.config`. Removed the unused, mislabelled `RunResult.by_category()`.
+
+### Changed
+- **Creative generation is actually wired now.** `Creative.produce` drives the real `gpt-image` / `Seedance` adapters when `OPENAI_API_KEY` / `ARK_API_KEY` is set; with no key (or an unshipped generator like ComfyUI) it falls back to deterministic `dry` placeholders, so the loop still runs offline.
+- **Docs/README aligned with the code.** Dropped claims about the LangGraph daemon, ComfyUI/Arcads/OASIS integrations, and "every release publishes a bench score"; clarified the `drip` bench agent is an LLM under the 8-signal methodology prompt (not the rule engine directly); flagged that 快手 write is unconfirmed and China-platform reads are sample-only.
+- `requires-python` relaxed to `>=3.11,<3.13` (the `<3.12` OASIS lock is gone).
+- Collapsed the per-allocation write loop duplicated across `drip apply` / `autopilot` into one `_apply_allocations` helper.
+
+### Fixed
+- **Window-vs-daily spend.** Live collectors now normalise cumulative window insights to per-day rates, so a multi-day pull is no longer read as one giant day (which inflated `daily_spend` and the budget-headroom signal).
+- **Money-safety caps fail loud.** A malformed `DRIP_BUDGET_CAP` / `DRIP_MAX_CHANGE_PCT` now raises instead of silently disabling the cap (fail-closed, not fail-open).
+- **Uniform audit schema.** The denied-write path now records the same fields (`field`/`old_value`/`new_value`) as the applied path, so every audit line has one shape.
+- **China "fake read → real write" guard.** The sample-only China collectors warn loudly when a token is set, so live writes aren't driven off placeholder data.
+- `drip doctor --metrics` reads YAML as UTF-8 (was locale-dependent on Windows).
+- CI ran the removed `drip demo`; it now runs `drip run` for the offline smoke check.
+
+### Tests
+- Added unit suites for previously-untested modules: `drip.eval` (scorer math, schema validators, an offline `run_bench` smoke), `attribution.py` (haircut / MMP / over-investment), `drip.llm` (resolution, HTTP error mapping, template fallback), and `config` (cap fail-loud, `RunMode`). Fixed two vacuously-conditional assertions in `test_allocator.py`. Suite: **198 tests**.
+
 ### Planned for v0.1
 - Public Drip-Bench leaderboard with baseline scores for `dummy`, `claude-sonnet-4-6`, `gpt-4o`, and `drip`.
 - **First _live_ Meta write verified on a real ad account** (the `drip apply` write path shipped in 0.0.4 — this is the live-credentials confirmation).

@@ -9,7 +9,7 @@
 - [ ] `ruff check .` passes
 - [ ] `mypy src` passes
 - [ ] `pytest` passes
-- [ ] `drip demo` still runs to completion
+- [ ] `drip run` still runs to completion
 - [ ] Manually verified: <!-- describe what you ran -->
 
 ## Notes for reviewers

@@ -2,7 +2,7 @@
 
 Production path uses the official SDKs (facebook-business, tiktok-business),
 imported lazily. With no credentials configured it returns deterministic
-sample data, so the whole pipeline runs offline (`drip demo`, tests, CI).
+sample data, so the whole pipeline runs offline (`drip run`, tests, CI).
 
 Per the research:
 - Meta: use a System User token (never a 60-day user token for a daemon),
@@ -21,15 +21,31 @@ from __future__ import annotations
 
 import hashlib
 import os
+from datetime import date
 from typing import Protocol
 
 from drip.data.metrics import AdMetrics
+from drip.log import logger
 
 
 class InsightsSource(Protocol):
     platform: str
 
     def fetch(self, *, since: str, until: str) -> list[AdMetrics]: ...
+
+
+def _window_days(since: str, until: str) -> int:
+    """Inclusive day count of the [since, until] window (>= 1).
+
+    Platform insights are cumulative over the window, but the decision engine
+    works in per-day rates (``daily_spend``, daily ``purchases``). Live collectors
+    divide flow metrics by this so a 7-day pull isn't read as one giant day.
+    Unparseable dates fall back to 1 (treat the pull as a single period).
+    """
+    try:
+        return max((date.fromisoformat(until) - date.fromisoformat(since)).days + 1, 1)
+    except ValueError:
+        return 1
 
 
 # --------------------------------------------------------------------------
@@ -64,19 +80,23 @@ class MetaInsights:
             "campaign_id", "campaign_name", "spend", "impressions", "clicks",
             "reach", "actions", "action_values", "purchase_roas",
         ]
+        days = _window_days(since, until)
         rows: list[AdMetrics] = []
         for r in account.get_insights(fields=fields, params=params):
             conversions = _parse_action(r.get("actions"), "purchase")
             conv_value = _parse_action(r.get("action_values"), "purchase")
+            # Cumulative window totals → per-day rates (see _window_days). Ratios
+            # (CPP/ROAS/CVR/CTR) are scale-invariant; reach is a unique-user count,
+            # left as-is (frequency then reads as daily impressions / window reach).
             rows.append(AdMetrics(
                 platform="meta",
                 campaign_id=str(r.get("campaign_id", "")),
                 date_start=since, date_end=until,
-                spend=float(r.get("spend", 0)),
-                impressions=int(r.get("impressions", 0)),
-                clicks=int(r.get("clicks", 0)),
-                conversions=conversions,
-                conversion_value=conv_value,
+                spend=float(r.get("spend", 0)) / days,
+                impressions=round(int(r.get("impressions", 0)) / days),
+                clicks=round(int(r.get("clicks", 0)) / days),
+                conversions=conversions / days,
+                conversion_value=conv_value / days,
                 reach=int(r.get("reach", 0)),
                 label=str(r.get("campaign_name", "")),
             ))
@@ -131,19 +151,21 @@ class TikTokInsights:
             resp = client.get(url, params=params, headers=headers)
             resp.raise_for_status()
             data = resp.json()
+        days = _window_days(since, until)
         rows: list[AdMetrics] = []
         for item in data.get("data", {}).get("list", []):
             m = item.get("metrics", {})
             dim = item.get("dimensions", {})
+            # Window totals → per-day rates (see _window_days / the Meta path).
             rows.append(AdMetrics(
                 platform="tiktok",
                 campaign_id=str(dim.get("campaign_id", "")),
                 date_start=since, date_end=until,
-                spend=float(m.get("spend", 0)),
-                impressions=int(float(m.get("impressions", 0))),
-                clicks=int(float(m.get("clicks", 0))),
-                conversions=float(m.get("conversion", 0)),
-                conversion_value=float(m.get("total_purchase_value", 0)),
+                spend=float(m.get("spend", 0)) / days,
+                impressions=round(float(m.get("impressions", 0)) / days),
+                clicks=round(float(m.get("clicks", 0)) / days),
+                conversions=float(m.get("conversion", 0)) / days,
+                conversion_value=float(m.get("total_purchase_value", 0)) / days,
             ))
         return rows
 
@@ -173,6 +195,15 @@ class _ChinaPlatformInsights:
         self.token = token or os.getenv(self._token_env)
 
     def fetch(self, *, since: str, until: str) -> list[AdMetrics]:
+        if self.token:
+            # The live read is not implemented yet, but the writer IS live once a
+            # token is set — so driving `drip apply` off this would write real
+            # money on FAKE (sample) data. Surface that loudly before go-live.
+            logger.warning(
+                "%s live read not implemented — returning SAMPLE data despite a "
+                "configured token. Do not drive live writes off this; implement "
+                "fetch() first.", self.platform,
+            )
         return _sample(self.platform, since, until)[:1]
 
 

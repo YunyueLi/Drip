@@ -4,8 +4,9 @@ The real OpenAI Images endpoint as of 2026-05 is `gpt-image-2`. We default
 to `quality='high'` for hero keyframes and let callers downshift to
 `gpt-image-1-mini` for cheap variant batches.
 
-The `openai` SDK is imported lazily so `drip demo` (dry-run) works with no
-provider packages installed at all.
+The `openai` SDK is imported lazily so the offline path (`drip run`) works with
+no provider packages installed at all; without `OPENAI_API_KEY` the Creative
+agent falls back to dry placeholders and never constructs this adapter.
 """
 
 from __future__ import annotations

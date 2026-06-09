@@ -8,6 +8,8 @@ Tests cover:
 
 from __future__ import annotations
 
+import pytest
+
 from drip.creative import Creative, CreativeVariant
 
 # ---------------------------------------------------------------------------
@@ -74,12 +76,27 @@ def test_empty_brief() -> None:
 
 
 # ---------------------------------------------------------------------------
-# known generators — dry path only (live requires SDKs)
+# live generators fall back to dry when their API key is absent
 # ---------------------------------------------------------------------------
 
-# gpt-image, seedance, and comfyui are kept as dry for testability since
-# their _live() methods depend on optional adapters. The dry path is the
-# default and is what offline / CI runs use.
+# gpt-image / seedance hit a real adapter only when their key is set; offline
+# (CI, no key) they degrade to deterministic placeholders so the loop still
+# runs. The real-generation path needs the SDK + network and is not unit-tested.
+
+
+def test_gpt_image_without_key_falls_back_to_dry(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    variants = Creative(generator="gpt-image").produce("Brief", n=2)
+    assert len(variants) == 2
+    assert variants[0].generator == "dry"
+    assert variants[0].asset_ref == "(dry-run)"
+
+
+def test_seedance_without_key_falls_back_to_dry(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("ARK_API_KEY", raising=False)
+    variants = Creative(generator="seedance").produce("Brief", n=1)
+    assert len(variants) == 1
+    assert variants[0].generator == "dry"
 
 
 def test_produce_default_generator() -> None:

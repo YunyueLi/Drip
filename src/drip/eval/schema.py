@@ -127,8 +127,3 @@ class RunResult(BaseModel):
     @property
     def max_score(self) -> float:
         return 100.0 * len(self.case_scores)
-
-    def by_category(self) -> dict[str, float]:
-        # Caller passes Case list for category if needed; here we keep it
-        # simple and return per-case_id totals.
-        return {str(s.case_id): s.total for s in self.case_scores}

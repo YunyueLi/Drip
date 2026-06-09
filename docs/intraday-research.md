@@ -23,6 +23,8 @@
 <a name="part-1"></a>
 ## Part 1 — 开源版能力全盘审计
 
+> **2026-06 重构更新**：本 Part 已据重构后的代码同步。该次重构**删除了与主链路并行、从未被真实执行的「孤儿栈」**——`orchestrator.py` / `workers/` / `graph.py`（LangGraph 脚手架）/ `adapters/bidding.py` / `adapters/simulation.py`（OASIS）及 `drip launch`/`demo` 命令；并把 `creative` 接到真实的 gpt-image/Seedance 生成（无 key 回退 dry），`adapters/ads.py` 现为真实 `MetaWriter`（非旧的假 id stub）。Part 2–5 的平台调研未受影响。
+
 **起点问题**：用户使用 Drip 的全流程是什么？开源技术版本是否支持所有这些操作？
 
 **一句话结论**：开源版是一个诚实的「**决策大脑 + 评测基准**」参考实现——会**想**（8 信号规则引擎）、会**说**（LLM 叙述）、能**自证**（Drip-Bench），离线全跑得通、可审计；但「**手脚**」（真实拉数 + 真实投放执行）要么未验证、要么是 stub。它**还不能真正自己动钱**，且 README/roadmap 对此是诚实的。
@@ -36,10 +38,10 @@
 | 2 | **诊断** 8 信号→红黄绿→SCALE/PAUSE/HOLD/REDUCE/REFRESH 决策卡（规则链+置信度） | 操作台·决策队列 | `drip doctor` | `engine/` |
 | 3 | **归因校正** 平台口径 ROAS vs MMP 真值对账 | 操作台 | — | `attribution.py` |
 | 4 | **策略** 排赢家/输家、提下一个创意测试 | 增长策略 | `drip run` | `strategist.py` |
-| 5 | **创意** 为赢家方向产出变体（可选社交预演） | 创意库 | `--generator` | `creative.py` + `adapters/{image,video,simulation}` |
+| 5 | **创意** 为赢家方向产出变体 | 创意库 | `--generator` | `creative.py` + `adapters/{image,video}` |
 | 6 | **分配** 跨平台再分预算、封日预算上限 | 操作台·分配 | `drip run` | `allocator.py` |
-| 7 | **审批** 动钱前人工签字 | （演示） | copilot 模式 | `graph.py` interrupt |
-| 8 | **执行** 把 scale/pause/新建落到 Meta/TikTok | （演示） | `drip launch` | `adapters/ads.py` + `bidding.py` |
+| 7 | **审批** 动钱前人工签字 | 操作台 | copilot 模式 | cli `_execute_write` + `safety.py` |
+| 8 | **执行** 把 scale/pause 落到 Meta/腾讯/巨量 | 操作台 | `drip apply` | `adapters/ads.py`(MetaWriter) + `writers.py` |
 | 9 | **学习** 萃取赢点回灌下一轮 | 操作台 | `drip run` | `feedback.py` |
 | 10 | **评测** 给 agent 决策打分 | Drip-Bench | `drip bench run` | `eval/` |
 
@@ -55,23 +57,22 @@
 | 诊断/分配/归因/策略/反馈 | ✅ | 纯算法、纯函数、离线可跑可测。`allocator.plan()` 逐 campaign 过引擎→ROAS 价值加权→归一总预算；`attribution.reconcile()` 真逻辑。 |
 | LLM 叙述层（12 provider） | ✅ | `llm/client.py` 真 httpx 调 Anthropic Messages + OpenAI 兼容协议，无需各家 SDK；无 key 回退模板。 |
 | Drip-Bench 评测 | ✅ | `eval/` + 10 个 YAML 案例 + 评分 + 可复现 bundle。 |
-| 审批门（花钱前 interrupt） | ✅ | `graph.py` 真 LangGraph，`interrupt_before=["allocate"]`，带 checkpointer。**但图跑到 `allocate` 出方案就 `END`，没有“写平台”节点。** |
+| 审批门（花钱前批准） | ✅ | `copilot` 模式下 `cli._execute_write` 每笔写入前 `click.confirm` 等人工 y/N；`safety.guard_change` 先过预算上限 + 单步变更上限，再落审计。`autopilot` 另有熔断器。 |
 | 数据采集（读） | 🟡 | `collectors.py` 的 `_fetch_live` 用官方 SDK（facebook_business / TikTok httpx）写了真调用，但 ① 缺 creds 回退确定性样本 ② 全标 `pragma: no cover`（**无测试、无真账户验证**）。 |
-| 创意图片生成 | 🟡 | `adapters/image.py` 真调 OpenAI `gpt-image`；但默认 `dry`，且一键 `drip run` 即便 `--generator gpt-image` 也只记 `pending:`（同步管线不 await async 生成，见 `creative._live`）。视频/ComfyUI 全占位。 |
-| 创意社交预演（OASIS） | 🟡 | `adapters/simulation.py` 真集成代码已写，但 `pragma: no cover` 未测，`_aggregate_signals` 部分仍 stub。 |
-| 竞价执行 | ❌ | `adapters/bidding.py` 三 executor（shadow/platform_auto/third_party）**只记录计划**，真下发注明走 ads.py(v0.2)。 |
-| **真实投放写入** | ❌ | **核心缺口**。`adapters/ads.py` 明文 `TODO(v0.2)`，**配 token 也只返回假 ad_group_id**（“return a fake id so the rest of the pipeline can flow”）。 |
+| 创意图片/视频生成 | 🟡 | `creative.produce` 现真接 `adapters/image.py`(gpt-image) 与 `adapters/video.py`(Seedance)：有 key 即同步驱动 async 生成、落地真实文件；**无 key 回退 `dry` 占位**（离线仍可跑）。真生成路径需 SDK+网络，`pragma: no cover`，未跑真账户。ComfyUI 未实现（归入回退）。 |
+| 竞价执行 | ❌(by design) | 不自建拍卖竞价——平台围墙花园（GEM/AXON/Smart+）赢这局，留作平台 auto 槽。旧的 `adapters/bidding.py` 占位栈已在 2026-06 删除。 |
+| **真实投放写入** | 🟡 | `adapters/ads.py::MetaWriter` 真调 Meta Marketing API（快照→写→回读核验、幂等、token 门）；`adapters/writers.py` 腾讯/巨量真 REST POST（未验证），快手端点未确认（`raise`）。全部 `pragma: no cover`，**真账户 live 写仍未验证**（roadmap 明确未勾选）。 |
 | MMP 真值拉取 | ❌ | BYO 接口，Drip 自己不拉 AppsFlyer/Adjust；无真值时打文档化 haircut（Meta 18% / TikTok 12% / Google 10%）。 |
 | LTV 模型 | ❌(by design) | `adapters/prediction.py` 不训练，null / heuristic / BYO。 |
-| Agentic 自主编排 | ❌ | `orchestrator.py` docstring 写“Claude Agent SDK supervisor”，**实际是固定顺序确定性管线**（creative→audience→bidding→reporter），按信号重路由是 v0.2。 |
+| Agentic 自主编排 | 🟡 | `supervisor.py`：按信号把局面分类（出血/放量/疲劳/平稳）并路由，配熔断器（数据异常或写失败即停）。**确定性规则路由，非 LLM 编排**——可审计但不"智能"。`drip autopilot` 已接入。 |
 
-测试：3 文件、19 个 test 函数（真实，README 标 15/15）。
+测试：14 文件、164 个 test 函数（`pytest -q` 全绿）；ruff + mypy(strict) 全过。核心（engine/allocator/safety/writers/supervisor/pipeline）有数值级行为锁定测试；`eval/`、`attribution.py`、`llm/` 仍缺单测。
 
 ### 1.3 三大缺口
 
-1. **真金白银最后一公里没打通**——写投放是 stub、竞价只记录计划、生产图无执行节点 → `autonomous` 实际也不会真花钱。
-2. **“插 key 即上线、零改代码”对写入链路不成立**——读数据接近“插 creds 即用”（虽未验证），但写投放写死 `TODO(v0.2)`，要真跑量必须自己补 MCP 对接。
-3. **真实数据链路从未被验证**——采集 live 代码全 `pragma: no cover`，roadmap “First live Meta/TikTok run” 明确**未勾选**。
+1. **真金白银最后一公里「已铺路、未验证」**——写投放路径（`MetaWriter` + 腾讯/巨量 REST）真实存在、过资金安全门（预算/单步上限）、落审计，但全 `pragma: no cover`、从未在真账户跑通；快手端点未确认（`raise`）。
+2. **读/写路径不对称（上线前必修）**——Meta/TikTok 有真 live 拉数代码（未验证）；但腾讯/巨量/快手的采集**无论是否配 token 都只返回样本**，写却是真 REST → 中国平台存在「**假读真写**」风险，必须先补真实读路径或对样本来源平台禁写。
+3. **真实数据链路从未被验证**——采集/写入 live 代码全 `pragma: no cover`，roadmap “First live Meta write verified on a real account” 明确**未勾选**。
 
 ### 1.4 定位
 
@@ -219,7 +220,6 @@
 | `safety/breaker.py` | 新 | 熔断器：异常→暂停所有自动写 + 告警 |
 | `safety/audit.py` | 新 | 写操作审计 + 回滚（写前快照） |
 | `store/` | 新 | SQLite/PG：时序 + 决策 + 审计落库 |
-| `graph.py` | 改 | 复用为盘中单轮逻辑（checkpointer 已支持） |
 
 **数据模型（4 张表）**
 - `metrics_ts`：`(campaign_id, ts_bucket, spend, conv, …)` — **upsert** on `(campaign_id, ts_bucket)`，扛回溯。

@@ -80,5 +80,5 @@ jobs:
       - name: drip --help
         run: .venv/bin/drip --help
 
-      - name: drip demo (dry-run, no API keys, no provider SDKs)
-        run: .venv/bin/drip demo
+      - name: drip run (offline samples, no API keys, no provider SDKs)
+        run: .venv/bin/drip run

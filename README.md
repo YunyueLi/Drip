@@ -73,7 +73,7 @@ A full growth team, six roles, one loop, one command:
 | 1 · **Collect** | `collectors` | Pull cross-platform insights, normalise to one schema | Meta / TikTok SDK · offline sample |
 | 2 · **Diagnose** | `analyst` | Score each campaign, scan anomalies, write the report | Decision engine + LLM |
 | 3 · **Strategize** | `strategist` | Rank winners/losers, propose the next creative test | LLM |
-| 4 · **Create** | `creative` | Produce ad variants for the winning direction | gpt-image / Seedance / ComfyUI |
+| 4 · **Create** | `creative` | Produce ad variants for the winning direction | gpt-image / Seedance (offline: dry placeholders) |
 | 5 · **Allocate** | `allocator` | Reallocate budget across platforms — fund winners, starve losers | Decision engine |
 | 6 · **Learn** | `feedback` | Distil what won, feed it back to the next cycle | — |
 
@@ -104,7 +104,7 @@ A guided, click-through demo walks the whole loop on sample data (no install, no
 ## 🧠 How it works
 
 ```
-                         drip run  /  LangGraph daemon
+                                  drip run
                                     │
    ┌──────────────────────── the one-stop loop ───────────────────────┐
    │                                                                   │
@@ -120,7 +120,7 @@ A guided, click-through demo walks the whole loop on sample data (no install, no
    ▼
  AdMetrics  ◀── one cross-platform data contract every agent speaks
    │
-   └─▶ Slots (swap any):  LLM ·  bidding ·  LTV ·  creative gen ·  ads write
+   └─▶ Slots (swap any):  LLM ·  LTV ·  creative gen ·  ads write
 ```
 
 A campaign's metrics hit **8 signals** (CPP, ROAS, CVR, CTR, frequency, spend,
@@ -181,7 +181,7 @@ Each is a small, framework-agnostic module you can read in one sitting:
 
 ```
 src/drip/
-  collectors.py    pull data — Meta · TikTok · 腾讯 · 巨量 · 快手 (+ offline sample)
+  collectors.py    pull data — Meta · TikTok live; 腾讯/巨量/快手 + offline sample
   analyst.py       diagnose + anomaly scan + report
   strategist.py    next creative test from performance
   creative.py      produce variants (orchestrate external generators)
@@ -189,10 +189,10 @@ src/drip/
   attribution.py   reconcile platform-reported vs MMP truth
   feedback.py      learnings → next cycle
   engine/          decision core: signals → rules → cards · intraday spend-side
-  adapters/        ad writers (Meta + 腾讯/巨量/快手) · creative gen · bidding · LTV
+  adapters/        ad writers (Meta + 腾讯/巨量/快手) · creative gen · LTV
   safety.py        budget + learning-phase guards · append-only audit trail
   supervisor.py    signal-driven autonomous orchestration (route + circuit breaker)
-  pipeline.py      the one-stop loop      graph.py  LangGraph production daemon
+  pipeline.py      the one-stop loop
   llm/             12-provider LLM layer  eval/     Drip-Bench
 ```
 
@@ -207,7 +207,7 @@ fallback — nothing locks you in.
 | Slot | Plug in | Default (offline) |
 |---|---|---|
 | **LLM** | Claude · GPT · Gemini · Qwen · DeepSeek · Grok · local… (12 + OpenRouter fallback) | template (no key) |
-| **Creative gen** | gpt-image · Seedance · ComfyUI · Arcads | dry placeholders |
+| **Creative gen** | gpt-image (`OPENAI_API_KEY`) · Seedance (`ARK_API_KEY`) | dry placeholders |
 | **Ad-platform writes** | Meta Marketing API · 腾讯 / 巨量 / 快手 REST | shadow until copilot/autonomous |
 | **LTV / value** | Kohort · Voyantis · your model | heuristic |
 | **Attribution truth** | AppsFlyer · Adjust | documented haircut |
@@ -227,8 +227,13 @@ drip bench run --agent claude               # vs raw Claude
 ```
 
 Every run writes a reproducible bundle. Ship a UA agent? Run it against
-Drip-Bench and PR the result — win or lose. We publish ours too.
-See [`benchmarks/`](benchmarks/).
+Drip-Bench and PR the result — win or lose. A public leaderboard with baseline
+scores is on the [roadmap](#%EF%B8%8F-roadmap); see [`benchmarks/`](benchmarks/)
+for the cases and schema.
+
+> The `drip` bench agent runs an LLM under the 8-signal methodology prompt
+> (`eval/agents.py`), not the deterministic `engine/rules.py` directly — so a
+> bench score measures the *methodology*, not the rule engine in isolation.
 
 ---
 
@@ -259,26 +264,27 @@ Money safety is a ladder, not a switch (`DRIP_MODE`):
 - **`copilot`** — every write waits for human approval
 - **`autonomous`** — writes up to `DRIP_BUDGET_CAP`, checked before start
 
-The LangGraph daemon adds an **interrupt-before-spend** gate — a human signs
-off the budget move, then the run resumes from its checkpoint. Accountability
-stays with a person; execution scales toward lights-out.
+In `copilot` mode every budget move waits for a human y/N before it's sent, and
+`autopilot` sits behind a circuit breaker that halts on a data anomaly or write
+failures. Accountability stays with a person; execution scales toward lights-out.
 
 ---
 
 ## 🗺️ Roadmap
 
-The roadmap is **bench-driven** — every release publishes its Drip-Bench score.
+The roadmap is **bench-driven** — the goal is to publish a Drip-Bench score with
+each release.
 
-- [x] 8-signal decision engine · 12-provider LLM layer · bid/value slots
+- [x] 8-signal decision engine · 12-provider LLM layer · value slot
 - [x] **7 agents + end-to-end one-stop pipeline** · `drip run`
-- [x] Drip-Bench v0 (10 cases) · LangGraph production graph
+- [x] Drip-Bench v0 (10 cases, reproducible bundles)
 - [x] **Chat-driven console** (10 languages) + platform-capability research ([`docs/intraday-research.md`](docs/intraday-research.md))
 - [x] **Meta write path** — `drip apply` pushes scale/pause to live campaigns (copilot approval · budget + learning-phase guards · audited)
 - [ ] First live Meta write **verified on a real account** (plug your token, `drip apply --mode copilot`)
 - [x] **Intraday spend-side layer** — `drip watch`: hourly pacing / cost-spike / anti-overspend (gated + audited)
 - [ ] Public Drip-Bench leaderboard with baseline scores
 - [x] **Autonomous orchestration** — `drip autopilot`: signal-driven supervisor (route + circuit breaker), deterministic & auditable
-- [x] **China-platform writers** — 腾讯 / 巨量 / 快手, routed by `drip apply` + `drip watch` (gated + audited; live verify pending creds)
+- [x] **China-platform writers** — 腾讯 / 巨量 REST write path, routed by `drip apply` + `drip watch` (gated + audited; live verify pending creds). 快手 endpoint still unconfirmed (raises until wired)
 - [ ] Knowledge Packs — vertical signal/prompt overrides (anime, DTC, app…)
 
 Build log: [@drip_agent](https://x.com/drip_agent) · [CHANGELOG](CHANGELOG.md).

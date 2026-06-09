@@ -65,7 +65,7 @@ $ drip run --budget 1000
 | 1 · **采集** | `collectors` | 拉取跨平台数据,归一到同一套 schema | Meta / TikTok SDK · 离线样本 |
 | 2 · **诊断** | `analyst` | 给每条 campaign 打分、扫异常、写报告 | 决策引擎 + LLM |
 | 3 · **策略** | `strategist` | 排赢家/输家,提下一个创意测试 | LLM |
-| 4 · **创意** | `creative` | 为赢家方向产出广告变体 | gpt-image / Seedance / ComfyUI |
+| 4 · **创意** | `creative` | 为赢家方向产出广告变体 | gpt-image / Seedance（离线：dry 占位） |
 | 5 · **分配** | `allocator` | 跨平台再分预算 —— 喂赢家、饿输家 | 决策引擎 |
 | 6 · **学习** | `feedback` | 萃取赢点,回灌下一轮 | —— |
 
@@ -93,7 +93,7 @@ $ drip run --budget 1000
 ## 🧠 运作原理
 
 ```
-                         drip run  /  LangGraph daemon
+                                  drip run
                                     │
    ┌──────────────────────── the one-stop loop ───────────────────────┐
    │                                                                   │
@@ -109,7 +109,7 @@ $ drip run --budget 1000
    ▼
  AdMetrics  ◀── one cross-platform data contract every agent speaks
    │
-   └─▶ Slots (swap any):  LLM ·  bidding ·  LTV ·  creative gen ·  ads write
+   └─▶ Slots (swap any):  LLM ·  LTV ·  creative gen ·  ads write
 ```
 
 一条 campaign 的指标命中 **8 个信号**(CPP、ROAS、CVR、CTR、频次、花费、转化数、预算余量)→ 每个判红/黄/绿 → **规则**产出 `SCALE / PAUSE / HOLD / REDUCE / REFRESH` 决策,带置信度、护栏和可审计的规则链。样本薄?它就保守放量并把置信度封顶 —— 和资深买手一样的判断。
@@ -160,7 +160,7 @@ drip llm                       # 12 个模型 provider,用 provider/model 寻址
 
 ```
 src/drip/
-  collectors.py    拉数据 —— Meta · TikTok · 腾讯 · 巨量 · 快手(+ 离线样本)
+  collectors.py    拉数据 —— Meta · TikTok 实盘;腾讯/巨量/快手 + 离线样本
   analyst.py       诊断 + 异常扫描 + 报告
   strategist.py    从表现里提下一个创意测试
   creative.py      产出变体(编排外部生成器)
@@ -168,10 +168,10 @@ src/drip/
   attribution.py   平台口径 vs MMP 真值对账
   feedback.py      学习 → 下一轮
   engine/          决策内核:signals → rules → cards · 盘中花费侧
-  adapters/        广告写入(Meta + 腾讯/巨量/快手) · 创意生成 · 竞价 · LTV
+  adapters/        广告写入(Meta + 腾讯/巨量/快手) · 创意生成 · LTV
   safety.py        预算 + 学习期护栏 · append-only 审计留痕
   supervisor.py    信号驱动的自主编排(路由 + 熔断器)
-  pipeline.py      一站式闭环      graph.py  LangGraph 生产 daemon
+  pipeline.py      一站式闭环
   llm/             12 provider LLM 层  eval/     Drip-Bench
 ```
 
@@ -184,7 +184,7 @@ Drip 负责编排、判断和评测。每一个「打不赢 / 没数据」的硬
 | 插槽 | 可插入 | 默认(离线) |
 |---|---|---|
 | **LLM** | Claude · GPT · Gemini · Qwen · DeepSeek · Grok · 本地…(12 个 + OpenRouter 兜底) | 模板(无 key) |
-| **创意生成** | gpt-image · Seedance · ComfyUI · Arcads | dry 占位 |
+| **创意生成** | gpt-image（`OPENAI_API_KEY`）· Seedance（`ARK_API_KEY`） | dry 占位 |
 | **广告平台写入** | Meta Marketing API · 腾讯 / 巨量 / 快手 REST | copilot/autonomous 之前为 shadow |
 | **LTV / 价值** | Kohort · Voyantis · 你的模型 | 启发式 |
 | **归因真值** | AppsFlyer · Adjust | 文档化 haircut |
@@ -200,7 +200,9 @@ drip bench run --agent drip:openai/gpt-4o   # 任意 provider/model
 drip bench run --agent claude               # 对比裸 Claude
 ```
 
-每次运行都产出可复现的 bundle。做了个买量 agent?拿它跑 Drip-Bench 然后 PR 结果上来 —— 赢输都行。我们也公开自己的。见 [`benchmarks/`](benchmarks/)。
+每次运行都产出可复现的 bundle。做了个买量 agent?拿它跑 Drip-Bench 然后 PR 结果上来 —— 赢输都行。带基线分的公开排行榜还在[路线图](#%EF%B8%8F-路线图)上;案例与 schema 见 [`benchmarks/`](benchmarks/)。
+
+> Drip-Bench 里的 `drip` agent 是「LLM + 8 信号方法论 prompt」(`eval/agents.py`),并不直接调用确定性的 `engine/rules.py` —— 所以 bench 分衡量的是方法论,不是孤立的规则引擎。
 
 ---
 
@@ -229,24 +231,24 @@ drip bench run --agent claude               # 对比裸 Claude
 - **`copilot`** —— 每次写都等人工批准
 - **`autonomous`** —— 在 `DRIP_BUDGET_CAP` 内自动写,启动前先校验
 
-LangGraph daemon 还加了一道**花钱前 interrupt** 闸 —— 由人签字确认预算动作,再从断点恢复运行。问责始终落在一个人身上;执行则朝「无人值守」逐步放开。
+在 `copilot` 模式下,每个预算动作发送前都等人工 y/N;`autopilot` 背后有熔断器,遇数据异常或写入失败即停。问责始终落在一个人身上;执行则朝「无人值守」逐步放开。
 
 ---
 
 ## 🗺️ 路线图
 
-路线图**由 bench 驱动** —— 每次发版都公布它的 Drip-Bench 分。
+路线图**由 bench 驱动** —— 目标是每次发版都附上它的 Drip-Bench 分。
 
-- [x] 8 信号决策引擎 · 12 provider LLM 层 · 竞价/价值插槽
+- [x] 8 信号决策引擎 · 12 provider LLM 层 · 价值插槽
 - [x] **7 个 agent + 端到端一站式管线** · `drip run`
-- [x] Drip-Bench v0(10 案例)· LangGraph 生产图
+- [x] Drip-Bench v0(10 案例,可复现 bundle)
 - [x] **聊天驱动控制台**(10 语种)+ 平台能力调研([`docs/intraday-research.md`](docs/intraday-research.md))
 - [x] **Meta 写入路径** —— `drip apply` 把 scale/pause 写到活的 campaign(copilot 批准 · 预算 + 学习期护栏 · 审计)
 - [ ] **首次真账户 live 写入验证**(插上你的 token,`drip apply --mode copilot`)
 - [x] **盘中花费侧层** —— `drip watch`:小时级 pacing / 成本突刺 / 防超投(带闸 + 审计)
 - [ ] 公开 Drip-Bench 排行榜 + baseline 跑分
 - [x] **自主编排** —— `drip autopilot`:信号驱动的 supervisor(路由 + 熔断器),确定性且可审计
-- [x] **国内平台写入** —— 腾讯 / 巨量 / 快手,由 `drip apply` + `drip watch` 路由(带闸 + 审计;live 验证待凭据)
+- [x] **国内平台写入** —— 腾讯 / 巨量 REST 写入路径,由 `drip apply` + `drip watch` 路由(带闸 + 审计;live 验证待凭据)。快手端点尚未确认(接通前 `raise`)
 - [ ] Knowledge Packs —— 垂类信号/prompt 覆盖(二次元、DTC、工具 app…)
 
 构建日志:[@drip_agent](https://x.com/drip_agent) · [CHANGELOG](CHANGELOG.md)。
