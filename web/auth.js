@@ -118,47 +118,42 @@
   }
   function signOut() { if (sb) sb.auth.signOut().then(function () { toast("已退出"); }); }
 
-  // ---- LLM config modal ----
-  function llmModal() {
-    var c = getLlm();
-    var head = '<div class="rp-mhead"><div><div class="rp-mt">LLM 配置</div><div class="rp-ms">' + (configured && user ? "保存到账号，跨设备漫游。" : "保存在本机。登录后随账号漫游。") + ' 默认 DeepSeek。</div></div><button class="rp-x" id="lmX">✕</button></div>';
-    var body = '<label class="auth-f"><span>模型</span><input id="lmModel" placeholder="deepseek-v4-pro" value="' + (c.model || "") + '"></label>' +
-      '<div class="auth-chips"><button class="auth-chip" data-mdl="deepseek-v4-pro">deepseek-v4-pro</button><button class="auth-chip" data-mdl="deepseek-v4-flash">deepseek-v4-flash</button></div>' +
-      '<label class="auth-f"><span>API Key</span><input id="lmKey" type="password" placeholder="sk-..." value="' + (c.key || "") + '"></label>' +
-      '<label class="auth-f"><span>Base URL</span><input id="lmBase" placeholder="https://api.deepseek.com" value="' + (c.base || "") + '"></label>' +
-      '<button class="btn primary auth-go" id="lmSave">保存</button>' +
-      '<div class="auth-note">🔒 仅存于浏览器' + (configured && user ? " + 你的账号" : "") + '，按请求发往引擎，不落盘。</div>';
-    var m = modal(head + body);
-    $("lmX").onclick = closeModal;
-    m.querySelectorAll("[data-mdl]").forEach(function (b) { b.onclick = function () { $("lmModel").value = b.getAttribute("data-mdl"); }; });
-    $("lmSave").onclick = function () {
-      var next = { provider: "deepseek", model: ($("lmModel").value || "deepseek-v4-pro").trim(), key: ($("lmKey").value || "").trim(), base: ($("lmBase").value || "https://api.deepseek.com").trim(), updatedAt: Date.now() };
-      setLlm(next); pushLlm(next); closeModal(); toast("LLM 配置已保存"); syncLlmForm();
-    };
-  }
+  // ---- LLM config (BYOK) — single entry, lives in Settings → 运行与模型 ----
   function syncLlmForm() {
     var c = getLlm();
     document.querySelectorAll("[data-llm-status]").forEach(function (e) {
       e.textContent = c.key ? (c.model || "deepseek-v4-pro") + " 已连接" : "未配置 LLM";
     });
+    fillLlmForm();
   }
-
-  // ---- inject an "LLM 配置" item into the account menu ----
-  function injectMenuItem() {
-    var anchor = $("signOut");
-    if (anchor && !$("llmCfgItem")) {
-      var b = document.createElement("button");
-      b.className = "am-item"; b.id = "llmCfgItem";
-      b.innerHTML = '<span class="ai">✦</span>LLM 配置 <span class="am-stat" data-llm-status></span>';
-      b.onclick = function () { llmModal(); closeAcctMenu(); };
-      anchor.parentNode.insertBefore(b, anchor);
+  function fillLlmForm() {
+    var c = getLlm(), m = $("setLlmModel"), k = $("setLlmKey"), b = $("setLlmBase");
+    if (m && document.activeElement !== m) m.value = c.model || "";
+    if (k && document.activeElement !== k) k.value = c.key || "";
+    if (b && document.activeElement !== b) b.value = c.base || "";
+  }
+  function wireLlmForm() {
+    var save = $("setLlmSave");
+    if (save && !save._wired) {
+      save._wired = true;
+      save.onclick = function () {
+        var next = {
+          provider: "deepseek",
+          model: ((($("setLlmModel") || {}).value) || "deepseek-v4-pro").trim(),
+          key: ((($("setLlmKey") || {}).value) || "").trim(),
+          base: ((($("setLlmBase") || {}).value) || "https://api.deepseek.com").trim(),
+          updatedAt: Date.now(),
+        };
+        setLlm(next); pushLlm(next); toast("LLM 配置已保存"); syncLlmForm();
+      };
     }
+    fillLlmForm();
   }
   function closeAcctMenu() { var m = $("acctMenu"); if (m) m.classList.remove("open"); }
 
   // ---- wire ----
   function wire() {
-    injectMenuItem();
+    wireLlmForm();
     var si = $("signIn"); if (si) si.onclick = function () { loginModal(); closeAcctMenu(); };
     var so = $("signOut"); if (so) so.onclick = function () { signOut(); closeAcctMenu(); };
     var sso = $("setSignOut"); if (sso) sso.onclick = signOut;
@@ -180,5 +175,5 @@
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
   else boot();
   // expose for console/debug
-  window.DripAuth = { login: loginModal, llm: llmModal, signOut: signOut, getLlm: getLlm };
+  window.DripAuth = { login: loginModal, signOut: signOut, getLlm: getLlm, setLlm: setLlm };
 })();

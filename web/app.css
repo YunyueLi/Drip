@@ -401,7 +401,13 @@ button.pressed{transform:scale(.97);opacity:.85;transition:transform .08s,opacit
 .scene .t{font-size:13px;font-weight:600}.scene .d{font-size:11.5px;color:var(--text-2);margin:4px 0 9px;line-height:1.45}.scene .tag{font-size:10px;font-weight:550;color:var(--text-3);background:var(--surface-2);padding:2px 8px;border-radius:10px}
 
 @media(max-width:1180px){.app.chatmode,.app.chatmode.rr-hidden{grid-template-columns:var(--rail) 1fr}.rrail{display:none}}
-@media(max-width:860px){.app{--rail:58px}.app .rail{align-items:center;padding:12px 9px}.rlabel,.rail-name,.nav-toggle,.acct-id,.rail-chats{display:none!important}.app .rail .ri{width:38px;height:38px;grid-template-columns:none;place-items:center;padding:0}.rail-foot{border-top:none;align-items:center}}
+/* collapsed sidebar = slim, centered icon rail. In-flow at every width: expanding
+   grows the grid column and reflows the content (no overlay), same as desktop. */
+.app.nav-collapsed .rail{align-items:center}
+.app.nav-collapsed .rail-head{justify-content:center;padding:0}
+.app.nav-collapsed .rail .ri{width:38px;height:38px;grid-template-columns:none;place-items:center;padding:0}
+.app.nav-collapsed .rail-foot{align-items:center}
+.app.nav-collapsed .acctctl{justify-content:center;padding:5px}
 @media(max-width:1000px){.scenes{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:760px){.thread-in,.composer-in,.screen-in{padding-left:18px;padding-right:18px}.wv-in{padding:30px 18px}.wv-in h1{font-size:25px}.kpis{grid-template-columns:repeat(3,1fr)}.card .body{grid-template-columns:1fr}.card .vdiv{display:none}}
 @media(max-width:600px){.scenes{grid-template-columns:1fr}.wv-in h1{font-size:22px}.wv-in .sub{font-size:13.5px}.kpis,.kpis-4{grid-template-columns:repeat(2,1fr)}.topbar .ttl .meta{display:none}.topbar{padding:0 12px;gap:8px}.topbar .ttl{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.chip{display:none}.composer .bar,.wv-composer .bar{flex-wrap:wrap}.thread-in,.composer-in,.screen-in{padding-left:14px;padding-right:14px}.composer-wrap{padding:10px 14px 12px}.scrn-head h2{font-size:16px}.card .head{flex-wrap:wrap;row-gap:6px}.card .title{order:-1;flex-basis:100%}.dqrow{flex-wrap:wrap;row-gap:6px}}
