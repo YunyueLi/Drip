@@ -395,6 +395,8 @@ if (window.DRIP_REAL_CASES) Object.assign(CONV, window.DRIP_REAL_CASES);
     const sc = document.querySelector(".thread"); if (sc) sc.scrollTop = 0;
   };
   window.__resetConv = function(){ const orig = [...t.children].filter(el => el.id !== "convHost"); orig.forEach(el => el.style.display = ""); const h = document.getElementById("convHost"); if (h){ h.style.display = "none"; h.innerHTML = ""; } };
+  // Let the live runner (run.js) inject an ephemeral case for the real engine run.
+  window.__setConv = function(id, c){ CONV[id] = c; };
 })();
 (function(){
   const board=$("projBoard"), detail=$("projDetail"); if(!board||!detail) return;
@@ -501,8 +503,11 @@ document.addEventListener("click", e => {
 });
 document.querySelectorAll(".composer .send").forEach(s => s.addEventListener("click", () => {
   const ta = s.closest(".composer").querySelector("textarea");
-  if (ta && ta.value.trim()) { showToast("已发送 Drip 正在处理…"); ta.value = ""; }
-  else showToast("输入点什么，或在上面选个场景开始");
+  const text = ta && ta.value.trim();
+  if (!text) { showToast("输入点什么，或在上面选个场景开始"); return; }
+  // Real run: deterministic engine in the browser + your model narrates (run.js).
+  if (window.DripRun && window.DripRun.run) { window.DripRun.run(text); ta.value = ""; }
+  else { showToast("已发送 Drip 正在处理…"); ta.value = ""; }
 }));
 // rail + lang active toggles
 document.querySelectorAll(".rail .ri").forEach(r => r.addEventListener("click", () => {

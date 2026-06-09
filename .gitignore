@@ -47,3 +47,6 @@ artifacts/
 !web/*.png
 !docs/*.png
 !assets/screens/*.png
+
+# local dev preview config
+.claude/launch.json
