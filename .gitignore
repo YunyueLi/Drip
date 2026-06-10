@@ -58,3 +58,6 @@ supabase/.branches/
 
 # supabase personal access token (local only, never commit)
 .supabase-token
+
+# Meta app credentials handed off locally for `supabase secrets set` (never commit)
+.meta-secrets
