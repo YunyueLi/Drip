@@ -10,30 +10,59 @@
   var LLM_KEY = "drip-llm";
   var sb = null, user = null, session = null;
 
-  // ---- LLM config (BYOK) — local + account roaming ----
+  // ---- derived local keys (what llm.js / engine wiring read) ----
   function getLlm() { try { return JSON.parse(localStorage.getItem(LLM_KEY) || "{}") || {}; } catch (e) { return {}; } }
   function setLlm(c) { try { localStorage.setItem(LLM_KEY, JSON.stringify(c)); } catch (e) {} }
-  function pushLlm(c) { if (sb && user) sb.auth.updateUser({ data: { drip_llm: c } }).then(function (r) { console.info("[drip] LLM config →account", r && r.error ? r.error.message : "ok"); }); }
-  function pullLlm(u) {
-    var remote = (u && u.user_metadata && u.user_metadata.drip_llm) || null;
-    var local = getLlm();
-    if (remote && (remote.updatedAt || 0) >= (local.updatedAt || 0)) { setLlm(remote); return remote; }
-    return local;
-  }
-
-  // ---- targets (CPP / ROAS / demo budget) — same local + roaming pattern ----
   var TG_KEY = "drip-targets";
   function getTargets() { try { return JSON.parse(localStorage.getItem(TG_KEY) || "{}") || {}; } catch (e) { return {}; } }
   function setTargetsStore(c) { try { localStorage.setItem(TG_KEY, JSON.stringify(c)); } catch (e) {} }
-  function pushTargets(c) { if (sb && user) sb.auth.updateUser({ data: { drip_targets: c } }).then(function (r) { console.info("[drip] targets →account", r && r.error ? r.error.message : "ok"); }); }
-  function pullTargets(u) {
-    var remote = (u && u.user_metadata && u.user_metadata.drip_targets) || null;
-    var local = getTargets();
-    if (remote && (remote.updatedAt || 0) >= (local.updatedAt || 0)) { setTargetsStore(remote); return remote; }
-    return local;
-  }
   function applyTargets(c) {
     try { if (window.DripEngine && window.DripEngine.setTargets) window.DripEngine.setTargets(c || {}); } catch (e) {}
+  }
+
+  // ---- the Drip account store — one payload, auto-synced with the signed-in
+  // account (user_settings table, owner-only RLS). Local cache works offline;
+  // newer updatedAt wins on login. Legacy user_metadata is a migration source.
+  var ACCT_KEY = "drip-account";
+  var lastSync = 0;
+  function acctGet() {
+    try { var p = JSON.parse(localStorage.getItem(ACCT_KEY) || "null"); if (p && p.v === 1) return p; } catch (e) {}
+    var llm = getLlm(), tg = getTargets();  // seed from pre-account local keys
+    return { v: 1, updatedAt: Math.max(llm.updatedAt || 0, tg.updatedAt || 0), llm: llm, targets: tg };
+  }
+  function acctApply(p) {
+    try { localStorage.setItem(ACCT_KEY, JSON.stringify(p)); } catch (e) {}
+    setLlm(p.llm || {});
+    setTargetsStore(p.targets || {});
+    applyTargets(p.targets || {});
+    syncLlmForm(); syncTargetsForm(); renderAcctHub();
+  }
+  function acctSave(mutate) {
+    var p = acctGet(); mutate(p); p.updatedAt = Date.now();
+    acctApply(p); acctPush(p);
+  }
+  function acctPush(p) {
+    if (!sb || !user) return;
+    sb.from("user_settings").upsert({ user_id: user.id, data: p, updated_at: new Date().toISOString() })
+      .then(function (r) {
+        if (r && r.error) { console.warn("[drip] settings sync failed:", r.error.message); toast("云端同步失败 · 已存本机"); }
+        else { lastSync = Date.now(); renderAcctHub(); }
+      });
+  }
+  function acctPull(u) {
+    sb.from("user_settings").select("data").maybeSingle().then(function (r) {
+      var remote = r && r.data && r.data.data;
+      var local = acctGet();
+      if (!remote) {
+        // first login on this account: fold in legacy user_metadata config if any
+        var md = (u && u.user_metadata) || {};
+        if (!(local.llm && local.llm.key) && md.drip_llm) local.llm = md.drip_llm;
+        if (!(local.targets && Object.keys(local.targets).length) && md.drip_targets) local.targets = md.drip_targets;
+        acctApply(local); acctPush(local); return;
+      }
+      if ((remote.updatedAt || 0) >= (local.updatedAt || 0)) { acctApply(remote); lastSync = Date.now(); renderAcctHub(); }
+      else { acctApply(local); acctPush(local); }
+    });
   }
 
   // ---- local identity: usable without Supabase; upgrades to cloud when configured ----
@@ -86,6 +115,7 @@
     }
     syncLlmForm();
     syncTargetsForm();
+    renderAcctHub();
   }
 
   // ---- toast ----
@@ -205,7 +235,8 @@
           base: ((($("setLlmBase") || {}).value) || "https://api.deepseek.com").trim(),
           updatedAt: Date.now(),
         };
-        setLlm(next); pushLlm(next); toast("LLM 配置已保存"); syncLlmForm();
+        acctSave(function (p) { p.llm = next; });
+        toast(user ? "LLM 配置已保存 · 已同步到账户" : "LLM 配置已保存（本机）");
       };
     }
     fillLlmForm();
@@ -240,19 +271,79 @@
         if (cpp) next.cpp_target = cpp;
         if (roas) next.roas_target = roas;
         if (budget) next.budget = budget;
-        setTargetsStore(next); pushTargets(next); applyTargets(next);
-        toast("目标已保存 · 留空项用默认"); syncTargetsForm();
+        acctSave(function (p) { p.targets = next; });
+        toast(user ? "目标已保存 · 已同步到账户" : "目标已保存（本机）· 留空项用默认");
       };
     }
     fillTargetsForm();
   }
+  // ---- account hub — sync status (账户页) + real ad-account list (广告账户页) ----
+  function renderAcctHub() {
+    var sy = document.querySelector("[data-sync-status]");
+    if (sy) {
+      if (user) {
+        var t = lastSync ? new Date(lastSync).toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" }) : "";
+        sy.innerHTML = '<span style="color:var(--green,#1a7f37)">●</span> 云端自动同步' + (t ? " · 上次 " + t : "");
+      } else {
+        sy.textContent = "○ 仅本机 — 登录后自动同步";
+      }
+    }
+    renderAcctConns();
+  }
+  var PLATFORMS = [
+    { k: "meta", n: "Meta Ads", ico: "#lg-meta", live: true },
+    { k: "tiktok", n: "TikTok Ads", ico: "#lg-tt" },
+    { k: "tencent", n: "腾讯广告", ico: "#lg-tencent" },
+    { k: "oceanengine", n: "巨量引擎", ico: "#lg-ocean" },
+    { k: "kuaishou", n: "快手磁力", ico: "#lg-ks" },
+  ];
+  function renderAcctConns() {
+    var host = $("realConns"); if (!host) return;
+    var paintRows = function (by) {
+      host.innerHTML = PLATFORMS.map(function (p) {
+        var c = by[p.k];
+        var badge = c ? '<span class="acct-badge ok">● 已连接</span>' : '<span class="acct-badge off">○ 未连接</span>';
+        var tags;
+        if (c) tags = '<span class="atag">' + (c.account_id || "已授权") + '</span><span class="atag mut">随账户同步 · 任何设备可用</span>';
+        else if (p.live) tags = '<span class="atag mut">' + (user ? "OAuth 授权，拉真实 campaign" : "登录后即可连接") + "</span>";
+        else tags = '<span class="atag mut">后端未接入</span>';
+        var act;
+        if (c) act = '<span style="display:flex;gap:8px"><button class="btn sm" data-conn="' + p.k + '">重新授权</button><button class="btn sm" data-disc="' + p.k + '">断开</button></span>';
+        else if (p.live) act = '<button class="btn primary sm" data-conn="' + p.k + '">连接</button>';
+        else act = "";
+        return '<div class="acct-row"><span class="plogo-tile"><svg class="plogo"><use href="' + p.ico + '"/></svg></span><div class="acct-info"><div class="acct-nm">' + p.n + " " + badge + '</div><div class="acct-tags">' + tags + "</div></div>" + act + "</div>";
+      }).join("");
+      host.querySelectorAll("[data-conn]").forEach(function (b) {
+        b.onclick = function () {
+          if (!user) { toast(configured ? "请先登录云端账号" : "需先配置 Supabase（见 SETUP-LIVE.md）"); if (configured) loginModal(); return; }
+          var k = b.getAttribute("data-conn");
+          if (window.DripLive) window.DripLive.connect(k).catch(function (e) { toast("连接失败：" + (e.message || e)); });
+        };
+      });
+      host.querySelectorAll("[data-disc]").forEach(function (b) {
+        b.onclick = function () {
+          var k = b.getAttribute("data-disc"), nm = (PLATFORMS.filter(function (p) { return p.k === k; })[0] || {}).n || k;
+          if (!confirm("断开 " + nm + "？云端保存的授权将被删除。")) return;
+          sb.from("ad_connections").delete().eq("platform", k).then(function (r) {
+            toast(r && r.error ? "断开失败：" + r.error.message : "已断开"); renderAcctConns();
+          });
+        };
+      });
+    };
+    if (!user) { paintRows({}); return; }
+    connections().then(function (rows) {
+      var by = {}; (rows || []).forEach(function (r) { by[r.platform] = r; });
+      paintRows(by);
+    });
+  }
+
   function closeAcctMenu() { var m = $("acctMenu"); if (m) m.classList.remove("open"); }
 
   // ---- wire ----
   function wire() {
     wireLlmForm();
     wireTargetsForm();
-    applyTargets(getTargets());
+    acctApply(acctGet());
     var si = $("signIn"); if (si) si.onclick = function () { loginModal(); closeAcctMenu(); };
     var so = $("signOut"); if (so) so.onclick = function () { signOut(); closeAcctMenu(); };
     var sso = $("setSignOut"); if (sso) sso.onclick = signOut;
@@ -289,8 +380,8 @@
       sb = window.supabase.createClient(cfg.url, cfg.anonKey, {
         auth: { flowType: "pkce", detectSessionInUrl: true, persistSession: true, autoRefreshToken: true, storageKey: "drip-auth" },
       });
-      sb.auth.getSession().then(function (r) { session = (r.data && r.data.session) || null; user = (session && session.user) || null; if (user) { pullLlm(user); applyTargets(pullTargets(user)); } paint(); onAuth(); });
-      sb.auth.onAuthStateChange(function (_e, s) { session = s || null; user = (s && s.user) || null; if (user) { pullLlm(user); applyTargets(pullTargets(user)); } paint(); onAuth(); });
+      sb.auth.getSession().then(function (r) { session = (r.data && r.data.session) || null; user = (session && session.user) || null; if (user) acctPull(user); paint(); onAuth(); });
+      sb.auth.onAuthStateChange(function (_e, s) { session = s || null; user = (s && s.user) || null; if (user) acctPull(user); paint(); onAuth(); });
     }, function () { console.warn("[drip] supabase-js CDN unreachable; staying local"); paint(); });
   }
 
@@ -309,7 +400,7 @@
   // expose for console/debug
   window.DripAuth = {
     login: loginModal, signOut: signOut, getLlm: getLlm, setLlm: setLlm,
-    getTargets: getTargets,
+    getTargets: getTargets, account: acctGet,
     token: token, user: function () { return user; }, configured: function () { return configured; },
     connections: connections, onAuth: function (fn) { authCbs.push(fn); if (user !== null || !configured) { try { fn(user); } catch (e) {} } },
   };
