@@ -41,6 +41,8 @@
 
 重部署（改了函数代码后）：`.supabase-token` 就位 → 重跑同一脚本即可。
 
+**Auth 云端配置**（2026-06-10 经 Management API 设好，换项目需重设）：`site_url=https://yunyueli.github.io/Drip/app.html`；重定向白名单含线上 + `http://localhost:8099/*`；**注册免邮箱确认**（`mailer_autoconfirm=true`，修「确认链接跳 localhost:3000 / otp_expired」）。邮件模板改中文需自定义 SMTP（免费档限制，未做）。
+
 ## 3. 接 Meta 实盘（dev 模式，跑你自己账户免审核）
 1. developers.facebook.com → 新建 App（Business）→ 加 **Marketing API** + **Facebook Login**。
 2. OAuth 跳转 URI 填：`https://xneuizhnnzsvbbjirhdw.supabase.co/functions/v1/meta-oauth`
