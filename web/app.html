@@ -58,13 +58,12 @@
       <button class="av" id="avBtn" title="账户">M</button><span class="acct-id">Operator</span>
       <div class="acct-menu" id="acctMenu">
         <div class="am-in">
-          <div class="am-head"><span class="am-av">M</span><div><div class="am-name">Operator</div><div class="am-mail">operator@drip.dev</div></div></div>
-          <span class="am-plan">● Self-host Apache-2.0</span>
+          <div class="am-status"><span class="am-dot"></span><div><div class="am-st"><span class="am-name">已登录</span></div><div class="am-mail">operator@drip.dev</div></div></div>
           <div class="am-sep"></div>
-          <button class="am-item" data-view="settings"><span class="ai">⚙</span>设置</button>
-          <button class="am-item" data-view="bench"><span class="ai">⚑</span>Drip-Bench</button>
+          <button class="am-item" id="amMe"><span class="ai"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></span>我</button>
+          <button class="am-item" data-view="settings"><span class="ai"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1l2-1.5-2-3.4-2.3 1a7 7 0 0 0-1.7-1l-.3-2.5H10l-.3 2.5a7 7 0 0 0-1.7 1l-2.3-1-2 3.4L3.6 11a7 7 0 0 0 0 2l-2 1.5 2 3.4 2.3-1a7 7 0 0 0 1.7 1l.3 2.5h4l.3-2.5a7 7 0 0 0 1.7-1l2.3 1 2-3.4-2-1.5a7 7 0 0 0 .1-1z"/></svg></span>设置</button>
           <div class="am-sep"></div>
-          <button class="am-item danger" id="signOut"><span class="ai">⏻</span>退出登录</button>
+          <button class="am-item danger" id="signOut"><span class="ai"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h4"/><path d="M15 16l4-4-4-4"/><path d="M19 12H9"/></svg></span>退出登录</button>
         </div>
         <div class="am-out" style="display:none">
           <div class="si-h">登录后可连接广告账户、保存运行记录、跨设备同步。数据始终在你自己的环境里。</div>
