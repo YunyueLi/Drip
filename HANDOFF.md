@@ -25,8 +25,10 @@
 - **决策引擎** `web/engine.js`：8 信号 + 规则 + 分配 + 熔断 + intraday + 离线样本，**与 Python 逐字节等价**（`scripts/itest_backend.ts` 旁证 + engine.selfCheck）。
 - **LLM 直连** `web/llm.js`：`fetch(base + /chat/completions)`，配置在 设置→运行与模型（model/key/base），登录后随账号漫游。
 - **真实回放** 演示按钮 → 3 个真实 DeepSeek 运行在控制台原生回放（`web/real-cases.js`）。
-- **账号系统** `web/auth.js`：已接真实云 Supabase（`web/config.js` 已填）。邮箱注册/登录可用；未登录显示「登录」（不再有假 Operator，设置侧栏账号头也已真化）；没配/失败时本机登录兜底。
-- **目标值可配置**：设置→运行与模型→「目标与预算」可改 CPP 目标 / ROAS 目标 / 演示总预算，存浏览器并随账号漫游（`user_metadata.drip_targets`），留空回默认（$25 / 3.0x / $1,400）。`engine.selfCheck` 钉死默认值跑，不受用户配置影响。
+- **账号系统 = 右上角登录** `web/auth.js`：已接真实云 Supabase（`web/config.js` 已填）。邮箱注册/登录可用；未登录显示「登录」（无假 Operator）；没配/失败时本机登录兜底。
+- **账户自动同步**（2026-06-10 云端验证）：登录后所有配置自动随账户漫游——`user_settings` 表（owner-only RLS，updatedAt 新者胜），保存即推、登录即拉、换设备登录即恢复（LLM key + 目标全量 E2E 验证过）。旧 `user_metadata` 仅作一次性迁移来源。
+- **设置信息架构**（按账户拆分）：**广告账户**（真实连接列表：Meta 连接/重新授权/断开，其余平台诚实标「后端未接入」，假示例已删）· **LLM 接口**（独立页：model/key/base，随账户同步）· **运行设置**（模式/预算上限/目标与预算/归因）· **账户**（身份 + 同步状态）。
+- **目标值可配置**：运行设置→「目标与预算」改 CPP / ROAS / 演示总预算，留空回默认（$25 / 3.0x / $1,400）。`engine.selfCheck` 钉死默认值跑，不受用户配置影响。
 - **无第三方阻塞脚本**：supabase-js 改为按需从国内可达镜像懒加载（修了"中国打不开/点击无反应"）。
 
 ## 2. 后端部署 — ✅ 已完成（2026-06-10，token 方式全自动跑通）
@@ -79,6 +81,7 @@ web/auth.js        账号(云端+本机回退)        web/config.js  Supabase ur
 web/app.{html,css,js}  原控制台 UI
 supabase/config.toml                      3 函数 verify_jwt=false
 supabase/migrations/20260610120000_drip_live.sql   建表 + RLS
+supabase/migrations/20260610190000_user_settings.sql 账户漫游配置表（已部署到云）
 supabase/functions/_shared/{cors,auth,meta}.ts     CORS / Supabase 鉴权 / Meta API+护栏(忠实 Python)
 supabase/functions/{meta-oauth,ads-pull,ads-apply}/index.ts
 scripts/itest_backend.ts   后端逻辑集成测试(21/21，跑真实 meta.ts vs 假 Meta)
