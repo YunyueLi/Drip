@@ -6,18 +6,18 @@
 ---
 
 ## 0. 一句话现状
-核心闭环（连账户→拉真实数据→规则决策→你的模型解释→批准写回）**代码全写好、测好（21/21 + 浏览器 E2E）、前端已上线、云端真登录已上线并验证**。
-**唯一没做完的：把后端 Edge Functions 部署到云**——卡在「需要你授权一次 Supabase + 建一个 Meta App」，这两步只有你能做（我不能替你授权/注册账号）。
+核心闭环（连账户→拉真实数据→规则决策→你的模型解释→批准写回）**前端 + 后端全部上线并云端验证**（2026-06-10 部署）。
+**唯一剩下的：建 Meta App**（dev 模式，见 §3）——只有你能注册；设好 `META_APP_ID/SECRET` 后整个闭环即可对真实账户跑。
 
 | 能力 | 状态 |
 |---|---|
 | 前端控制台 / 决策引擎(engine.js，与 Python 等价) / 演示3回放 | ✅ 上线 |
 | LLM 浏览器直连（BYOK，设置→运行与模型） | ✅ 上线 |
 | 账号系统：云端登录(Supabase) + 本机回退 + 配置漫游 | ✅ 上线并验证（邮箱注册可用） |
-| 后端 Edge Functions 代码（连接/拉数/写回 + 护栏 + 审计） | ✅ 写好测好，**未部署到云** |
-| **把后端部署到云** | ⏳ 跑 `scripts/deploy_supabase.sh`（要你授权 + DB 密码） |
-| **接 Meta 实盘**（自动连账户改预算） | ⏳ 建 Meta App(dev 模式) + 设 secrets |
-| TikTok / 国内三家 / 目标值可配置 / 其他视图真化 | ⛔ 未做（见 §5） |
+| 目标值可配置（CPP/ROAS/演示预算，随账号漫游） | ✅ 上线 |
+| 后端 Edge Functions（连接/拉数/写回 + 护栏 + 审计） | ✅ **已部署并云端验证**（见 §2） |
+| **接 Meta 实盘**（自动连账户改预算） | ⏳ 建 Meta App(dev 模式) + 设 secrets（§3） |
+| TikTok / 国内三家 / 其他视图真化 | ⛔ 未做（见 §5） |
 
 ---
 
@@ -29,16 +29,15 @@
 - **目标值可配置**：设置→运行与模型→「目标与预算」可改 CPP 目标 / ROAS 目标 / 演示总预算，存浏览器并随账号漫游（`user_metadata.drip_targets`），留空回默认（$25 / 3.0x / $1,400）。`engine.selfCheck` 钉死默认值跑，不受用户配置影响。
 - **无第三方阻塞脚本**：supabase-js 改为按需从国内可达镜像懒加载（修了"中国打不开/点击无反应"）。
 
-## 2. 唯一阻塞：部署后端到你的 Supabase
-**一条命令**（在本机终端，仓库根目录）：
-```bash
-bash scripts/deploy_supabase.sh
-```
-它会：① 让你浏览器授权 Supabase（或读 `.supabase-token`）→ ② `link` 项目（**会问你项目数据库密码**，建项目时设的那个）→ ③ `db push` 建表（`ad_connections` / `oauth_states` / `drip_audit`，带 RLS）→ ④ 部署 3 个函数 → ⑤ 设非敏感配置（APP_URL、META_REDIRECT_URI）。
+## 2. 后端部署 — ✅ 已完成（2026-06-10，token 方式全自动跑通）
+`bash scripts/deploy_supabase.sh` 已执行：表（`ad_connections` / `oauth_states` / `drip_audit`，带 RLS）✓、3 函数部署 ✓、APP_URL/META_REDIRECT_URI ✓。
 
-**推荐让 Claude 代跑（只需 token，无需 DB 密码、无需浏览器）**：`echo "sbp_..." > .supabase-token`（已 gitignore）→ 说一声。脚本走 **Management API** 建表（DDL 用 token，免 DB 密码）+ `functions deploy --project-ref`（只需 token）。Claude 拿到 token 即可全自动部署 + 联调。
+**云端验证结果**：
+- `ads-pull` / `ads-apply` 无 JWT → 401 ✓（鉴权拦截）
+- 真实 JWT（临时测试用户，已删）调 `ads-pull` → **409 "no meta connection — connect it first"** ✓——证明 JWT 验证、平台注入的 `SUPABASE_SERVICE_ROLE_KEY`、DB 读全链路通，HANDOFF 旧版担心的注入问题不存在。
+- `meta-oauth` 现返回 500 "Meta app not configured" —— **预期**：§3 设好 META_APP_ID/SECRET 后即变 401。
 
-> 部署后留意：函数靠平台自动注入的 `SUPABASE_SERVICE_ROLE_KEY` 做服务端鉴权。若项目启用了新版密钥体系且未注入该变量，需 `supabase secrets set SUPABASE_SERVICE_ROLE_KEY=<service/secret key>`。`config.toml` 已对 3 个函数设 `verify_jwt=false`（函数自己验 JWT；OAuth 回调本就无 JWT）。
+重部署（改了函数代码后）：`.supabase-token` 就位 → 重跑同一脚本即可。
 
 ## 3. 接 Meta 实盘（dev 模式，跑你自己账户免审核）
 1. developers.facebook.com → 新建 App（Business）→ 加 **Marketing API** + **Facebook Login**。
