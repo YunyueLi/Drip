@@ -35,7 +35,7 @@ bash scripts/deploy_supabase.sh
 ```
 它会：① 让你浏览器授权 Supabase（或读 `.supabase-token`）→ ② `link` 项目（**会问你项目数据库密码**，建项目时设的那个）→ ③ `db push` 建表（`ad_connections` / `oauth_states` / `drip_audit`，带 RLS）→ ④ 部署 3 个函数 → ⑤ 设非敏感配置（APP_URL、META_REDIRECT_URI）。
 
-**或**让 Claude 代跑函数部署：把 personal access token 写进 `echo "sbp_..." > .supabase-token`（已 gitignore），说一声即可（注意：`db push` 仍需 DB 密码，或自己去 Supabase SQL Editor 粘贴 `supabase/migrations/20260610120000_drip_live.sql`）。
+**推荐让 Claude 代跑（只需 token，无需 DB 密码、无需浏览器）**：`echo "sbp_..." > .supabase-token`（已 gitignore）→ 说一声。脚本走 **Management API** 建表（DDL 用 token，免 DB 密码）+ `functions deploy --project-ref`（只需 token）。Claude 拿到 token 即可全自动部署 + 联调。
 
 > 部署后留意：函数靠平台自动注入的 `SUPABASE_SERVICE_ROLE_KEY` 做服务端鉴权。若项目启用了新版密钥体系且未注入该变量，需 `supabase secrets set SUPABASE_SERVICE_ROLE_KEY=<service/secret key>`。`config.toml` 已对 3 个函数设 `verify_jwt=false`（函数自己验 JWT；OAuth 回调本就无 JWT）。
 
