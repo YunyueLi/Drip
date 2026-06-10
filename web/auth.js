@@ -84,7 +84,6 @@
     var rl = document.querySelector('.set-pane[data-spane="account"] .rl');
     var rh = document.querySelector('.set-pane[data-spane="account"] .rh');
     var so = $("setSignOut");
-    var plan = document.querySelector("#acctMenu .am-plan");
     var sa = document.querySelector(".set-acct");
     var cu = currentUser();
     if (sa) {
@@ -96,14 +95,14 @@
     if (cu) {
       if (inB) inB.style.display = "";
       if (outB) outB.style.display = "none";
-      document.querySelectorAll(".am-name").forEach(function (e) { e.textContent = cu.name; });
-      document.querySelectorAll(".am-mail").forEach(function (e) { e.textContent = cu.email; });
-      document.querySelectorAll(".am-av, #avBtn, .am-head .am-av").forEach(function (e) { e.textContent = initials(cu.email); if (e.classList) e.classList.remove("out"); });
+      var amN = document.querySelector("#acctMenu .am-name"); if (amN) amN.textContent = cu.cloud ? "已登录" : "本机账户";
+      var amM = document.querySelector("#acctMenu .am-mail"); if (amM) amM.textContent = cu.email;
+      var amD = document.querySelector("#acctMenu .am-dot"); if (amD) amD.classList.toggle("off", !cu.cloud);
+      document.querySelectorAll("#avBtn").forEach(function (e) { e.textContent = initials(cu.email); if (e.classList) e.classList.remove("out"); });
       var sid = document.querySelector(".acct-id"); if (sid) sid.textContent = cu.name;
       if (rl) rl.textContent = cu.name;
       if (rh) rh.textContent = cu.cloud ? cu.email : (cu.email + " · 本机账户");
       if (so) so.style.display = "";
-      if (plan) plan.textContent = cu.cloud ? "● 云端账户 · 配置随账号漫游" : "● 本机账户 · 接 Supabase 升级漫游";
     } else {
       if (inB) inB.style.display = "none";
       if (outB) outB.style.display = "";
@@ -137,71 +136,186 @@
 
   // ---- login / register ----
   var mode = "signin";
+  function emailOk(v) { return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v || ""); }
+  // Supabase errors → plain Chinese with a way forward
+  function zhErr(e) {
+    var m = String((e && e.message) || e || "");
+    if (/invalid login credentials/i.test(m)) return "邮箱或密码不对";
+    if (/email not confirmed/i.test(m)) return "邮箱还没验证 —— 先去邮箱点一下确认链接";
+    if (/already registered|already been registered|already exists/i.test(m)) return "这个邮箱已经注册过了，直接登录就行";
+    if (/at least 6 characters|password.*short/i.test(m)) return "密码至少要 6 位";
+    if (/only request this after|rate limit|too many requests/i.test(m)) return "操作太频繁，稍等几秒再试";
+    if (/unsupported provider|provider is not enabled/i.test(m)) return "这个登录方式暂未开通，先用邮箱登录吧";
+    if (/unable to validate email|invalid format/i.test(m)) return "邮箱格式不对";
+    if (/failed to fetch|network|load failed/i.test(m)) return "网络不通，稍后再试";
+    return m || "出错了，稍后再试";
+  }
+  function busyBtn(b, txt) { if (b) { b._label = b.textContent; b.disabled = true; b.textContent = txt; } }
+  function freeBtn(b) { if (b) { b.disabled = false; if (b._label) b.textContent = b._label; } }
+  function wirePwShow(btnId, inputId) {
+    var b = $(btnId); if (!b) return;
+    b.onclick = function () {
+      var p = $(inputId); if (!p) return;
+      var show = p.type === "password";
+      p.type = show ? "text" : "password";
+      b.textContent = show ? "隐藏" : "显示";
+      p.focus();
+    };
+  }
+
   function localLogin() {
     var email = (($("locEmail") || {}).value || "").trim();
-    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { var e = $("locErr"); if (e) e.textContent = "填一个有效邮箱"; return; }
+    if (!emailOk(email)) { var e = $("locErr"); if (e) e.textContent = "邮箱格式不对"; return; }
     setLocalUser({ email: email, name: (($("locName") || {}).value || "").trim() });
     closeModal(); toast("已登录（本机）"); paint();
   }
+
   function loginModal() {
     if (!configured) {
-      var body = '<div class="rp-mhead"><div><div class="rp-mt">登录 Drip</div><div class="rp-ms">本机登录即可用（存于浏览器）。接 Supabase 后升级为云端漫游 + 可连广告账户。</div></div><button class="rp-x" id="amX2">✕</button></div>' +
-        '<label class="auth-f"><span>邮箱</span><input id="locEmail" type="email" placeholder="you@example.com" autocomplete="email"></label>' +
+      modal('<button class="auth-x" id="amX2" aria-label="关闭">✕</button>' +
+        '<div class="auth-title">登录</div>' +
+        '<div class="auth-sub">还没接云端，先用本机账户 —— 数据只存在这台电脑。</div>' +
+        '<label class="auth-f"><span>邮箱</span><input id="locEmail" type="email" placeholder="you@example.com" autocomplete="email" inputmode="email"></label>' +
         '<label class="auth-f"><span>昵称（可选）</span><input id="locName" placeholder="你的名字"></label>' +
-        '<div id="locErr" class="auth-err"></div>' +
-        '<button class="btn primary auth-go" id="locGo">本机登录</button>' +
-        '<div class="auth-note">想要云端漫游 + 连接广告账户：创建免费 Supabase 项目，把 URL 与 anon key 填进 <code>web/config.js</code>（见 SETUP-LIVE.md），刷新即变云端登录。</div>';
-      modal(body);
+        '<div id="locErr" class="auth-err" role="alert"></div>' +
+        '<button class="btn primary auth-go" id="locGo">进入 Drip</button>');
       $("amX2").onclick = closeModal;
       $("locGo").onclick = localLogin;
-      var le = $("locEmail"); if (le) le.addEventListener("keydown", function (ev) { if (ev.key === "Enter") localLogin(); });
+      ["locEmail", "locName"].forEach(function (id) {
+        var el = $(id); if (el) el.addEventListener("keydown", function (ev) { if (ev.key === "Enter") localLogin(); });
+      });
+      var le0 = $("locEmail"); if (le0) le0.focus();
       return;
     }
-    var head = '<div class="rp-mhead"><div><div class="rp-mt">' + (mode === "signin" ? "登录 Drip" : "注册 Drip") + '</div><div class="rp-ms">邮箱、魔法链接、Google 或 GitHub。配置随账号漫游。</div></div><button class="rp-x" id="amX">✕</button></div>';
-    var tabs = '<div class="auth-tabs"><button data-m="signin" class="' + (mode === "signin" ? "on" : "") + '">登录</button><button data-m="signup" class="' + (mode === "signup" ? "on" : "") + '">注册</button></div>';
-    var oauth = '<div class="auth-oauth"><button class="auth-btn" data-oauth="google">G&nbsp; Google</button><button class="auth-btn" data-oauth="github">⌥&nbsp; GitHub</button></div>';
-    var div = '<div class="auth-div">或用邮箱</div>';
-    var fields = '<label class="auth-f"><span>邮箱</span><input id="amEmail" type="email" placeholder="you@example.com" autocomplete="email"></label>' +
-      '<label class="auth-f"><span>密码</span><input id="amPass" type="password" placeholder="••••••••"></label>' +
-      '<div id="amErr" class="auth-err"></div>' +
-      '<button class="btn primary auth-go" id="amSubmit">' + (mode === "signin" ? "登录" : "创建账号") + '</button>' +
-      '<button class="auth-btn" id="amMagic">发送魔法链接</button>';
-    var m = modal(head + tabs + oauth + div + fields);
+    var gh = '<svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>';
+    var mail = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>';
+    var m = modal(
+      '<button class="auth-x" id="amX" aria-label="关闭">✕</button>' +
+      '<div class="auth-title" id="amTitle">登录</div>' +
+      '<div class="auth-tabs" id="amTabs"><button data-m="signin">登录</button><button data-m="signup">注册</button></div>' +
+      '<div id="amBody">' +
+        '<label class="auth-f"><span>邮箱</span><input id="amEmail" type="email" placeholder="you@example.com" autocomplete="email" inputmode="email"></label>' +
+        '<label class="auth-f"><span>密码</span><span class="auth-pw"><input id="amPass" type="password" placeholder="••••••••" autocomplete="current-password"><button type="button" class="auth-show" id="amShow">显示</button></span></label>' +
+        '<div class="auth-row" id="amForgotRow"><button type="button" class="auth-link" id="amForgot">忘记密码？</button></div>' +
+        '<div id="amErr" class="auth-err" role="alert"></div>' +
+        '<button class="btn primary auth-go" id="amSubmit">登录</button>' +
+        '<div class="auth-div">或</div>' +
+        '<div class="auth-alt">' +
+          '<button class="auth-btn" id="amMagic">' + mail + "用邮箱发送登录链接</button>" +
+          '<button class="auth-btn" data-oauth="google"><span class="auth-gi">G</span>用 Google 继续</button>' +
+          '<button class="auth-btn" data-oauth="github">' + gh + "用 GitHub 继续</button>" +
+        "</div>" +
+        '<div class="auth-note">登录后，你的配置在任何设备自动同步。</div>' +
+      "</div>" +
+      '<div id="amDone" class="auth-done" style="display:none">' +
+        '<div class="adn-ic"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m4.5 12.5 5 5 10-11"/></svg></div>' +
+        '<div class="adn-t" id="adnT"></div><div class="adn-d" id="adnD"></div>' +
+        '<button class="btn primary auth-go" id="adnOk">好</button>' +
+      "</div>"
+    );
+    // switching tabs updates labels in place — the modal is never rebuilt,
+    // so no flicker and typed input survives
+    function setMode(next) {
+      mode = next;
+      $("amTitle").textContent = mode === "signin" ? "登录" : "注册";
+      $("amSubmit").textContent = mode === "signin" ? "登录" : "创建账户";
+      var p = $("amPass"); if (p) p.setAttribute("autocomplete", mode === "signin" ? "current-password" : "new-password");
+      var fr = $("amForgotRow"); if (fr) fr.style.display = mode === "signin" ? "" : "none";
+      m.querySelectorAll("#amTabs button").forEach(function (b) { b.classList.toggle("on", b.getAttribute("data-m") === mode); });
+      setErr("");
+    }
+    function showDone(t, d) {
+      ["amTitle", "amTabs", "amBody"].forEach(function (id) { var el = $(id); if (el) el.style.display = "none"; });
+      $("amDone").style.display = "";
+      $("adnT").textContent = t; $("adnD").textContent = d;
+      $("adnOk").onclick = closeModal;
+    }
+    m._showDone = showDone;
     $("amX").onclick = closeModal;
-    m.querySelectorAll(".auth-tabs button").forEach(function (b) { b.onclick = function () { mode = b.getAttribute("data-m"); loginModal(); }; });
-    m.querySelectorAll("[data-oauth]").forEach(function (b) { b.onclick = function () { oauthLogin(b.getAttribute("data-oauth")); }; });
+    m.querySelectorAll("#amTabs button").forEach(function (b) { b.onclick = function () { setMode(b.getAttribute("data-m")); }; });
+    wirePwShow("amShow", "amPass");
     $("amSubmit").onclick = submitPw;
     $("amMagic").onclick = magic;
+    $("amForgot").onclick = forgot;
+    m.querySelectorAll("[data-oauth]").forEach(function (b) {
+      b.onclick = function () {
+        setErr("");
+        sb.auth.signInWithOAuth({ provider: b.getAttribute("data-oauth"), options: { redirectTo: redirectURL() } }).then(function (r) {
+          if (r.error) setErr(zhErr(r.error));
+        });
+      };
+    });
+    ["amEmail", "amPass"].forEach(function (id) {
+      var el = $(id); if (el) el.addEventListener("keydown", function (ev) { if (ev.key === "Enter") submitPw(); });
+    });
+    setMode(mode);
+    var e0 = $("amEmail"); if (e0) e0.focus();
   }
   function setErr(s) { var e = $("amErr"); if (e) e.textContent = s || ""; }
   function redirectURL() { return location.origin + location.pathname; }
+  function curDone() { var mm = $("authModal"); return mm && mm._showDone; }
 
   function submitPw() {
-    var email = ($("amEmail") || {}).value, pass = ($("amPass") || {}).value;
+    var email = (($("amEmail") || {}).value || "").trim(), pass = ($("amPass") || {}).value || "";
     setErr("");
+    if (!emailOk(email)) return setErr("邮箱格式不对");
+    if (!pass) return setErr(mode === "signin" ? "请输入密码" : "给账户设一个密码（至少 6 位）");
+    var b = $("amSubmit");
+    busyBtn(b, mode === "signin" ? "登录中…" : "创建中…");
     if (mode === "signin") {
-      sb.auth.signInWithPassword({ email: (email || "").trim(), password: pass }).then(function (r) {
-        if (r.error) setErr(r.error.message); else { closeModal(); toast("已登录"); }
+      sb.auth.signInWithPassword({ email: email, password: pass }).then(function (r) {
+        if (r.error) { freeBtn(b); setErr(zhErr(r.error)); }
+        else { closeModal(); toast("已登录"); }
       });
     } else {
-      sb.auth.signUp({ email: (email || "").trim(), password: pass, options: { emailRedirectTo: redirectURL() } }).then(function (r) {
-        if (r.error) setErr(r.error.message);
-        else if (!r.data.session) { setErr(""); toast("确认邮件已发送，请查收后登录"); closeModal(); }
-        else { closeModal(); toast("账号已创建"); }
+      sb.auth.signUp({ email: email, password: pass, options: { emailRedirectTo: redirectURL() } }).then(function (r) {
+        freeBtn(b);
+        if (r.error) setErr(zhErr(r.error));
+        else if (!r.data.session) { var sd = curDone(); if (sd) sd("确认邮件已发送", "已发到 " + email + "。点开邮件里的链接完成注册，然后回来登录。"); }
+        else { closeModal(); toast("账户已创建"); }
       });
     }
   }
   function magic() {
-    var email = (($("amEmail") || {}).value || "").trim(); setErr("");
-    if (!email) return setErr("先填邮箱");
+    var email = (($("amEmail") || {}).value || "").trim();
+    setErr("");
+    if (!emailOk(email)) return setErr("先在上面填好邮箱");
+    var b = $("amMagic");
+    busyBtn(b, "发送中…");
     sb.auth.signInWithOtp({ email: email, options: { emailRedirectTo: redirectURL() } }).then(function (r) {
-      r.error ? setErr(r.error.message) : (toast("魔法链接已发送"), closeModal());
+      freeBtn(b);
+      if (r.error) setErr(zhErr(r.error));
+      else { var sd = curDone(); if (sd) sd("登录链接已发送", "已发到 " + email + "。在这台设备打开邮件里的链接，就直接登录了。"); }
     });
   }
-  function oauthLogin(provider) {
-    sb.auth.signInWithOAuth({ provider: provider, options: { redirectTo: redirectURL() } }).then(function (r) {
-      if (r.error) setErr(r.error.message);
+  function forgot() {
+    var email = (($("amEmail") || {}).value || "").trim();
+    setErr("");
+    if (!emailOk(email)) return setErr("先在上面填好邮箱，再点忘记密码");
+    sb.auth.resetPasswordForEmail(email, { redirectTo: redirectURL() }).then(function (r) {
+      if (r.error) setErr(zhErr(r.error));
+      else { var sd = curDone(); if (sd) sd("重置邮件已发送", "去 " + email + " 收信，点开链接后回到这里设置新密码。"); }
     });
+  }
+  // arriving from the reset email → Supabase fires PASSWORD_RECOVERY → ask for a new password
+  function recoveryModal() {
+    modal('<div class="auth-title">设置新密码</div>' +
+      '<label class="auth-f"><span>新密码</span><span class="auth-pw"><input id="rcPass" type="password" placeholder="至少 6 位" autocomplete="new-password"><button type="button" class="auth-show" id="rcShow">显示</button></span></label>' +
+      '<div id="rcErr" class="auth-err" role="alert"></div>' +
+      '<button class="btn primary auth-go" id="rcGo">保存并登录</button>');
+    wirePwShow("rcShow", "rcPass");
+    $("rcGo").onclick = function () {
+      var v = ($("rcPass") || {}).value || "";
+      var err = $("rcErr");
+      if (v.length < 6) { if (err) err.textContent = "密码至少要 6 位"; return; }
+      var b = $("rcGo");
+      busyBtn(b, "保存中…");
+      sb.auth.updateUser({ password: v }).then(function (r) {
+        if (r.error) { freeBtn(b); if (err) err.textContent = zhErr(r.error); }
+        else { closeModal(); toast("密码已更新，已登录"); }
+      });
+    };
+    var p0 = $("rcPass"); if (p0) p0.focus();
   }
   function signOut() {
     clearLocalUser();
@@ -337,7 +451,7 @@
     });
   }
 
-  function closeAcctMenu() { var m = $("acctMenu"); if (m) m.classList.remove("open"); }
+  function closeAcctMenu() { var m = $("acctCtl"); if (m) m.classList.remove("open"); }
 
   // ---- wire ----
   function wire() {
@@ -345,6 +459,7 @@
     wireTargetsForm();
     acctApply(acctGet());
     var si = $("signIn"); if (si) si.onclick = function () { loginModal(); closeAcctMenu(); };
+    var me = $("amMe"); if (me) me.onclick = function () { closeAcctMenu(); if (window.__openSettings) window.__openSettings("account"); };
     var so = $("signOut"); if (so) so.onclick = function () { signOut(); closeAcctMenu(); };
     var sso = $("setSignOut"); if (sso) sso.onclick = signOut;
     document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeModal(); });
@@ -381,7 +496,7 @@
         auth: { flowType: "pkce", detectSessionInUrl: true, persistSession: true, autoRefreshToken: true, storageKey: "drip-auth" },
       });
       sb.auth.getSession().then(function (r) { session = (r.data && r.data.session) || null; user = (session && session.user) || null; if (user) acctPull(user); paint(); onAuth(); });
-      sb.auth.onAuthStateChange(function (_e, s) { session = s || null; user = (s && s.user) || null; if (user) acctPull(user); paint(); onAuth(); });
+      sb.auth.onAuthStateChange(function (ev, s) { session = s || null; user = (s && s.user) || null; if (user) acctPull(user); paint(); onAuth(); if (ev === "PASSWORD_RECOVERY") recoveryModal(); });
     }, function () { console.warn("[drip] supabase-js CDN unreachable; staying local"); paint(); });
   }
 
