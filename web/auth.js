@@ -199,15 +199,37 @@
     syncLlmForm();
   }
 
+  // Load supabase-js only when needed (config filled), never blocking the app.
+  // Tries China-reachable mirrors first, falls back to jsdelivr.
+  function loadScript(src) {
+    return new Promise(function (res, rej) {
+      var s = document.createElement("script"); s.src = src; s.async = true;
+      s.onload = res; s.onerror = function () { rej(new Error(src)); };
+      document.head.appendChild(s);
+    });
+  }
+  function ensureSupabase() {
+    if (window.supabase && window.supabase.createClient) return Promise.resolve();
+    var cdns = [
+      "https://fastly.jsdelivr.net/npm/@supabase/supabase-js@2",
+      "https://gcore.jsdelivr.net/npm/@supabase/supabase-js@2",
+      "https://unpkg.com/@supabase/supabase-js@2",
+      "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2",
+    ];
+    return cdns.reduce(function (p, url) { return p.catch(function () { return loadScript(url); }); }, Promise.reject(new Error("init")));
+  }
+
   function boot() {
     wire();
     if (!configured) { paint(); return; }
-    if (!window.supabase || !window.supabase.createClient) { console.warn("[drip] supabase-js not loaded"); return; }
-    sb = window.supabase.createClient(cfg.url, cfg.anonKey, {
-      auth: { flowType: "pkce", detectSessionInUrl: true, persistSession: true, autoRefreshToken: true, storageKey: "drip-auth" },
-    });
-    sb.auth.getSession().then(function (r) { session = (r.data && r.data.session) || null; user = (session && session.user) || null; if (user) pullLlm(user); paint(); onAuth(); });
-    sb.auth.onAuthStateChange(function (_e, s) { session = s || null; user = (s && s.user) || null; if (user) pullLlm(user); paint(); onAuth(); });
+    ensureSupabase().then(function () {
+      if (!window.supabase || !window.supabase.createClient) { console.warn("[drip] supabase-js failed to load"); paint(); return; }
+      sb = window.supabase.createClient(cfg.url, cfg.anonKey, {
+        auth: { flowType: "pkce", detectSessionInUrl: true, persistSession: true, autoRefreshToken: true, storageKey: "drip-auth" },
+      });
+      sb.auth.getSession().then(function (r) { session = (r.data && r.data.session) || null; user = (session && session.user) || null; if (user) pullLlm(user); paint(); onAuth(); });
+      sb.auth.onAuthStateChange(function (_e, s) { session = s || null; user = (s && s.user) || null; if (user) pullLlm(user); paint(); onAuth(); });
+    }, function () { console.warn("[drip] supabase-js CDN unreachable; staying local"); paint(); });
   }
 
   // ---- live backend access (Edge Functions) ----
