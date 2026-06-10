@@ -24,8 +24,19 @@
   };
   // intraday thresholds (config.py)
   var ID = { EXHAUST_EARLY: 0.85, COST_THROTTLE: 1.5, COST_PAUSE: 2.0, SPIKE: 1.5, THIN_CONV: 5 };
-  // default targets (capture_cases.py)
+  // default targets (capture_cases.py) — selfCheck always runs against these
+  var DEFAULT_TARGETS = { cpp_target: 25.0, roas_target: 3.0, budget: 1400.0 };
   var TARGETS = { cpp_target: 25.0, roas_target: 3.0, budget: 1400.0 };
+  // Full declaration each call: a valid positive number overrides, anything
+  // else falls back to the default — so clearing a field restores the default.
+  function setTargets(t) {
+    t = t || {};
+    Object.keys(DEFAULT_TARGETS).forEach(function (k) {
+      var v = Number(t[k]);
+      TARGETS[k] = (isFinite(v) && v > 0) ? v : DEFAULT_TARGETS[k];
+    });
+    return TARGETS;
+  }
 
   // ── number formatting (mirrors Python f-strings exactly) ──────────────────
   function money(v, dec) {
@@ -362,19 +373,20 @@
                ["Tiktok_Prospecting_v3", 7, "SCALE", 0.1, "MEDIUM"], ["Tiktok_Broad_v1", 4, "PAUSE", 0.0, "LOW"],
                ["Tencent_Prospecting_v3", 7, "SCALE", 0.1, "MEDIUM"], ["Oceanengine_Prospecting_v3", 7, "SCALE", 0.1, "MEDIUM"],
                ["Kuaishou_Prospecting_v3", 7, "SCALE", 0.1, "MEDIUM"]];
+    var DT = DEFAULT_TARGETS;  // reference outputs were captured at the default targets
     ms.forEach(function (m, i) {
-      var em = toEngine(m, { cpp_target: TARGETS.cpp_target, roas_target: TARGETS.roas_target, budget_cap: TARGETS.budget });
+      var em = toEngine(m, { cpp_target: DT.cpp_target, roas_target: DT.roas_target, budget_cap: DT.budget });
       var sv = evaluate(em), d = decide(sv, em), r = ref[i];
       if (m.label !== r[0] || sv.green !== r[1] || d.action !== r[2] || d.delta_pct !== r[3] || d.confidence !== r[4])
         errs.push("triage[" + i + "] " + m.label + " got " + [sv.green, d.action, d.delta_pct, d.confidence].join("/"));
     });
-    var plan = allocate(ms, { total_budget: TARGETS.budget, cpp_target: TARGETS.cpp_target, roas_target: TARGETS.roas_target });
+    var plan = allocate(ms, { total_budget: DT.budget, cpp_target: DT.cpp_target, roas_target: DT.roas_target });
     plan.allocations.forEach(function (a) {
       var want = a.decision.action === "PAUSE" ? 0.0 : 280.0;
       if (Math.abs(a.new_budget - want) > 0.01) errs.push("alloc " + a.metrics.label + " new=" + a.new_budget + " want " + want);
     });
     var idref = [["HOLD", 0.0], ["THROTTLE", -0.3], ["THROTTLE", -0.15], ["RAISE", 0.1]];
-    sampleIntraday(TARGETS.cpp_target).forEach(function (m, i) {
+    sampleIntraday(DT.cpp_target).forEach(function (m, i) {
       var s = evaluateIntraday(m), d = decideIntraday(s, m);
       if (d.action !== idref[i][0] || Math.abs(d.delta_pct - idref[i][1]) > 1e-9)
         errs.push("intraday[" + i + "] " + m.label + " got " + d.action + "/" + d.delta_pct);
@@ -384,6 +396,7 @@
 
   window.DripEngine = {
     THRESHOLDS: T, INTRADAY: ID, TARGETS: TARGETS,
+    DEFAULT_TARGETS: DEFAULT_TARGETS, setTargets: setTargets,
     adMetrics: adMetrics, toEngine: toEngine, sampleMetrics: sampleMetrics,
     evaluate: evaluate, decide: decide, allocate: allocate,
     route: route, breakerPreApply: breakerPreApply, classify: classify,

@@ -25,7 +25,8 @@
 - **决策引擎** `web/engine.js`：8 信号 + 规则 + 分配 + 熔断 + intraday + 离线样本，**与 Python 逐字节等价**（`scripts/itest_backend.ts` 旁证 + engine.selfCheck）。
 - **LLM 直连** `web/llm.js`：`fetch(base + /chat/completions)`，配置在 设置→运行与模型（model/key/base），登录后随账号漫游。
 - **真实回放** 演示按钮 → 3 个真实 DeepSeek 运行在控制台原生回放（`web/real-cases.js`）。
-- **账号系统** `web/auth.js`：已接真实云 Supabase（`web/config.js` 已填）。邮箱注册/登录可用；未登录显示「登录」（不再有假 Operator）；没配/失败时本机登录兜底。
+- **账号系统** `web/auth.js`：已接真实云 Supabase（`web/config.js` 已填）。邮箱注册/登录可用；未登录显示「登录」（不再有假 Operator，设置侧栏账号头也已真化）；没配/失败时本机登录兜底。
+- **目标值可配置**：设置→运行与模型→「目标与预算」可改 CPP 目标 / ROAS 目标 / 演示总预算，存浏览器并随账号漫游（`user_metadata.drip_targets`），留空回默认（$25 / 3.0x / $1,400）。`engine.selfCheck` 钉死默认值跑，不受用户配置影响。
 - **无第三方阻塞脚本**：supabase-js 改为按需从国内可达镜像懒加载（修了"中国打不开/点击无反应"）。
 
 ## 2. 唯一阻塞：部署后端到你的 Supabase
@@ -57,7 +58,6 @@ bash scripts/deploy_supabase.sh
 ## 5. 后续 / 可选（非阻塞，按需做）
 - **TikTok 全链路**：照 `_shared/meta.ts` 模式加 `tiktok-oauth` + ads-pull/apply 的 tiktok 分支（collectors/writers Python 里有 TikTok REST 契约可参照）。
 - **国内三家**（腾讯/巨量/快手）：Python 里读未实现（仅样本）、快手写未确认；要做得先补真实读。
-- **目标值可配置**：CPP $25 / ROAS $3.0 现为硬编码（`run.js` TARGETS / engine.js）；应接到「运行与模型」并随账号漫游。
 - **Google/GitHub 登录**：Supabase 项目里还没开 provider（目前仅邮箱）；Supabase → Authentication → Providers 开一下即可，前端已支持。
 - **其余视图仍是 mock**：增长策略(项目板)、创意库(gpt-image/Seedance 生成)、归因对账(AppsFlyer)、操作台、Drip-Bench——都是静态脚手架，要真化各需独立后端。
 - **Bench 分数偏低**（用户早先提过 #1）：methodology agent + LLM judge，未做。
