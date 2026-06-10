@@ -323,33 +323,187 @@
     else { toast("已退出"); paint(); }
   }
 
-  // ---- LLM config (BYOK) — single entry, lives in Settings → 运行与模型 ----
+  // ---- LLM config (BYOK) — Settings → LLM 接口 ----
+  // Providers verified CORS-open for browser /models + /chat/completions (2026-06).
+  var LLM_PROVIDERS = [
+    { id: "deepseek", name: "DeepSeek", base: "https://api.deepseek.com", keyUrl: "https://platform.deepseek.com/api_keys", models: ["deepseek-v4-pro", "deepseek-v4-flash"] },
+    { id: "kimi", name: "Kimi", base: "https://api.moonshot.cn/v1", keyUrl: "https://platform.moonshot.cn/console/api-keys", models: ["kimi-k2.6", "kimi-k2.5"] },
+    { id: "qwen", name: "通义千问", base: "https://dashscope.aliyuncs.com/compatible-mode/v1", keyUrl: "https://bailian.console.aliyun.com", models: ["qwen3.6-plus", "qwen-max", "qwen-plus"] },
+    { id: "glm", name: "智谱 GLM", base: "https://open.bigmodel.cn/api/paas/v4", keyUrl: "https://open.bigmodel.cn/usercenter/apikeys", models: ["glm-5.1", "glm-4.7"] },
+    { id: "openrouter", name: "OpenRouter", base: "https://openrouter.ai/api/v1", keyUrl: "https://openrouter.ai/keys", models: ["deepseek/deepseek-v4-pro", "anthropic/claude-sonnet-4.6", "openai/gpt-5.2"] },
+    { id: "custom", name: "自定义", base: "", keyUrl: "", models: [] },
+  ];
+  var llmProvider = "deepseek";
+  var llmFetched = {};   // provider id -> model ids pulled live from its /models
+  var CUSTOM_OPT = "__custom__";
+  function provById(id) {
+    for (var i = 0; i < LLM_PROVIDERS.length; i++) if (LLM_PROVIDERS[i].id === id) return LLM_PROVIDERS[i];
+    return LLM_PROVIDERS[LLM_PROVIDERS.length - 1];
+  }
+  function guessProvider(c) {
+    if (c && c.provider && provById(c.provider).id === c.provider) return c.provider;
+    var b = (c && c.base || "").toLowerCase();
+    if (!b || b.indexOf("deepseek") > -1) return "deepseek";
+    for (var i = 0; i < LLM_PROVIDERS.length; i++) {
+      var pb = LLM_PROVIDERS[i].base.toLowerCase();
+      if (pb && b.indexOf(pb.replace(/^https:\/\//, "").split("/")[0]) > -1) return LLM_PROVIDERS[i].id;
+    }
+    return "custom";
+  }
+  function llmBaseOf() {
+    var v = (($("setLlmBase") || {}).value || "").trim();
+    var p = provById(llmProvider);
+    var b = v || p.base || "https://api.deepseek.com";
+    return b.replace(/\/+$/, "").replace(/\/(v1\/)?chat\/completions$/i, "");
+  }
+  function llmModelValue() {
+    var sel = $("llmModelSel");
+    if (sel && sel.value && sel.value !== CUSTOM_OPT) return sel.value;
+    return (($("setLlmModel") || {}).value || "").trim();
+  }
+  function llmEditing() {
+    var card = document.querySelector(".llm-card");
+    return !!(card && document.activeElement && card.contains(document.activeElement));
+  }
+  function llmStatus(txt, cls) {
+    document.querySelectorAll("[data-llm-status]").forEach(function (e) {
+      e.textContent = txt;
+      e.className = "llm-status" + (cls ? " " + cls : "");
+    });
+  }
+  function rebuildModelSel(selected) {
+    var sel = $("llmModelSel"); if (!sel) return;
+    var p = provById(llmProvider);
+    var list = llmFetched[p.id] || p.models;
+    var html = list.map(function (mid) { return '<option value="' + mid.replace(/"/g, "&quot;") + '">' + mid + "</option>"; }).join("");
+    html += '<option value="' + CUSTOM_OPT + '">自定义模型…</option>';
+    sel.innerHTML = html;
+    var inList = selected && list.indexOf(selected) > -1;
+    var custom = $("setLlmModel");
+    if (inList) { sel.value = selected; if (custom) custom.style.display = "none"; }
+    else if (selected) { sel.value = CUSTOM_OPT; if (custom) { custom.style.display = ""; custom.value = selected; } }
+    else if (list.length) { sel.value = list[0]; if (custom) custom.style.display = "none"; }
+    else { sel.value = CUSTOM_OPT; if (custom) custom.style.display = ""; }
+  }
+  function selectLlmProvider(id, keepModel) {
+    llmProvider = id;
+    var p = provById(id);
+    var prov = $("llmProv");
+    if (prov) prov.querySelectorAll(".auth-chip").forEach(function (c) { c.classList.toggle("on", c.getAttribute("data-prov") === id); });
+    var b = $("setLlmBase");
+    if (b) { b.placeholder = p.base || "https://你的网关/v1"; if (!keepModel) b.value = ""; }
+    var ku = $("llmKeyUrl");
+    if (ku) { if (p.keyUrl) { ku.style.display = ""; ku.href = p.keyUrl; ku.textContent = "去 " + p.name + " 拿 key ↗"; } else ku.style.display = "none"; }
+    rebuildModelSel(keepModel || null);
+  }
+  function fetchLlmModels(silent) {
+    var key = (($("setLlmKey") || {}).value || "").trim();
+    var p = provById(llmProvider);
+    if (!key) { if (!silent) toast("先填 API Key 再拉取"); return; }
+    var btn = $("llmFetch");
+    if (btn) { btn.disabled = true; btn.textContent = "拉取中…"; }
+    var done = function () { if (btn) { btn.disabled = false; btn.textContent = "↻ 拉取列表"; } };
+    fetch(llmBaseOf() + "/models", { headers: { "Authorization": "Bearer " + key } }).then(function (r) {
+      return r.json().then(function (d) {
+        if (!r.ok) throw new Error(r.status === 401 || r.status === 403 ? "key 无效或无权限" : "返回 " + r.status);
+        var ids = ((d && d.data) || []).map(function (x) { return x && x.id; }).filter(Boolean).sort();
+        if (!ids.length) throw new Error("没拿到模型列表");
+        llmFetched[p.id] = ids;
+        var cur = llmModelValue();
+        rebuildModelSel(cur || null);
+        done();
+        if (!silent) toast("已拉取 " + ids.length + " 个模型");
+      });
+    }).catch(function (e) {
+      done();
+      if (!silent) toast("拉取失败：" + (e && e.message || "网络不通"));
+    });
+  }
+  function testLlm() {
+    var key = (($("setLlmKey") || {}).value || "").trim();
+    var model = llmModelValue();
+    if (!key) return llmStatus("先填 API Key", "err");
+    if (!model) return llmStatus("先选一个模型", "err");
+    var btn = $("llmTest");
+    if (btn) { btn.disabled = true; btn.textContent = "测试中…"; }
+    var t0 = Date.now();
+    var done = function () { if (btn) { btn.disabled = false; btn.textContent = "测试连接"; } };
+    llmStatus("正在连接 " + model + "…");
+    fetch(llmBaseOf() + "/chat/completions", {
+      method: "POST",
+      headers: { "content-type": "application/json", "Authorization": "Bearer " + key },
+      body: JSON.stringify({ model: model, messages: [{ role: "user", content: "ping" }], max_tokens: 1 }),
+    }).then(function (r) {
+      return r.text().then(function (t) {
+        done();
+        if (r.ok) return llmStatus("✓ 可用 · " + model + " · " + (Date.now() - t0) + "ms", "ok");
+        if (r.status === 401 || r.status === 403) return llmStatus("key 无效或无权限", "err");
+        if (r.status === 404 || /model.*not.*(exist|found)|invalid model/i.test(t)) return llmStatus("模型不存在 —— 点「拉取列表」看可用的", "err");
+        if (r.status === 402 || /insufficient|balance/i.test(t)) return llmStatus("余额不足 —— 去充值后再试", "err");
+        if (r.status === 429) return llmStatus("请求太频繁，稍等再试", "err");
+        llmStatus("失败（" + r.status + "）：" + t.slice(0, 80), "err");
+      });
+    }).catch(function () { done(); llmStatus("连不上 —— 检查 Base URL 或网络", "err"); });
+  }
   function syncLlmForm() {
     var c = getLlm();
-    document.querySelectorAll("[data-llm-status]").forEach(function (e) {
-      e.textContent = c.key ? (c.model || "deepseek-v4-pro") + " 已连接" : "未配置 LLM";
-    });
+    if (!llmEditing()) llmStatus(c.key ? (c.model || "deepseek-v4-pro") + " · 已配置" : "未配置 LLM");
     fillLlmForm();
   }
   function fillLlmForm() {
-    var c = getLlm(), m = $("setLlmModel"), k = $("setLlmKey"), b = $("setLlmBase");
-    if (m && document.activeElement !== m) m.value = c.model || "";
-    if (k && document.activeElement !== k) k.value = c.key || "";
-    if (b && document.activeElement !== b) b.value = c.base || "";
+    if (llmEditing()) return;   // don't clobber in-progress edits
+    var c = getLlm(), k = $("setLlmKey"), b = $("setLlmBase");
+    llmProvider = guessProvider(c);
+    selectLlmProvider(llmProvider, c.model || null);
+    if (k) k.value = c.key || "";
+    if (b) b.value = c.base && c.base !== provById(llmProvider).base ? c.base : "";
   }
   function wireLlmForm() {
+    var prov = $("llmProv");
+    if (prov && !prov._wired) {
+      prov._wired = true;
+      prov.innerHTML = LLM_PROVIDERS.map(function (p) {
+        return '<button type="button" class="auth-chip" data-prov="' + p.id + '">' + p.name + "</button>";
+      }).join("");
+      prov.querySelectorAll(".auth-chip").forEach(function (c) {
+        c.onclick = function () { selectLlmProvider(c.getAttribute("data-prov")); fetchLlmModels(true); };
+      });
+    }
+    var sel = $("llmModelSel");
+    if (sel && !sel._wired) {
+      sel._wired = true;
+      sel.onchange = function () {
+        var custom = $("setLlmModel");
+        if (custom) custom.style.display = sel.value === CUSTOM_OPT ? "" : "none";
+        if (sel.value === CUSTOM_OPT && custom) custom.focus();
+      };
+    }
+    var fbtn = $("llmFetch");
+    if (fbtn && !fbtn._wired) { fbtn._wired = true; fbtn.onclick = function () { fetchLlmModels(false); }; }
+    var key = $("setLlmKey");
+    if (key && !key._wired) {
+      key._wired = true;
+      key.addEventListener("blur", function () { if (key.value.trim() && !llmFetched[llmProvider]) fetchLlmModels(true); });
+    }
+    wirePwShow("llmShow", "setLlmKey");
+    var tbtn = $("llmTest");
+    if (tbtn && !tbtn._wired) { tbtn._wired = true; tbtn.onclick = testLlm; }
     var save = $("setLlmSave");
     if (save && !save._wired) {
       save._wired = true;
       save.onclick = function () {
+        var model = llmModelValue();
+        if (!model) { llmStatus("先选一个模型", "err"); return; }
+        var p = provById(llmProvider);
         var next = {
-          provider: "deepseek",
-          model: ((($("setLlmModel") || {}).value) || "deepseek-v4-pro").trim(),
-          key: ((($("setLlmKey") || {}).value) || "").trim(),
-          base: ((($("setLlmBase") || {}).value) || "https://api.deepseek.com").trim(),
+          provider: llmProvider,
+          model: model,
+          key: (($("setLlmKey") || {}).value || "").trim(),
+          base: ((($("setLlmBase") || {}).value || "").trim()) || p.base || "https://api.deepseek.com",
           updatedAt: Date.now(),
         };
-        acctSave(function (p) { p.llm = next; });
+        var active = document.activeElement; if (active && active.blur) active.blur();
+        acctSave(function (pp) { pp.llm = next; });
         toast(user ? "LLM 配置已保存 · 已同步到账户" : "LLM 配置已保存（本机）");
       };
     }
@@ -516,6 +670,7 @@
   window.DripAuth = {
     login: loginModal, signOut: signOut, getLlm: getLlm, setLlm: setLlm,
     getTargets: getTargets, account: acctGet,
+    signedOut: function () { return !currentUser(); },
     token: token, user: function () { return user; }, configured: function () { return configured; },
     connections: connections, onAuth: function (fn) { authCbs.push(fn); if (user !== null || !configured) { try { fn(user); } catch (e) {} } },
   };

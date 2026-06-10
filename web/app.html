@@ -669,14 +669,15 @@
         </div>
         <div class="set-pane" data-spane="llm">
           <h2>LLM 接口</h2>
-          <div class="set-grp">OpenAI 兼容 · 随账户同步</div>
-          <div class="fcard">
-            <div class="frow"><div class="fl"><span>模型</span><div class="h">默认 DeepSeek</div></div><div class="fc"><input id="setLlmModel" class="inp" placeholder="deepseek-v4-pro"></div></div>
-            <div class="frow"><div class="fl"><span>API Key</span><div class="h">仅存浏览器与你的云端账户</div></div><div class="fc"><input id="setLlmKey" class="inp" type="password" placeholder="sk-..." autocomplete="off"></div></div>
-            <div class="frow"><div class="fl"><span>Base URL</span><div class="h">留空即用默认 DeepSeek</div></div><div class="fc"><input id="setLlmBase" class="inp" placeholder="https://api.deepseek.com"></div></div>
-            <div class="frow"><div class="fl"><span>状态</span><div class="h"><span data-llm-status>未配置 LLM</span></div></div><div class="fc"><button class="btn primary" id="setLlmSave" style="height:34px;padding:0 18px">保存</button></div></div>
+          <div class="set-grp">随账户同步 · 浏览器直连提供方，key 不经过任何中转</div>
+          <div class="fcard llm-card">
+            <div class="auth-f"><span>提供方</span><div class="auth-chips" id="llmProv" style="margin:0"></div></div>
+            <div class="auth-f"><span>API Key<a id="llmKeyUrl" class="llm-keyurl" target="_blank" rel="noopener">去拿 key ↗</a></span><span class="auth-pw"><input id="setLlmKey" type="password" placeholder="sk-..." autocomplete="off"><button type="button" class="auth-show" id="llmShow">显示</button></span></div>
+            <div class="auth-f"><span>模型</span><div class="llm-modelrow"><select id="llmModelSel" class="llm-sel"></select><button class="btn sm" id="llmFetch" title="用上面的 key 从 API 拉取真实模型列表">↻ 拉取列表</button></div><input id="setLlmModel" placeholder="填模型 id，如 deepseek-v4-pro" style="display:none;margin-top:8px"></div>
+            <div class="auth-f"><span>Base URL</span><input id="setLlmBase" placeholder="https://api.deepseek.com"></div>
+            <div class="llm-foot"><span class="llm-status" data-llm-status>未配置 LLM</span><span style="display:flex;gap:8px"><button class="btn" id="llmTest" style="height:34px;padding:0 14px">测试连接</button><button class="btn primary" id="setLlmSave" style="height:34px;padding:0 18px">保存</button></span></div>
           </div>
-          <div style="font-size:12px;color:var(--text-3);padding:8px 2px 0;line-height:1.6">用于控制台里「你的模型」写解释与对话 —— 浏览器直连提供方，key 不经过任何中转服务器。</div>
+          <div style="font-size:12px;color:var(--text-3);padding:8px 2px 0;line-height:1.6">用于控制台里「你的模型」写解释与对话。换设备登录同一账户，这里的配置自动跟过去。</div>
         </div>
         <div class="set-pane" data-spane="run">
           <h2>运行设置</h2>
