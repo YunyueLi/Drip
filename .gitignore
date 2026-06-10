@@ -50,3 +50,8 @@ artifacts/
 
 # local dev preview config
 .claude/launch.json
+
+# supabase CLI local state
+supabase/.temp/
+supabase/.branches/
+.env.local

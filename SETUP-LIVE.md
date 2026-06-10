@@ -38,7 +38,7 @@ Meta Marketing API
 - developers.facebook.com → 建 App（类型 Business）→ 加 **Marketing API**。
 - 拿 **App ID** 和 **App Secret**。
 - OAuth 跳转地址（`Facebook 登录 → 设置 → 有效 OAuth 跳转 URI`）填**函数地址**：
-  `https://<ref>.functions.supabase.co/meta-oauth`
+  `https://<ref>.supabase.co/functions/v1/meta-oauth`（用 `<ref>.supabase.co/functions/v1/` 这种写法，和前端调用路径一致）
 - 申请权限 **`ads_read` + `ads_management`** —— 这两个需要 **App Review + 商业验证**，是整条链路最慢的一步（可能数天～数周），**越早提交越好**。审核期间可先用 App 的测试用户/自有账户跑通。
 
 ### 3) 部署 Edge Functions + 设密钥
@@ -48,7 +48,7 @@ supabase functions deploy meta-oauth ads-pull ads-apply
 supabase secrets set \
   META_APP_ID=<App ID> \
   META_APP_SECRET=<App Secret> \
-  META_REDIRECT_URI=https://<ref>.functions.supabase.co/meta-oauth \
+  META_REDIRECT_URI=https://<ref>.supabase.co/functions/v1/meta-oauth \
   APP_URL=https://yunyueli.github.io/Drip/app.html
 ```
 （`SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY` 由平台自动注入，无需手动设。）
