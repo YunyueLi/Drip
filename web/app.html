@@ -750,7 +750,9 @@
     </details>
   </aside>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- Supabase JS is lazy-loaded by auth.js ONLY when web/config.js is filled
+     (see ensureSupabase), via China-reachable mirrors with fallback — so no
+     3rd-party CDN ever blocks the app from loading/responding. -->
 <script src="config.js"></script>
 <script src="real-cases.js"></script>
 <script src="engine.js"></script>
