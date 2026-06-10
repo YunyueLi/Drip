@@ -301,53 +301,69 @@
   var I_CHECK = '<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m4.5 12.5 5 5 10-11"/></svg>';
 
   var running = false;
+  // No live account → say exactly that. The sample demo never stands in for a real run;
+  // recorded real runs stay behind the 演示 button.
+  function paintConnect(prompt) {
+    var banner = '<span class="run-banner">' + I_OFF + "<span>" +
+      t("未连接真实账户", "No live ad account connected") +
+      '</span><button class="rb-go" onclick="window.__openSettings&&window.__openSettings(\'connect\')">' +
+      t("去连接", "Connect") + "</button></span>";
+    var guide = t("连接 Meta 后，这句话会直接跑在你的真实账户上：拉近 7 天 campaign → 8 信号逐条判定 → 你批准后写回预算。想先看跑起来的样子，点右上角「演示」。",
+      "Once Meta is connected, this prompt runs on your real account: pull 7-day campaigns → 8-signal verdicts → write back after your approval. To see it in action first, hit 演示 (top right).");
+    if (window.__setConv) window.__setConv("__live", { q: prompt, blocks: [{ t: "intro", h: banner }, { t: "intro", h: guide }] });
+    if (window.__showConv) window.__showConv("__live");
+  }
   function run(prompt) {
     if (running) return;
     prompt = (prompt || "").trim(); if (!prompt) return;
     running = true;
     if (typeof setView === "function") setView("console");
-    var build = detect(prompt);
-    var hasKey = window.DripLLM && window.DripLLM.hasKey();
-    var live = build === buildTriage && window.DripLive && window.DripLive.ready();
 
-    var pending = '<span class="run-status">' + I_SPIN + "<span>" + (live
-      ? t("正在拉取你的真实账户数据…", "Pulling your live account data…")
-      : (hasKey
-        ? t("规则引擎已出决策，正在用你的模型生成解释…", "Rules decided. Generating the explanation with your model…")
-        : t("规则引擎已出决策（解释为模板；配置模型后由你的 LLM 实时生成）", "Rules decided (template explanation; configure your model to narrate live)")))
-      + "</span></span>";
-    if (window.__setConv) window.__setConv("__live", { q: prompt, blocks: [{ t: "intro", h: pending }] });
-    if (window.__showConv) window.__showConv("__live");
+    if (!(window.DripLive && window.DripLive.ready())) { paintConnect(prompt); running = false; return; }
+    window.DripLive.connections().then(function (rows) {
+      if (!rows || !rows.length) { paintConnect(prompt); running = false; return; }
+      proceed();
+    }, function () { paintConnect(prompt); running = false; });
 
-    // live triage, falling back to the offline sample if no account is connected
-    var banner = '<span class="run-banner">' + I_OFF + "<span>" +
-      t("未连接真实账户 · 以下为样本演示", "No live account connected · sample demo below") +
-      '</span><button class="rb-go" onclick="window.__openSettings&&window.__openSettings(\'connect\')">' +
-      t("去连接", "Connect") + "</button></span>";
-    var built = live
-      ? runLive(prompt).catch(function (e) {
-          if (e && e.status === 409) { return buildTriage(prompt).then(function (bl) {
-            bl.unshift({ t: "intro", h: banner }); return bl; }); }
-          throw e;
-        })
-      : build(prompt);
+    function proceed() {
+      var build = detect(prompt);
+      var hasKey = window.DripLLM && window.DripLLM.hasKey();
+      var live = build === buildTriage;
 
-    built.then(function (blocks) {
-      var isLive = live && liveCtx && liveCtx.changes;
-      if (window.__setConv) window.__setConv("__live", { q: prompt, blocks: blocks });
+      var pending = '<span class="run-status">' + I_SPIN + "<span>" + (live
+        ? t("正在拉取你的真实账户数据…", "Pulling your live account data…")
+        : (hasKey
+          ? t("规则引擎已出决策，正在用你的模型生成解释…", "Rules decided. Generating the explanation with your model…")
+          : t("规则引擎已出决策（解释为模板；配置模型后由你的 LLM 实时生成）", "Rules decided (template explanation; configure your model to narrate live)")))
+        + "</span></span>";
+      if (window.__setConv) window.__setConv("__live", { q: prompt, blocks: [{ t: "intro", h: pending }] });
       if (window.__showConv) window.__showConv("__live");
-      reveal(function () {
-        var host = document.getElementById("convHost");
-        if (isLive) applyBar(host, liveCtx.changes);
-        else note(host, hasKey
-          ? t("运行完成 · 规则决策，你的模型解释", "Run complete · rules decided, your model explained")
-          : t("运行完成 · 配置模型后解释由你的 LLM 实时生成", "Run complete · configure your model for live narration"));
-      });
-    }).catch(function (err) {
-      if (window.__setConv) window.__setConv("__live", { q: prompt, blocks: [{ t: "intro",
-        h: t("运行出错：", "Run error: ") + (err && err.message || err) }] });
-      if (window.__showConv) window.__showConv("__live");
-    }).then(function () { running = false; });
+
+      var built = live
+        ? runLive(prompt).catch(function (e) {
+            if (e && e.status === 409) { paintConnect(prompt); return null; }  // connection raced away
+            throw e;
+          })
+        : build(prompt);
+
+      built.then(function (blocks) {
+        if (!blocks) return;
+        var isLive = live && liveCtx && liveCtx.changes;
+        if (window.__setConv) window.__setConv("__live", { q: prompt, blocks: blocks });
+        if (window.__showConv) window.__showConv("__live");
+        reveal(function () {
+          var host = document.getElementById("convHost");
+          if (isLive) applyBar(host, liveCtx.changes);
+          else note(host, hasKey
+            ? t("运行完成 · 规则决策，你的模型解释", "Run complete · rules decided, your model explained")
+            : t("运行完成 · 配置模型后解释由你的 LLM 实时生成", "Run complete · configure your model for live narration"));
+        });
+      }).catch(function (err) {
+        if (window.__setConv) window.__setConv("__live", { q: prompt, blocks: [{ t: "intro",
+          h: t("运行出错：", "Run error: ") + (err && err.message || err) }] });
+        if (window.__showConv) window.__showConv("__live");
+      }).then(function () { running = false; });
+    }
   }
 
   window.DripRun = { run: run, runLive: runLive, detect: detect, buildTriage: buildTriage, buildIntraday: buildIntraday, buildAutopilot: buildAutopilot };
