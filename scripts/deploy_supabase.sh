@@ -35,7 +35,19 @@ echo "▸ setting non-secret function config…"
 supabase secrets set "APP_URL=${APP_URL}" "META_REDIRECT_URI=${REDIRECT}" --project-ref "$REF"
 
 echo
-echo "✅ Backend deployed → https://${REF}.supabase.co/functions/v1/{meta-oauth,ads-pull,ads-apply}"
+echo "▸ verifying functions are live on cloud + auth gate works…"
+PUBKEY="sb_publishable_QjqFx1bgU9nyWzQs2VXjLg_8YTWM7FI"
+FB="https://${REF}.supabase.co/functions/v1"
+ok=1
+for fn in ads-pull ads-apply; do
+  c="$(curl -s -o /dev/null -w '%{http_code}' -X POST "$FB/$fn" -H "apikey: $PUBKEY" -H "content-type: application/json" -d '{}')"
+  printf "  %-10s no-auth → %s  (expect 401)" "$fn" "$c"; [ "$c" = "401" ] && echo "  ✓" || { echo "  ✗"; ok=0; }
+done
+c="$(curl -s -o /dev/null -w '%{http_code}' "$FB/meta-oauth" -H "apikey: $PUBKEY")"
+printf "  %-10s no-auth → %s  (expect 401)" "meta-oauth" "$c"; [ "$c" = "401" ] && echo "  ✓" || { echo "  ✗"; ok=0; }
+[ "$ok" = "1" ] && echo "  ✅ all three functions deployed, responding, and gating unauthenticated calls" || echo "  ⚠ unexpected codes — check 'supabase functions list' / logs"
+echo
+echo "✅ Backend deployed → ${FB}/{meta-oauth,ads-pull,ads-apply}"
 echo "NEXT (Meta, dev mode — your own account, no review):"
 echo "  developers.facebook.com → app + Marketing API + Facebook Login"
 echo "  OAuth redirect: ${REDIRECT}"
