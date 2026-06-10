@@ -596,12 +596,19 @@ render("c1");
 setLang(localStorage.getItem("drip-lang") || (function(){ const n = (navigator.language || "zh").toLowerCase(); if (n.indexOf("zh") === 0) return (n.indexOf("tw") > -1 || n.indexOf("hk") > -1) ? "zh-TW" : "zh-CN"; const m = ["en","ja","ko","es","pt","vi","fr","de"].find(x => n.indexOf(x) === 0); return m || "zh-CN"; })());
 // URL params (deep-link / screenshots): ?view=bench&lang=en
 (function(){ const p = new URLSearchParams(location.search); const pl = p.get("lang"); if (pl && I18N[pl]) setLang(pl); const pv = p.get("view"); if (pv) setView(pv); else if (p.get("demo") !== "1") setView("welcome"); })();
-// account menu + sign in/out
+// account entry — signed out: open the sign-in dialog directly; signed in: toggle the menu.
+// Sign-in/out state itself is owned by auth.js (paint()).
 (function(){
   const ctl = $("acctCtl"), av = $("avBtn");
-  if (av) av.addEventListener("click", e => { e.stopPropagation(); ctl.classList.toggle("open"); });
-  const so = $("signOut"); if (so) so.addEventListener("click", () => { ctl.classList.add("signedout"); ctl.querySelector(".am-in").style.display = "none"; ctl.querySelector(".am-out").style.display = "block"; av.classList.add("out"); av.textContent = "?"; });
-  const si = $("signIn"); if (si) si.addEventListener("click", () => { ctl.classList.remove("signedout"); ctl.querySelector(".am-in").style.display = "block"; ctl.querySelector(".am-out").style.display = "none"; av.classList.remove("out"); av.textContent = "M"; ctl.classList.remove("open"); });
+  const tap = e => {
+    e.stopPropagation();
+    const A = window.DripAuth;
+    if (A && A.signedOut && A.signedOut()) { A.login(); ctl.classList.remove("open"); return; }
+    ctl.classList.toggle("open");
+  };
+  if (av) av.addEventListener("click", tap);
+  const aid = ctl ? ctl.querySelector(".acct-id") : null;
+  if (aid) aid.addEventListener("click", tap);
   if (ctl) ctl.querySelectorAll(".am-item").forEach(it => it.addEventListener("click", () => ctl.classList.remove("open")));
   document.addEventListener("click", e => { if (ctl && !ctl.contains(e.target)) ctl.classList.remove("open"); });
 })();
