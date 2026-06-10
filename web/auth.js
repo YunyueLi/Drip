@@ -21,6 +21,21 @@
     return local;
   }
 
+  // ---- targets (CPP / ROAS / demo budget) — same local + roaming pattern ----
+  var TG_KEY = "drip-targets";
+  function getTargets() { try { return JSON.parse(localStorage.getItem(TG_KEY) || "{}") || {}; } catch (e) { return {}; } }
+  function setTargetsStore(c) { try { localStorage.setItem(TG_KEY, JSON.stringify(c)); } catch (e) {} }
+  function pushTargets(c) { if (sb && user) sb.auth.updateUser({ data: { drip_targets: c } }).then(function (r) { console.info("[drip] targets →account", r && r.error ? r.error.message : "ok"); }); }
+  function pullTargets(u) {
+    var remote = (u && u.user_metadata && u.user_metadata.drip_targets) || null;
+    var local = getTargets();
+    if (remote && (remote.updatedAt || 0) >= (local.updatedAt || 0)) { setTargetsStore(remote); return remote; }
+    return local;
+  }
+  function applyTargets(c) {
+    try { if (window.DripEngine && window.DripEngine.setTargets) window.DripEngine.setTargets(c || {}); } catch (e) {}
+  }
+
   // ---- local identity: usable without Supabase; upgrades to cloud when configured ----
   var LOCAL_KEY = "drip-local-user";
   function getLocalUser() { try { var v = JSON.parse(localStorage.getItem(LOCAL_KEY) || "null"); return (v && v.email) ? v : null; } catch (e) { return null; } }
@@ -41,7 +56,14 @@
     var rh = document.querySelector('.set-pane[data-spane="account"] .rh');
     var so = $("setSignOut");
     var plan = document.querySelector("#acctMenu .am-plan");
+    var sa = document.querySelector(".set-acct");
     var cu = currentUser();
+    if (sa) {
+      var saAv = sa.querySelector(".av"), saNm = sa.querySelector(".nm"), saPl = sa.querySelector(".pl");
+      if (saAv) saAv.textContent = cu ? initials(cu.email) : "?";
+      if (saNm) saNm.textContent = cu ? cu.name : "未登录";
+      if (saPl) saPl.textContent = cu ? (cu.cloud ? "云端账户 · 配置漫游" : "本机账户") : "个人 · 自托管";
+    }
     if (cu) {
       if (inB) inB.style.display = "";
       if (outB) outB.style.display = "none";
@@ -63,6 +85,7 @@
       if (so) so.style.display = "none";
     }
     syncLlmForm();
+    syncTargetsForm();
   }
 
   // ---- toast ----
@@ -187,16 +210,55 @@
     }
     fillLlmForm();
   }
+
+  // ---- targets form — Settings → 运行与模型 → 目标与预算 ----
+  function targetsStatus() {
+    var c = getTargets(), D = (window.DripEngine && window.DripEngine.DEFAULT_TARGETS) || { cpp_target: 25, roas_target: 3, budget: 1400 };
+    var custom = ["cpp_target", "roas_target", "budget"].some(function (k) { var v = Number(c[k]); return isFinite(v) && v > 0 && v !== D[k]; });
+    return custom ? "自定义目标生效中" : "使用默认目标";
+  }
+  function syncTargetsForm() {
+    document.querySelectorAll("[data-targets-status]").forEach(function (e) { e.textContent = targetsStatus(); });
+    fillTargetsForm();
+  }
+  function fillTargetsForm() {
+    var c = getTargets();
+    [["setTgCpp", "cpp_target"], ["setTgRoas", "roas_target"], ["setTgBudget", "budget"]].forEach(function (p) {
+      var el = $(p[0]); if (!el || document.activeElement === el) return;
+      var v = Number(c[p[1]]);
+      el.value = (isFinite(v) && v > 0) ? String(v) : "";
+    });
+  }
+  function wireTargetsForm() {
+    var save = $("setTgSave");
+    if (save && !save._wired) {
+      save._wired = true;
+      save.onclick = function () {
+        var num = function (id) { var v = Number((($(id) || {}).value || "").trim()); return (isFinite(v) && v > 0) ? v : null; };
+        var next = { updatedAt: Date.now() };
+        var cpp = num("setTgCpp"), roas = num("setTgRoas"), budget = num("setTgBudget");
+        if (cpp) next.cpp_target = cpp;
+        if (roas) next.roas_target = roas;
+        if (budget) next.budget = budget;
+        setTargetsStore(next); pushTargets(next); applyTargets(next);
+        toast("目标已保存 · 留空项用默认"); syncTargetsForm();
+      };
+    }
+    fillTargetsForm();
+  }
   function closeAcctMenu() { var m = $("acctMenu"); if (m) m.classList.remove("open"); }
 
   // ---- wire ----
   function wire() {
     wireLlmForm();
+    wireTargetsForm();
+    applyTargets(getTargets());
     var si = $("signIn"); if (si) si.onclick = function () { loginModal(); closeAcctMenu(); };
     var so = $("signOut"); if (so) so.onclick = function () { signOut(); closeAcctMenu(); };
     var sso = $("setSignOut"); if (sso) sso.onclick = signOut;
     document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeModal(); });
     syncLlmForm();
+    syncTargetsForm();
   }
 
   // Load supabase-js only when needed (config filled), never blocking the app.
@@ -227,8 +289,8 @@
       sb = window.supabase.createClient(cfg.url, cfg.anonKey, {
         auth: { flowType: "pkce", detectSessionInUrl: true, persistSession: true, autoRefreshToken: true, storageKey: "drip-auth" },
       });
-      sb.auth.getSession().then(function (r) { session = (r.data && r.data.session) || null; user = (session && session.user) || null; if (user) pullLlm(user); paint(); onAuth(); });
-      sb.auth.onAuthStateChange(function (_e, s) { session = s || null; user = (s && s.user) || null; if (user) pullLlm(user); paint(); onAuth(); });
+      sb.auth.getSession().then(function (r) { session = (r.data && r.data.session) || null; user = (session && session.user) || null; if (user) { pullLlm(user); applyTargets(pullTargets(user)); } paint(); onAuth(); });
+      sb.auth.onAuthStateChange(function (_e, s) { session = s || null; user = (s && s.user) || null; if (user) { pullLlm(user); applyTargets(pullTargets(user)); } paint(); onAuth(); });
     }, function () { console.warn("[drip] supabase-js CDN unreachable; staying local"); paint(); });
   }
 
@@ -247,6 +309,7 @@
   // expose for console/debug
   window.DripAuth = {
     login: loginModal, signOut: signOut, getLlm: getLlm, setLlm: setLlm,
+    getTargets: getTargets,
     token: token, user: function () { return user; }, configured: function () { return configured; },
     connections: connections, onAuth: function (fn) { authCbs.push(fn); if (user !== null || !configured) { try { fn(user); } catch (e) {} } },
   };

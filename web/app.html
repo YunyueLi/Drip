@@ -679,7 +679,14 @@
           <div class="set-grp">运行模式(DRIP_MODE)</div>
           <div class="fcard">
             <div class="frow"><div class="fl"><span data-i18n="st.mode">模式</span><div class="h" data-i18n="st.modeh">写入平台的权限级别</div></div><div class="fc"><label class="rad"><input type="radio" name="mode"> <span data-i18n="mode.shadow">Shadow 只规划</span></label><label class="rad"><input type="radio" name="mode" checked> <span data-i18n="mode.copilot">Copilot 逐条批准</span></label><label class="rad"><input type="radio" name="mode"> <span data-i18n="mode.auto">Autonomous 上限内自动</span></label></div></div>
-            <div class="frow"><div class="fl" data-i18n="st.cap">预算上限</div><div class="fc"><input class="inp" style="width:110px" value="$3,500"><span style="font-size:12px;color:var(--text-3)" data-i18n="st.caph">/ 天 自动模式下的硬上限</span></div></div>
+            <div class="frow"><div class="fl" data-i18n="st.cap">预算上限</div><div class="fc"><input id="setBudgetCap" class="inp" style="width:110px" value="$3,500"><span style="font-size:12px;color:var(--text-3)" data-i18n="st.caph">/ 天 自动模式下的硬上限</span></div></div>
+          </div>
+          <div class="set-grp">目标与预算</div>
+          <div class="fcard">
+            <div class="frow"><div class="fl"><span>CPP 目标</span><div class="h">每次购买成本(USD)· 驱动 CPP 信号判定</div></div><div class="fc"><input id="setTgCpp" class="inp" style="width:110px" type="number" min="0" step="0.5" placeholder="25"><span style="font-size:12px;color:var(--text-3)">留空用默认 $25</span></div></div>
+            <div class="frow"><div class="fl"><span>ROAS 目标</span><div class="h">广告支出回报倍数 · 驱动 ROAS 信号判定</div></div><div class="fc"><input id="setTgRoas" class="inp" style="width:110px" type="number" min="0" step="0.1" placeholder="3.0"><span style="font-size:12px;color:var(--text-3)">留空用默认 3.0x</span></div></div>
+            <div class="frow"><div class="fl"><span>演示总预算</span><div class="h">样本/演示分配的盘子(USD)· 实盘按真实花费</div></div><div class="fc"><input id="setTgBudget" class="inp" style="width:110px" type="number" min="0" step="100" placeholder="1400"><span style="font-size:12px;color:var(--text-3)">留空用默认 $1,400</span></div></div>
+            <div class="frow"><div class="fl"><span>状态</span><div class="h"><span data-targets-status>使用默认目标</span></div></div><div class="fc"><button class="btn primary" id="setTgSave" style="height:34px;padding:0 18px">保存</button></div></div>
           </div>
           <div class="set-grp">模型与归因</div>
           <div class="fcard">

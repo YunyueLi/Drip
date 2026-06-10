@@ -261,7 +261,8 @@
     return "shadow";
   }
   function getCaps() {
-    var inp = document.querySelector('.set-pane[data-spane="run"] .fcard input.inp');
+    var inp = document.getElementById("setBudgetCap") ||
+      document.querySelector('.set-pane[data-spane="run"] .fcard input.inp');
     var cap = inp ? Number(String(inp.value).replace(/[^0-9.]/g, "")) || 0 : 0;
     return { budget_cap: cap, max_change_pct: 0.5 };
   }
