@@ -238,7 +238,7 @@
   function note(host, msg) {
     if (!host || document.getElementById("rpBar")) return;
     var b = document.createElement("div"); b.id = "rpBar"; b.className = "rp-bar";
-    b.innerHTML = '<span class="rp-st"><span class="rp-ok">✓</span>' + msg + '</span>';
+    b.innerHTML = '<span class="rp-st"><span class="rp-ok">' + I_CHECK + "</span>" + msg + "</span>";
     host.appendChild(b);
     b.scrollIntoView({ behavior: reduce() ? "auto" : "smooth", block: "end" });
   }
@@ -275,7 +275,7 @@
     var nScale = changes.filter(function (c) { return c.action === "SCALE"; }).length;
     var nPause = changes.filter(function (c) { return c.action === "PAUSE"; }).length;
     var verb = mode === "shadow" ? t("预演写回(shadow)", "Preview (shadow)") : t("应用到平台", "Apply to platform");
-    b.innerHTML = '<span class="rp-st"><span class="rp-ok">✓</span>' +
+    b.innerHTML = '<span class="rp-st"><span class="rp-ok">' + I_CHECK + "</span>" +
       t("真实账户 · " + nScale + " 放量 / " + nPause + " 止损", "Live · " + nScale + " scale / " + nPause + " stop-loss") +
       '</span><span class="rp-acts"><button class="rp-btn ink" id="rpApply">' + verb + ' · ' + mode + '</button></span>';
     host.appendChild(b);
@@ -295,6 +295,11 @@
     b.scrollIntoView({ behavior: reduce() ? "auto" : "smooth", block: "end" });
   }
 
+  // own inline status icons — no emoji
+  var I_SPIN = '<svg class="ri ri-spin" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-6.2-8.56"/></svg>';
+  var I_OFF = '<svg class="ri" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M9 8H6a4 4 0 0 0 0 8h3"/><path d="M15 8h3a4 4 0 0 1 0 8h-3"/><path d="M4 4l16 16"/></svg>';
+  var I_CHECK = '<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m4.5 12.5 5 5 10-11"/></svg>';
+
   var running = false;
   function run(prompt) {
     if (running) return;
@@ -305,21 +310,24 @@
     var hasKey = window.DripLLM && window.DripLLM.hasKey();
     var live = build === buildTriage && window.DripLive && window.DripLive.ready();
 
-    var pending = live
-      ? t("⚙️ 正在拉取你的真实账户数据…", "⚙️ Pulling your live account data…")
+    var pending = '<span class="run-status">' + I_SPIN + "<span>" + (live
+      ? t("正在拉取你的真实账户数据…", "Pulling your live account data…")
       : (hasKey
-        ? t("⚙️ 规则引擎已出决策，正在用你的模型生成解释…", "⚙️ Rules decided. Generating the explanation with your model…")
-        : t("⚙️ 规则引擎已出决策（解释为模板；登录并配置模型后由你的 LLM 实时生成）。",
-            "⚙️ Rules decided (template explanation; configure your model to narrate live)."));
+        ? t("规则引擎已出决策，正在用你的模型生成解释…", "Rules decided. Generating the explanation with your model…")
+        : t("规则引擎已出决策（解释为模板；配置模型后由你的 LLM 实时生成）", "Rules decided (template explanation; configure your model to narrate live)")))
+      + "</span></span>";
     if (window.__setConv) window.__setConv("__live", { q: prompt, blocks: [{ t: "intro", h: pending }] });
     if (window.__showConv) window.__showConv("__live");
 
     // live triage, falling back to the offline sample if no account is connected
+    var banner = '<span class="run-banner">' + I_OFF + "<span>" +
+      t("未连接真实账户 · 以下为样本演示", "No live account connected · sample demo below") +
+      '</span><button class="rb-go" onclick="window.__openSettings&&window.__openSettings(\'connect\')">' +
+      t("去连接", "Connect") + "</button></span>";
     var built = live
       ? runLive(prompt).catch(function (e) {
           if (e && e.status === 409) { return buildTriage(prompt).then(function (bl) {
-            bl.unshift({ t: "intro", h: t("（未连接真实账户，下面用样本演示。去 设置→连接器 连接 Meta。）",
-              "(No live account connected — sample demo below. Connect Meta in Settings → Connectors.)") }); return bl; }); }
+            bl.unshift({ t: "intro", h: banner }); return bl; }); }
           throw e;
         })
       : build(prompt);
