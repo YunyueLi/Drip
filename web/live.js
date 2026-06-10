@@ -85,8 +85,12 @@
     if (btn && !btn._wired) {
       btn._wired = true;
       btn.onclick = function () {
-        if (!window.DripAuth || !window.DripAuth.token || !window.DripAuth.token()) {
-          (window.showToast || alert)("请先登录"); if (window.DripAuth) window.DripAuth.login(); return;
+        var tok = window.DripAuth && window.DripAuth.token && window.DripAuth.token();
+        if (!tok) {
+          var configured = window.DripAuth && window.DripAuth.configured && window.DripAuth.configured();
+          (window.showToast || alert)(configured ? "请先登录云端账号" : "连接广告账户需先接 Supabase（见 SETUP-LIVE.md）；本机账户不支持");
+          if (configured && window.DripAuth) window.DripAuth.login();
+          return;
         }
         connect("meta").catch(function (e) { (window.showToast || alert)("连接失败：" + (e.message || e)); });
       };
