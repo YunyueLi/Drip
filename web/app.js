@@ -259,8 +259,32 @@ function setView(v){
   refreshTopbar();
 }
 $("newBtn").addEventListener("click", () => setView("welcome"));
-const ws = $("welSend"); if (ws) ws.addEventListener("click", () => setView("console"));
-document.querySelectorAll("[data-go]").forEach(s => s.addEventListener("click", () => setView("console")));
+// Welcome composer + scene cards run the real engine (run.js) — typed text is
+// never dropped into the canned demo conversation.
+const welGo = () => {
+  const wi = $("welInput");
+  const text = wi && wi.value.trim();
+  if (!text) { showToast(curLang.indexOf("zh") === 0 ? "输入点什么，或选个场景开始" : "Type something, or pick a scene"); return; }
+  if (window.DripRun && window.DripRun.run) { window.DripRun.run(text); wi.value = ""; }
+  else setView("console");
+};
+const ws = $("welSend"); if (ws) ws.addEventListener("click", welGo);
+const wi0 = $("welInput"); if (wi0) wi0.addEventListener("keydown", e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); welGo(); } });
+const SCENE_PROMPTS = {
+  "s1.t": { zh: "诊断我的所有 campaign，8 信号逐条判定该扩 / 该停 / 该换", en: "Diagnose all my campaigns — 8-signal verdicts: scale / pause / refresh" },
+  "s2.t": { zh: "重新分配预算：止损输家，把钱挪给赢家，给出每条的新预算", en: "Reallocate budget: cut losers, fund winners, with new budgets per campaign" },
+  "s3.t": { zh: "基于当前赢家和疲劳信号，下一轮该测什么创意角度？", en: "Based on current winners and fatigue signals, what should we test next?" },
+  "s4.t": { zh: "哪些 campaign 创意疲劳该换素材？给出判定和理由", en: "Which campaigns are creative-fatigued and need a refresh? Verdicts and why" },
+  "s5.t": { zh: "用保守口径复核各 campaign 的 ROAS / CPP，标出可能虚高的", en: "Re-check each campaign's ROAS/CPP conservatively and flag inflated ones" },
+  "s6.t": { zh: "跑完整循环：收集 → 诊断 → 分配 → 复盘，给出今天的操作单", en: "Run the full loop: collect → diagnose → allocate → review, with today's action list" },
+};
+document.querySelectorAll("[data-go]").forEach(s => s.addEventListener("click", () => {
+  const tEl = s.querySelector("[data-i18n]");
+  const p = tEl && SCENE_PROMPTS[tEl.getAttribute("data-i18n")];
+  const text = p ? (curLang.indexOf("zh") === 0 ? p.zh : p.en) : "";
+  if (text && window.DripRun && window.DripRun.run) window.DripRun.run(text);
+  else setView("console");
+}));
 document.querySelectorAll("[data-view]").forEach(el => el.addEventListener("click", e => { e.stopPropagation(); setView(el.getAttribute("data-view")); }));
 document.querySelectorAll("[data-seg]").forEach(g => g.addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; g.querySelectorAll("button").forEach(x => x.classList.remove("on")); b.classList.add("on"); }));
 document.querySelectorAll("[data-sel]").forEach(c => c.addEventListener("click", () => { c.classList.toggle("sel"); const n = document.querySelectorAll("#view-creative .vcard.sel").length; const info = document.querySelector("#view-creative .scrn-foot .info"); if (info) info.innerHTML = "已选 <b>" + n + "</b> 个 可加入下一轮测试"; }));
@@ -508,6 +532,9 @@ document.querySelectorAll(".composer .send").forEach(s => s.addEventListener("cl
   // Real run: deterministic engine in the browser + your model narrates (run.js).
   if (window.DripRun && window.DripRun.run) { window.DripRun.run(text); ta.value = ""; }
   else { showToast("已发送 Drip 正在处理…"); ta.value = ""; }
+}));
+document.querySelectorAll(".composer textarea").forEach(ta => ta.addEventListener("keydown", e => {
+  if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); const s = ta.closest(".composer").querySelector(".send"); if (s) s.click(); }
 }));
 // rail + lang active toggles
 document.querySelectorAll(".rail .ri").forEach(r => r.addEventListener("click", () => {
