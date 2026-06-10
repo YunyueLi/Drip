@@ -21,28 +21,47 @@
     return local;
   }
 
-  // ---- session → UI ----
+  // ---- local identity: usable without Supabase; upgrades to cloud when configured ----
+  var LOCAL_KEY = "drip-local-user";
+  function getLocalUser() { try { var v = JSON.parse(localStorage.getItem(LOCAL_KEY) || "null"); return (v && v.email) ? v : null; } catch (e) { return null; } }
+  function setLocalUser(u) { try { localStorage.setItem(LOCAL_KEY, JSON.stringify(u)); } catch (e) {} }
+  function clearLocalUser() { try { localStorage.removeItem(LOCAL_KEY); } catch (e) {} }
+  function currentUser() {
+    if (user) return { email: user.email || "", name: (user.user_metadata && (user.user_metadata.name || user.user_metadata.full_name)) || (user.email || "").split("@")[0] || "User", cloud: true };
+    var l = getLocalUser();
+    return l ? { email: l.email, name: l.name || l.email.split("@")[0], cloud: false } : null;
+  }
+
+  // ---- session → UI (honest: real cloud user, else local user, else logged out) ----
   function initials(email) { return (email || "U").trim().charAt(0).toUpperCase(); }
   function paint() {
     var inB = document.querySelector("#acctMenu .am-in");
     var outB = document.querySelector("#acctMenu .am-out");
-    if (configured && user) {
-      var email = user.email || "";
-      var name = (user.user_metadata && (user.user_metadata.name || user.user_metadata.full_name)) || email.split("@")[0] || "User";
+    var rl = document.querySelector('.set-pane[data-spane="account"] .rl');
+    var rh = document.querySelector('.set-pane[data-spane="account"] .rh');
+    var so = $("setSignOut");
+    var plan = document.querySelector("#acctMenu .am-plan");
+    var cu = currentUser();
+    if (cu) {
       if (inB) inB.style.display = "";
       if (outB) outB.style.display = "none";
-      document.querySelectorAll(".am-name").forEach(function (e) { e.textContent = name; });
-      document.querySelectorAll(".am-mail").forEach(function (e) { e.textContent = email; });
-      document.querySelectorAll(".am-av, #avBtn, .am-head .am-av").forEach(function (e) { e.textContent = initials(email); });
-      var sid = document.querySelector(".acct-id"); if (sid) sid.textContent = name;
-      // settings account pane
-      var rl = document.querySelector('.set-pane[data-spane="account"] .rl'); if (rl) rl.textContent = name;
-      var rh = document.querySelector('.set-pane[data-spane="account"] .rh'); if (rh) rh.textContent = email;
-    } else if (configured) {
+      document.querySelectorAll(".am-name").forEach(function (e) { e.textContent = cu.name; });
+      document.querySelectorAll(".am-mail").forEach(function (e) { e.textContent = cu.email; });
+      document.querySelectorAll(".am-av, #avBtn, .am-head .am-av").forEach(function (e) { e.textContent = initials(cu.email); if (e.classList) e.classList.remove("out"); });
+      var sid = document.querySelector(".acct-id"); if (sid) sid.textContent = cu.name;
+      if (rl) rl.textContent = cu.name;
+      if (rh) rh.textContent = cu.cloud ? cu.email : (cu.email + " · 本机账户");
+      if (so) so.style.display = "";
+      if (plan) plan.textContent = cu.cloud ? "● 云端账户 · 配置随账号漫游" : "● 本机账户 · 接 Supabase 升级漫游";
+    } else {
       if (inB) inB.style.display = "none";
       if (outB) outB.style.display = "";
+      document.querySelectorAll("#avBtn").forEach(function (e) { e.textContent = "?"; if (e.classList) e.classList.add("out"); });
+      var sid2 = document.querySelector(".acct-id"); if (sid2) sid2.textContent = "登录";
+      if (rl) rl.textContent = "未登录";
+      if (rh) rh.textContent = configured ? "点右上角账号 → 登录" : "点右上角账号 → 登录（本机即可用）";
+      if (so) so.style.display = "none";
     }
-    // else: unconfigured → leave the static mock as-is.
     syncLlmForm();
   }
 
@@ -65,9 +84,24 @@
 
   // ---- login / register ----
   var mode = "signin";
+  function localLogin() {
+    var email = (($("locEmail") || {}).value || "").trim();
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { var e = $("locErr"); if (e) e.textContent = "填一个有效邮箱"; return; }
+    setLocalUser({ email: email, name: (($("locName") || {}).value || "").trim() });
+    closeModal(); toast("已登录（本机）"); paint();
+  }
   function loginModal() {
     if (!configured) {
-      modal('<div class="rp-mhead"><div><div class="rp-mt">登录未配置</div><div class="rp-ms">在 <code>web/config.js</code> 填入你的 Supabase URL 与 anon key（仪表盘 → Project Settings → API）后即可启用邮箱 / Google / GitHub 登录。</div></div><button class="rp-x" onclick="this.closest(\'.rp-back\').remove()">✕</button></div>');
+      var body = '<div class="rp-mhead"><div><div class="rp-mt">登录 Drip</div><div class="rp-ms">本机登录即可用（存于浏览器）。接 Supabase 后升级为云端漫游 + 可连广告账户。</div></div><button class="rp-x" id="amX2">✕</button></div>' +
+        '<label class="auth-f"><span>邮箱</span><input id="locEmail" type="email" placeholder="you@example.com" autocomplete="email"></label>' +
+        '<label class="auth-f"><span>昵称（可选）</span><input id="locName" placeholder="你的名字"></label>' +
+        '<div id="locErr" class="auth-err"></div>' +
+        '<button class="btn primary auth-go" id="locGo">本机登录</button>' +
+        '<div class="auth-note">想要云端漫游 + 连接广告账户：创建免费 Supabase 项目，把 URL 与 anon key 填进 <code>web/config.js</code>（见 SETUP-LIVE.md），刷新即变云端登录。</div>';
+      modal(body);
+      $("amX2").onclick = closeModal;
+      $("locGo").onclick = localLogin;
+      var le = $("locEmail"); if (le) le.addEventListener("keydown", function (ev) { if (ev.key === "Enter") localLogin(); });
       return;
     }
     var head = '<div class="rp-mhead"><div><div class="rp-mt">' + (mode === "signin" ? "登录 Drip" : "注册 Drip") + '</div><div class="rp-ms">邮箱、魔法链接、Google 或 GitHub。配置随账号漫游。</div></div><button class="rp-x" id="amX">✕</button></div>';
@@ -116,7 +150,11 @@
       if (r.error) setErr(r.error.message);
     });
   }
-  function signOut() { if (sb) sb.auth.signOut().then(function () { toast("已退出"); }); }
+  function signOut() {
+    clearLocalUser();
+    if (sb && user) { sb.auth.signOut().then(function () { toast("已退出"); paint(); }); }
+    else { toast("已退出"); paint(); }
+  }
 
   // ---- LLM config (BYOK) — single entry, lives in Settings → 运行与模型 ----
   function syncLlmForm() {
