@@ -1,0 +1,19 @@
+# Supabase project config. `supabase link --project-ref <ref>` connects this to
+# your cloud project; `supabase db push` + `supabase functions deploy` deploy it.
+project_id = "drip-live"
+
+# IMPORTANT: verify_jwt=false because these functions do their OWN auth.
+# - meta-oauth's CALLBACK is a top-level browser redirect from Meta with NO
+#   Authorization header; with the default verify_jwt=true the platform would
+#   reject it (401) before our code runs, breaking OAuth. Our code enforces auth
+#   itself: `start` requires a user JWT (userFromRequest), `callback` uses the
+#   one-time CSRF nonce. ads-pull / ads-apply call userFromRequest → 401 if no
+#   valid user, and also need OPTIONS (CORS preflight, no auth) to pass through.
+[functions.meta-oauth]
+verify_jwt = false
+
+[functions.ads-pull]
+verify_jwt = false
+
+[functions.ads-apply]
+verify_jwt = false
