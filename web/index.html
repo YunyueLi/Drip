@@ -1,483 +1,773 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Drip — the open-source growth team for user acquisition</title>
-<meta name="description" content="Drip runs the whole UA loop — diagnose, decide, allocate, create — as a team of agents. The decision core is deterministic and auditable; the LLM only explains. Any LLM, any ad platform, fully self-hostable. Apache-2.0.">
-<meta property="og:title" content="Drip — the open-source growth team for user acquisition">
-<meta property="og:description" content="Growth on autopilot, with every decision in the open. Rules decide, the LLM only explains, you approve before any spend.">
-<meta property="og:type" content="website">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><path d='M50 14C42 34 26 48 26 64a24 24 0 0 0 48 0C74 48 58 34 50 14Z' fill='%230052d9'/></svg>">
-<style>
-:root{
-  --bg:#ffffff; --bg-soft:#f7f9fc; --ink:#0b1220; --ink-2:#48526b; --ink-3:#8a93a8;
-  --line:#e7ebf3; --line-2:#eef1f7; --accent:#0052d9; --accent-hover:#0046b8; --accent-subtle:#eaf1fd;
-  --green:#1a9d5a; --green-bg:#e7f6ee; --amber:#c98a14; --red:#d2453d;
-  --radius:16px; --shadow-sm:0 1px 2px rgba(11,18,32,.05);
-  --shadow:0 1px 2px rgba(11,18,32,.04),0 14px 44px rgba(11,18,32,.08);
-  --font:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB",Roboto,Helvetica,Arial,sans-serif;
-  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
-}
-*{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
-body{font-family:var(--font);background:var(--bg);color:var(--ink);line-height:1.6;-webkit-font-smoothing:antialiased;font-size:16px;letter-spacing:-.011em;overflow-x:hidden}
-a{color:inherit;text-decoration:none}
-code{font-family:var(--mono);font-size:.92em;background:var(--bg-soft);border:1px solid var(--line-2);border-radius:6px;padding:1px 6px}
-.wrap{max-width:1120px;margin:0 auto;padding:0 24px}
-.btn{display:inline-flex;align-items:center;gap:8px;font-weight:600;font-size:15px;padding:13px 22px;border-radius:12px;border:1px solid transparent;cursor:pointer;transition:transform .12s ease,box-shadow .15s ease,background .15s,border-color .15s;white-space:nowrap}
-.btn:active{transform:translateY(1px)}
-.btn-primary{background:var(--accent);color:#fff;box-shadow:0 6px 18px rgba(0,82,217,.26)}
-.btn-primary:hover{background:var(--accent-hover);box-shadow:0 10px 26px rgba(0,82,217,.32)}
-.btn-ghost{background:#fff;color:var(--ink);border-color:var(--line)}
-.btn-ghost:hover{border-color:var(--ink-3);background:var(--bg-soft)}
-.eyebrow{display:inline-block;font-size:13px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--accent);margin-bottom:14px}
-
-.logo{display:flex;align-items:center;gap:9px;font-weight:700;font-size:19px;letter-spacing:-.02em}
-.logo svg{width:24px;height:24px}
-
-/* nav */
-header.nav{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.8);backdrop-filter:saturate(180%) blur(12px);border-bottom:1px solid var(--line-2)}
-.nav-in{display:flex;align-items:center;justify-content:space-between;height:62px;gap:18px}
-.nav-links{display:flex;align-items:center;gap:26px;font-size:14.5px;color:var(--ink-2);font-weight:500}
-.nav-links a:hover{color:var(--ink)}
-.nav-right{display:flex;align-items:center;gap:16px}
-.lang{display:flex;align-items:center;gap:2px;font-size:13px;font-weight:600;color:var(--ink-3);border:1px solid var(--line);border-radius:9px;overflow:hidden}
-.lang button{font:inherit;color:var(--ink-3);background:none;border:none;cursor:pointer;padding:6px 10px}
-.lang button.on{background:var(--accent-subtle);color:var(--accent)}
-.nav-right>a.ghostlink{font-size:14.5px;color:var(--ink-2);font-weight:500}
-.nav-right>a.ghostlink:hover{color:var(--ink)}
-.nav-right .btn{padding:9px 16px;font-size:14px}
-@media(max-width:820px){.nav-links{display:none}.nav-right>a.ghostlink{display:none}}
-
-/* hero */
-.hero{position:relative;overflow:hidden;border-bottom:1px solid var(--line-2)}
-.hero::before{content:"";position:absolute;inset:0;background:
-  radial-gradient(820px 400px at 82% -10%,rgba(0,82,217,.09),transparent 62%),
-  radial-gradient(620px 360px at 2% 112%,rgba(0,82,217,.045),transparent 58%);pointer-events:none}
-.hero-in{position:relative;display:grid;grid-template-columns:1.05fr .95fr;gap:56px;align-items:center;padding:74px 0 82px}
-.pill{display:inline-flex;align-items:center;gap:8px;font-size:12.5px;font-weight:600;color:var(--ink-2);background:#fff;border:1px solid var(--line);padding:6px 14px;border-radius:100px;margin-bottom:26px;box-shadow:var(--shadow-sm)}
-.pill b{color:var(--accent)}
-h1{font-size:53px;line-height:1.07;letter-spacing:-.035em;font-weight:750;margin-bottom:22px}
-h1 span{display:block;text-wrap:balance}
-h1 .grad{background:linear-gradient(108deg,#0052d9,#3f86ff);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
-.lede{font-size:19px;line-height:1.55;color:var(--ink-2);max-width:556px;margin-bottom:32px}
-.hero-cta{display:flex;gap:13px;flex-wrap:wrap;margin-bottom:24px}
-.hero-cta .btn{padding:14px 24px;font-size:15.5px}
-.trust{display:flex;gap:9px 22px;flex-wrap:wrap;font-size:13.5px;color:var(--ink-3);font-weight:500}
-.trust span{display:inline-flex;align-items:center;gap:7px}
-.trust svg{width:15px;height:15px;color:var(--green);flex:none}
-@media(max-width:900px){.hero-in{grid-template-columns:1fr;gap:38px;padding:50px 0 60px}h1{font-size:40px}.lede{font-size:17.5px}}
-
-/* product mock */
-.mock{background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);overflow:hidden}
-.mock-bar{display:flex;align-items:center;gap:7px;padding:12px 15px;border-bottom:1px solid var(--line-2);background:var(--bg-soft)}
-.dot{width:11px;height:11px;border-radius:50%;flex:none}
-.mock-bar .u{margin-left:10px;font-size:12px;color:var(--ink-3);font-family:var(--mono)}
-.mock-body{padding:20px 21px 22px}
-.card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:16px}
-.card-camp{font-weight:680;font-size:15.5px}
-.card-camp .sub{display:block;font-weight:500;font-size:12.5px;color:var(--ink-3);margin-top:3px;font-family:var(--mono)}
-.verdict{flex:none;font-weight:750;font-size:13px;color:#fff;background:var(--green);padding:6px 12px;border-radius:9px;text-align:center;line-height:1.25}
-.verdict small{display:block;font-weight:600;font-size:10.5px;opacity:.92}
-.sig-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:16px}
-.sig{border:1px solid var(--line-2);border-radius:10px;padding:8px 9px}
-.sig .n{font-size:10.5px;color:var(--ink-3);font-weight:600;display:flex;align-items:center;gap:5px}
-.sig .n::before{content:"";width:7px;height:7px;border-radius:50%;flex:none}
-.sig.g .n::before{background:var(--green)} .sig.a .n::before{background:var(--amber)} .sig.r .n::before{background:var(--red)}
-.sig .v{font-size:13.5px;font-weight:680;margin-top:3px;font-family:var(--mono)}
-.rule{font-size:12.5px;color:var(--ink-2);background:var(--accent-subtle);border-radius:10px;padding:10px 12px;line-height:1.5;margin-bottom:14px}
-.rule b{color:var(--accent)}
-.card-foot{display:flex;align-items:center;justify-content:space-between;gap:12px}
-.conf{font-size:12px;color:var(--ink-3);font-weight:600}
-.conf b{color:var(--green)}
-.approve{font-size:13px;font-weight:680;color:#fff;background:var(--accent);padding:9px 18px;border-radius:9px}
-
-/* trust strip — fixed: balanced, no orphan */
-.strip{border-bottom:1px solid var(--line-2);background:var(--bg-soft)}
-.strip-in{display:flex;align-items:center;justify-content:center;gap:14px 40px;flex-wrap:wrap;padding:20px 0}
-.strip-i{display:inline-flex;align-items:center;gap:9px;font-size:14px;color:var(--ink-2);font-weight:500;white-space:nowrap}
-.strip-i svg{width:16px;height:16px;color:var(--accent);flex:none}
-
-/* sections */
-section{padding:94px 0}
-.sec-head{max-width:660px;margin:0 auto 52px;text-align:center}
-.sec-head h2{font-size:37px;line-height:1.14;letter-spacing:-.03em;font-weight:730;margin-bottom:15px;text-wrap:balance}
-.sec-head p{font-size:18px;color:var(--ink-2);line-height:1.55}
-@media(max-width:900px){section{padding:60px 0}.sec-head h2{font-size:28px}.sec-head p{font-size:16px}}
-
-/* feature trio */
-.trio{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
-.feat{border:1px solid var(--line);border-radius:var(--radius);padding:28px 26px;background:#fff;transition:border-color .15s,transform .15s,box-shadow .15s}
-.feat:hover{border-color:#cfd8ea;transform:translateY(-3px);box-shadow:var(--shadow)}
-.feat .ic{width:44px;height:44px;border-radius:12px;background:var(--accent-subtle);color:var(--accent);display:grid;place-items:center;margin-bottom:18px}
-.feat .ic svg{width:23px;height:23px}
-.feat h3{font-size:18px;font-weight:680;letter-spacing:-.02em;margin-bottom:9px}
-.feat p{font-size:14.5px;color:var(--ink-2);line-height:1.6}
-@media(max-width:820px){.trio{grid-template-columns:1fr;gap:16px}}
-
-/* numbered modules */
-.module{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:center;max-width:980px;margin:0 auto 70px}
-.module:last-child{margin-bottom:0}
-.module.flip .m-text{order:2}
-.m-num{font-family:var(--mono);font-size:13px;font-weight:700;color:var(--accent);letter-spacing:.06em;margin-bottom:12px}
-.m-text h3{font-size:27px;letter-spacing:-.025em;font-weight:710;margin-bottom:14px;line-height:1.18}
-.m-text p{font-size:16px;color:var(--ink-2);margin-bottom:16px;line-height:1.58}
-.m-text .mlist{list-style:none;font-size:14.5px;color:var(--ink-2)}
-.m-text .mlist li{padding:7px 0 7px 26px;position:relative}
-.m-text .mlist li::before{content:"";position:absolute;left:0;top:12px;width:13px;height:13px;border-radius:50%;background:var(--green-bg);box-shadow:inset 0 0 0 2px var(--green)}
-.m-vis{border:1px solid var(--line);border-radius:var(--radius);background:#fff;box-shadow:var(--shadow);overflow:hidden}
-@media(max-width:820px){.module{grid-template-columns:1fr;gap:24px;margin-bottom:48px}.module.flip .m-text{order:0}.m-text h3{font-size:23px}}
-
-/* allocation viz */
-.alloc{padding:22px}
-.alloc-row{display:flex;align-items:center;gap:12px;padding:9px 0;font-size:13px}
-.alloc-row .nm{flex:0 0 130px;font-family:var(--mono);font-size:12px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.bar{flex:1;height:10px;border-radius:6px;background:#e6ebf5;overflow:hidden}
-.bar i{display:block;height:100%;border-radius:6px;background:linear-gradient(90deg,#0052d9,#3f86ff)}
-.bar.cut i{background:#d3dae8}
-.alloc-row .amt{flex:0 0 50px;text-align:right;font-family:var(--mono);font-weight:600;font-size:12.5px}
-.alloc-row .tag{flex:0 0 58px;text-align:center;font-size:10px;font-weight:700;padding:3px 0;border-radius:6px}
-.tag.up{color:var(--green);background:var(--green-bg)} .tag.dn{color:var(--ink-3);background:#eef1f7}
-
-/* bench viz */
-.bench{padding:20px 22px;font-family:var(--mono);font-size:12.5px;color:var(--ink-2);line-height:1.95}
-.bench .ok{color:var(--green);font-weight:700}
-.bench .hl{color:var(--ink);font-weight:700}
-
-/* comparison */
-.cmp{max-width:840px;margin:0 auto;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow)}
-.cmp-row{display:grid;grid-template-columns:1.25fr 1fr 1fr;border-top:1px solid var(--line-2)}
-.cmp-row:first-child{border-top:none}
-.cmp-row>div{padding:15px 18px;font-size:14.5px}
-.cmp-row.h{background:var(--bg-soft);font-weight:700;font-size:13px}
-.cmp-row.h .d{color:var(--accent)}
-.cmp .lbl{color:var(--ink-2);font-weight:500}
-.cmp .c{color:var(--ink-3)}
-.cmp .d{color:var(--ink);font-weight:600}
-.cmp .d::before{content:"✓ ";color:var(--green);font-weight:800}
-@media(max-width:680px){.cmp-row>div{padding:12px 11px;font-size:12px}}
-
-/* closing CTA — light, refined, with the hand-drawn droplet */
-.cta-sec{padding-top:8px}
-.cta{position:relative;overflow:hidden;border:1px solid #dbe6fb;border-radius:24px;
-  background:radial-gradient(680px 300px at 50% -30%,#dfeafe,transparent 60%),linear-gradient(180deg,#f3f7ff,#ffffff);
-  text-align:center;padding:60px 28px 64px}
-.cta .drop{width:74px;height:71px;margin:0 auto 22px;display:block}
-.cta h2{font-size:35px;letter-spacing:-.03em;font-weight:730;line-height:1.15;margin-bottom:14px;max-width:600px;margin-inline:auto;text-wrap:balance}
-.cta p{font-size:17px;color:var(--ink-2);margin-bottom:28px}
-.cta .hero-cta{justify-content:center;margin-bottom:0}
-@media(max-width:680px){.cta{padding:46px 20px 50px}.cta h2{font-size:26px}}
-
-/* footer */
-footer{border-top:1px solid var(--line-2);padding:42px 0;color:var(--ink-3);font-size:13.5px}
-.foot-in{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap}
-.foot-links{display:flex;gap:22px;flex-wrap:wrap}
-.foot-links a{color:var(--ink-2);font-weight:500}
-.foot-links a:hover{color:var(--ink)}
-
-.reveal{opacity:0;transform:translateY(15px);transition:opacity .6s ease,transform .6s ease}
-.reveal.in{opacity:1;transform:none}
-@media(prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none;transition:none}html{scroll-behavior:auto}}
-</style>
+<title>Drip Console</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%230052d9'/%3E%3Cpath d='M12 20a6 6 0 0 1-6-6c0-4.4 6-9.4 6-9.4s6 5 6 9.4a6 6 0 0 1-6 6z' fill='white'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="app.css">
 </head>
 <body>
-
-<!-- NAV -->
-<header class="nav">
-  <div class="wrap nav-in">
-    <a class="logo" href="/">
-      <svg viewBox="0 0 100 100" fill="none"><path d="M50 14C42 34 26 48 26 64a24 24 0 0 0 48 0C74 48 58 34 50 14Z" fill="#0052d9"/><path d="M40 60 47 51 53 56 63 42" stroke="#fff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      Drip
-    </a>
-    <nav class="nav-links">
-      <a href="#how" data-i18n="nav.how">How it works</a>
-      <a href="#features" data-i18n="nav.why">Why Drip</a>
-      <a href="#compare" data-i18n="nav.compare">Open vs closed</a>
-      <a href="https://github.com/YunyueLi/Drip#-drip-bench">Drip-Bench</a>
-    </nav>
-    <div class="nav-right">
-      <a class="ghostlink" href="https://github.com/YunyueLi/Drip">GitHub</a>
-      <span class="lang"><button data-lang="en" class="on">EN</button><button data-lang="zh">中</button></span>
-      <a class="btn btn-primary" href="https://yunyueli.github.io/Drip/app.html" data-i18n="nav.demo">▶ Live demo</a>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <symbol id="lg-meta" viewBox="0 0 24 24"><path fill="#0081FB" d="M7.4 7C4.9 7 3 9.2 3 12s1.9 5 4.4 5c1.5 0 2.6-.7 3.9-2.5.5-.7 1-1.5 1.7-2.6.6 1 1.1 1.9 1.6 2.6C16.9 16.3 18 17 19.5 17c2.5 0 4.5-2.2 4.5-5s-1.9-5-4.5-5c-1.5 0-2.6.7-3.9 2.5-.5.7-1 1.5-1.7 2.6-.6-1-1.1-1.9-1.6-2.6C10 7.7 8.9 7 7.4 7zm0 2c.9 0 1.6.5 2.6 2 .3.5.7 1.1 1.1 1.8l.2.3-.2.3c-.5.8-.9 1.4-1.1 1.7-.9 1.4-1.6 1.9-2.5 1.9-1.4 0-2.4-1.6-2.4-3.7C4.8 11.4 5.9 9 7.4 9zm9.2 0c.9 0 1.6.5 2.5 1.9.7 1.1.7 3.3 0 4.4-.4.6-1 .9-1.6.9-.9 0-1.6-.5-2.5-1.9-.2-.3-.6-.9-1.1-1.7l-.2-.3.2-.3c.4-.7.8-1.3 1.1-1.8C15 9.5 15.7 9 16.6 9z"/></symbol>
+  <symbol id="lg-tt" viewBox="0 0 24 24"><path fill="#25F4EE" transform="translate(-0.7,-0.7)" d="M16.5 2h-3.3v13.4c0 1.4-1.1 2.5-2.5 2.5s-2.5-1.1-2.5-2.5 1.1-2.5 2.5-2.5c.3 0 .5 0 .8.1V9.7c-.3 0-.5-.1-.8-.1C7.5 9.6 5 12.1 5 15.4S7.5 21.2 10.7 21.2s5.8-2.6 5.8-5.8V8.3c1.3.9 2.9 1.5 4.5 1.5V6.5c-2.5 0-4.5-2-4.5-4.5z"/><path fill="#FE2C55" transform="translate(0.7,0.7)" d="M16.5 2h-3.3v13.4c0 1.4-1.1 2.5-2.5 2.5s-2.5-1.1-2.5-2.5 1.1-2.5 2.5-2.5c.3 0 .5 0 .8.1V9.7c-.3 0-.5-.1-.8-.1C7.5 9.6 5 12.1 5 15.4S7.5 21.2 10.7 21.2s5.8-2.6 5.8-5.8V8.3c1.3.9 2.9 1.5 4.5 1.5V6.5c-2.5 0-4.5-2-4.5-4.5z"/><path fill="currentColor" d="M16.5 2h-3.3v13.4c0 1.4-1.1 2.5-2.5 2.5s-2.5-1.1-2.5-2.5 1.1-2.5 2.5-2.5c.3 0 .5 0 .8.1V9.7c-.3 0-.5-.1-.8-.1C7.5 9.6 5 12.1 5 15.4S7.5 21.2 10.7 21.2s5.8-2.6 5.8-5.8V8.3c1.3.9 2.9 1.5 4.5 1.5V6.5c-2.5 0-4.5-2-4.5-4.5z"/></symbol>
+  <symbol id="lg-gg" viewBox="0 0 24 24"><path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5c-.3 1.5-1.1 2.7-2.4 3.6v3h3.9c2.3-2.1 3.5-5.2 3.5-8.8z"/><path fill="#34A853" d="M12 24c3.2 0 5.9-1.1 7.9-2.9l-3.9-3c-1.1.7-2.4 1.2-4 1.2-3.1 0-5.7-2.1-6.6-4.9H1.4v3.1C3.4 21.4 7.4 24 12 24z"/><path fill="#FBBC05" d="M5.4 14.4c-.2-.7-.4-1.4-.4-2.4s.1-1.6.4-2.4V6.5H1.4C.5 8.2 0 10 0 12s.5 3.8 1.4 5.5l4-3.1z"/><path fill="#EA4335" d="M12 4.8c1.8 0 3.3.6 4.6 1.8l3.4-3.4C17.9 1.2 15.2 0 12 0 7.4 0 3.4 2.6 1.4 6.5l4 3.1C6.3 6.8 8.9 4.8 12 4.8z"/></symbol>
+  <symbol id="lg-tencent" viewBox="0 0 24 24"><rect width="24" height="24" rx="6" fill="#006eff"/><text x="12" y="16.6" text-anchor="middle" font-family="var(--font)" font-size="12.5" font-weight="800" fill="#fff">腾</text></symbol>
+  <symbol id="lg-ocean" viewBox="0 0 24 24"><rect width="24" height="24" rx="6" fill="#1d1d1f"/><text x="12" y="16.6" text-anchor="middle" font-family="var(--font)" font-size="12.5" font-weight="800" fill="#fff">巨</text></symbol>
+  <symbol id="lg-ks" viewBox="0 0 24 24"><rect width="24" height="24" rx="6" fill="#ff5000"/><text x="12" y="16.6" text-anchor="middle" font-family="var(--font)" font-size="12.5" font-weight="800" fill="#fff">快</text></symbol>
+</svg>
+<div class="app" id="app">
+  <aside class="rail">
+    <div class="rail-grip" id="railGrip"></div>
+    <div class="rail-head">
+      <div class="logo" id="navToggle" title="展开 / 收起侧栏"><svg viewBox="0 0 32 32" width="30" height="30" fill="none"><defs><linearGradient id="lg-mark" x1="6" y1="3" x2="26" y2="29" gradientUnits="userSpaceOnUse"><stop stop-color="#6aa6ff"/><stop offset="1" stop-color="#1f5fff"/></linearGradient></defs><path d="M16 3.2c-5.1 7.2-9.2 11.2-9.2 16.3a9.2 9.2 0 0 0 18.4 0c0-5.1-4.1-9.1-9.2-16.3z" fill="url(#lg-mark)"/><path d="M10.4 13c2.2-1 4-.2 4.2 2 .2 2.4 1.7 3.4 3.9 2.2" stroke="#fff" stroke-width="0" fill="none"/><path d="M11.3 20.2l2.9-3.1 2.2 1.6 3.6-4.2" stroke="#fff" stroke-width="1.9" fill="none" stroke-linecap="round" stroke-linejoin="round"/><circle cx="20" cy="14.5" r="1.15" fill="#fff"/><ellipse cx="12.7" cy="12.2" rx="2.1" ry="3" fill="#fff" opacity=".22" transform="rotate(-28 12.7 12.2)"/></svg></div>
+      <span class="rail-name">Drip</span>
+      <button class="nav-toggle" id="navCollapse" title="收起侧栏" aria-label="收起侧栏"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/></svg></button>
     </div>
-  </div>
-</header>
-
-<!-- HERO -->
-<section class="hero">
-  <div class="wrap hero-in">
-    <div class="reveal in">
-      <span class="pill">⬦ <span data-i18n="hero.pill">Open-source · Apache-2.0 · <b>v0.0.7</b></span></span>
-      <h1><span data-i18n="hero.h1a">Growth on autopilot.</span><span class="grad" data-i18n="hero.h1b">Every decision in the open.</span></h1>
-      <p class="lede" data-i18n="hero.lede">Drip runs the whole user-acquisition loop — diagnose, decide, allocate, create — as a team of agents. The decision core is <b>deterministic and auditable</b>; the LLM only explains. Self-host it, fork it, see exactly <em>why</em> before you spend a dollar.</p>
-      <div class="hero-cta">
-        <a class="btn btn-primary" href="https://yunyueli.github.io/Drip/app.html">▶&nbsp; <span data-i18n="hero.cta1">Try the live console</span></a>
-        <a class="btn btn-ghost" href="https://github.com/YunyueLi/Drip">★&nbsp; <span data-i18n="hero.cta2">Star on GitHub</span></a>
-      </div>
-      <div class="trust">
-        <span><svg viewBox="0 0 20 20" fill="currentColor"><path d="M8 14.2 4.3 10.5l1.4-1.4L8 11.4l6.3-6.3 1.4 1.4z"/></svg><span data-i18n="hero.t1">Any of 12 LLMs</span></span>
-        <span><svg viewBox="0 0 20 20" fill="currentColor"><path d="M8 14.2 4.3 10.5l1.4-1.4L8 11.4l6.3-6.3 1.4 1.4z"/></svg><span data-i18n="hero.t2">Meta · TikTok · Tencent · Ocean Engine · Kuaishou</span></span>
-        <span><svg viewBox="0 0 20 20" fill="currentColor"><path d="M8 14.2 4.3 10.5l1.4-1.4L8 11.4l6.3-6.3 1.4 1.4z"/></svg><span data-i18n="hero.t3">Your data, self-hosted</span></span>
+    <button class="ri" id="newBtn" title="新建对话"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg><span class="rlabel" data-i18n="cl.new">新对话</span></button>
+    <button class="ri" data-view="cockpit" title="操作台"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="5" rx="1.5"/><rect x="13" y="10" width="8" height="11" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/></svg><span class="rlabel" data-i18n="nav.cockpit">操作台</span></button>
+    <button class="ri" data-view="strategy" title="增长策略"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4v16h16"/><path d="M7 15l3.5-4 3 2.5L19 7"/></svg><span class="rlabel" data-i18n="nav.strategy">增长策略</span></button>
+    <button class="ri" data-view="creative" title="创意库"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2.5"/><circle cx="8.5" cy="8.5" r="1.6"/><path d="M21 15l-5-5L4.5 21"/></svg><span class="rlabel" data-i18n="nav.creative">创意库</span></button>
+    <button class="ri" data-view="bench" title="Drip-Bench"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4"/><path d="M5 4h12l-2.2 3.5L17 11H5"/></svg><span class="rlabel">Drip-Bench</span></button>
+    <div class="rail-chats">
+      <div class="cl-head"><div class="cl-search"><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="7" cy="7" r="4.5"/><path d="M14 14l-3.2-3.2" stroke-linecap="round"/></svg><input id="clSearch" type="text" data-i18n-ph="cl.search" placeholder="搜索对话"></div></div>
+      <div class="cl-scroll" id="clScroll">
+        <div class="cl-grp"><span class="gtw">▾</span><span data-i18n="cl.today">今天</span><span class="gn"></span></div>
+        <a class="cl-item on" data-i18n="cl.c1">今天 4 个账户该怎么投</a>
+        <a class="cl-item" data-i18n="cl.c2">OiOi Live 马来冷启拉 ROAS</a>
+        <a class="cl-item" data-i18n="cl.c8">TikTok JP 要不要加投到 25k</a>
+        <div class="cl-grp"><span class="gtw">▾</span><span data-i18n="cl.week">本周</span><span class="gn"></span></div>
+        <a class="cl-item" data-i18n="cl.c3">DTC 再营销频次超了换素材</a>
+        <a class="cl-item" data-i18n="cl.c4">Casual Game 东南亚止损复盘</a>
+        <a class="cl-item" data-i18n="cl.c5">GMV Max 越南选品</a>
+        <a class="cl-item" data-i18n="cl.c9">AppLovin 还是 Mintegral 更值</a>
+        <a class="cl-item" data-i18n="cl.c10">iOS SKAN 4.0 转化值建模</a>
+        <div class="cl-grp"><span class="gtw">▾</span><span data-i18n="cl.earlier">更早</span><span class="gn"></span></div>
+        <a class="cl-item" data-i18n="cl.c6">Q2 预算跨平台重新分</a>
+        <a class="cl-item" data-i18n="cl.c7">AppsFlyer 和平台口径对不上</a>
+        <a class="cl-item" data-i18n="cl.c11">黑五怎么在上限内加投</a>
+        <a class="cl-item" data-i18n="cl.c12">达人 GRWM 首批 20 条怎么测</a>
+        <a class="cl-item" data-i18n="cl.c13">北美再营销扩 1% Lookalike</a>
+        <div class="cl-empty" id="clEmpty" data-i18n="cl.none">没有匹配的对话</div>
       </div>
     </div>
-
-    <div class="reveal in" style="transition-delay:.08s">
-      <div class="mock">
-        <div class="mock-bar">
-          <span class="dot" style="background:#ff5f57"></span><span class="dot" style="background:#febc2e"></span><span class="dot" style="background:#28c840"></span>
-          <span class="u">drip · decision card</span>
+    <div class="sp"></div>
+    <div class="rail-foot">
+    <button class="ri" data-view="settings" title="设置"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h9"/><path d="M17 7h3"/><path d="M4 17h3"/><path d="M11 17h9"/><circle cx="15" cy="7" r="2.3"/><circle cx="9" cy="17" r="2.3"/></svg><span class="rlabel" data-i18n="nav.settings">设置</span></button>
+    <div class="acctctl" id="acctCtl">
+      <button class="av" id="avBtn" title="账户">M</button><span class="acct-id">Operator</span>
+      <div class="acct-menu" id="acctMenu">
+        <div class="am-in">
+          <div class="am-status"><span class="am-dot"></span><div><div class="am-st"><span class="am-name">已登录</span></div><div class="am-mail">operator@drip.dev</div></div></div>
+          <div class="am-sep"></div>
+          <button class="am-item" id="amMe"><span class="ai"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></span>我</button>
+          <button class="am-item" data-view="settings"><span class="ai"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1l2-1.5-2-3.4-2.3 1a7 7 0 0 0-1.7-1l-.3-2.5H10l-.3 2.5a7 7 0 0 0-1.7 1l-2.3-1-2 3.4L3.6 11a7 7 0 0 0 0 2l-2 1.5 2 3.4 2.3-1a7 7 0 0 0 1.7 1l.3 2.5h4l.3-2.5a7 7 0 0 0 1.7-1l2.3 1 2-3.4-2-1.5a7 7 0 0 0 .1-1z"/></svg></span>设置</button>
+          <div class="am-sep"></div>
+          <button class="am-item danger" id="signOut"><span class="ai"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h4"/><path d="M15 16l4-4-4-4"/><path d="M19 12H9"/></svg></span>退出登录</button>
         </div>
-        <div class="mock-body">
-          <div class="card-head">
-            <div class="card-camp">Meta_Prospecting_v3<span class="sub">DTC_US · 7-day window</span></div>
-            <div class="verdict">SCALE +20%<small>$200 → $240/day</small></div>
-          </div>
-          <div class="sig-grid">
-            <div class="sig g"><div class="n">CPP</div><div class="v">$18</div></div>
-            <div class="sig g"><div class="n">ROAS</div><div class="v">3.8×</div></div>
-            <div class="sig g"><div class="n">CVR</div><div class="v">2.5%</div></div>
-            <div class="sig g"><div class="n">CTR</div><div class="v">1.4%</div></div>
-            <div class="sig g"><div class="n">Freq</div><div class="v">1.8</div></div>
-            <div class="sig g"><div class="n">Spend</div><div class="v">$200</div></div>
-            <div class="sig g"><div class="n">Purch</div><div class="v">11</div></div>
-            <div class="sig a"><div class="n">Headroom</div><div class="v">83%</div></div>
-          </div>
-          <div class="rule"><b>rule chain:</b> 7/8 green · unit economics healthy (CPP&lt;target, ROAS&gt;3×) · sample on the edge → <b>scale the conservative step (+20%)</b>, not +50%.</div>
-          <div class="card-foot">
-            <span class="conf">confidence <b>HIGH</b> · revert if CPP &gt; $22</span>
-            <span class="approve">Approve ✓</span>
-          </div>
+        <div class="am-out" style="display:none">
+          <div class="si-h">登录后可连接广告账户、保存运行记录、跨设备同步。数据始终在你自己的环境里。</div>
+          <button class="btn primary" id="signIn" style="width:100%;justify-content:center;display:flex">登录 Drip</button>
         </div>
       </div>
     </div>
-  </div>
-</section>
+    </div>
+  </aside>
 
-<!-- TRUST STRIP -->
-<div class="strip">
-  <div class="wrap strip-in">
-    <span class="strip-i"><svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 2a8 8 0 1 0 0 16 8 8 0 0 0 0-16zm-1 11.4L5.6 10l1.4-1.4L9 10.6l4-4L14.4 8z"/></svg><span data-i18n="strip.1">Rules decide, the LLM only explains</span></span>
-    <span class="strip-i"><svg viewBox="0 0 20 20" fill="currentColor"><path d="M3 11h4v6H3zm5-5h4v11H8zm5 3h4v8h-4z"/></svg><span data-i18n="strip.2"><b>8-signal</b> decision engine</span></span>
-    <span class="strip-i"><svg viewBox="0 0 20 20" fill="currentColor"><path d="M4 3h12v2H4zm0 5h12v2H4zm0 5h8v2H4z"/></svg><span data-i18n="strip.3"><b>Drip-Bench</b> · reproducible</span></span>
-    <span class="strip-i"><svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 2 3 6v5c0 4 3 6 7 7 4-1 7-3 7-7V6z"/></svg><span data-i18n="strip.4">shadow → copilot → autonomous</span></span>
+  <main class="center">
+    <div class="topbar">
+      <div class="ttl"><span id="tbTitle">操盘台</span><span class="meta" id="tbMeta"> 4 账户 32 campaign</span></div>
+      <div class="right">
+        <span class="chip"><span class="pip"></span><span data-i18n="top.mode">Copilot 上限 $3,500/天</span></span>
+        <button class="tb-demo" id="demoPill" title="看演示"><svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" stroke="none"><path d="M8 5v14l11-7z"/></svg><span id="demoPillTx">演示</span></button>
+        <a class="tb-star" href="https://github.com/YunyueLi/Drip" target="_blank" rel="noopener" title="在 GitHub 上 Star"><svg class="gh-ic" viewBox="0 0 24 24" width="14" height="14" fill="currentColor" stroke="none"><path d="M12 2C6.48 2 2 6.58 2 12.25c0 4.53 2.87 8.37 6.84 9.73.5.1.68-.22.68-.49v-1.7c-2.78.62-3.37-1.37-3.37-1.37-.45-1.18-1.11-1.5-1.11-1.5-.91-.64.07-.62.07-.62 1 .07 1.53 1.06 1.53 1.06.89 1.56 2.34 1.11 2.91.85.09-.66.35-1.11.63-1.37-2.22-.26-4.55-1.14-4.55-5.07 0-1.12.39-2.03 1.03-2.75-.1-.26-.45-1.3.1-2.71 0 0 .84-.27 2.75 1.05a9.4 9.4 0 0 1 5 0c1.91-1.32 2.75-1.05 2.75-1.05.55 1.41.2 2.45.1 2.71.64.72 1.03 1.63 1.03 2.75 0 3.94-2.34 4.81-4.57 5.06.36.32.68.94.68 1.9v2.82c0 .27.18.6.69.49A10.26 10.26 0 0 0 22 12.25C22 6.58 17.52 2 12 2z"/></svg><span>Star</span><svg class="star-ic" viewBox="0 0 24 24" width="12" height="12" fill="currentColor" stroke="none"><path d="M12 2l2.9 6.26 6.85.62-5.18 4.55 1.54 6.7L12 17.27 5.89 20.73l1.54-6.7L2.25 8.88l6.85-.62z"/></svg></a>
+        <div class="langsel" id="langSel">
+          <button class="lang-btn" id="langBtn" aria-haspopup="true"><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="8" cy="8" r="6.4"/><path d="M1.6 8h12.8"/><path d="M8 1.6c2.2 2 2.2 10.8 0 12.8c-2.2-2-2.2-10.8 0-12.8z"/></svg><span id="langCur">简体中文</span><span class="caret">▾</span></button>
+          <div class="lang-menu" id="langMenu">
+            <button data-lang="zh-CN">简体中文</button>
+            <button data-lang="zh-TW">繁體中文</button>
+            <button data-lang="en">English</button>
+            <button data-lang="ja">日本語</button>
+            <button data-lang="ko">한국어</button>
+            <button data-lang="es">Español</button>
+            <button data-lang="pt">Português</button>
+            <button data-lang="vi">Tiếng Việt</button>
+            <button data-lang="fr">Français</button>
+            <button data-lang="de">Deutsch</button>
+          </div>
+        </div>
+        <button class="panel-toggle" id="themeToggle" title="切换夜间" aria-label="切换主题"></button>
+        <button class="panel-toggle" id="auditToggle" title="审计栏" aria-label="切换审计栏"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><rect class="fill" x="3" y="4" width="18" height="16" rx="2"/><path d="M15 4v16"/></svg></button>
+      </div>
+    </div>
+
+    <div class="welcome-view"><div class="wv-in">
+      <div class="wv-hero"><svg width="124" height="120" viewBox="0 0 200 192" fill="none" class="hero-art" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+        <!-- ===== ripples — Drip's signature: a drop spreads growth ===== -->
+        <g class="hero-ripple" stroke="var(--accent)">
+          <ellipse cx="100" cy="123" rx="29" ry="5" opacity=".5"/>
+          <ellipse cx="100" cy="130" rx="49" ry="8" opacity=".3"/>
+          <ellipse cx="100" cy="137" rx="71" ry="11" opacity=".15"/>
+        </g>
+        <!-- ===== water droplet — the brand mark ===== -->
+        <path class="hero-drop" stroke="var(--accent)" d="M100 30C100 30 72 70 72 92A28 28 0 1 0 128 92C128 70 100 30 100 30Z"/>
+        <!-- growth sparkline inside the droplet (echoes the logo) -->
+        <path class="hero-spark" stroke="var(--accent)" stroke-width="3.4" d="M84 96 93 83 101 89 116 66"/>
+        <circle class="hero-tip" cx="116" cy="66" r="3.6" fill="var(--accent)" stroke="none"/>
+        <!-- ===== growth arrow bursting out ===== -->
+        <path class="hero-arrow" stroke="var(--accent)" d="M132 66 150 46 160 55 184 28"/>
+        <path class="hero-arrow" stroke="var(--accent)" d="M173 27 185 27 184 39"/>
+        <!-- ===== audience target ===== -->
+        <g class="hero-pop" transform="translate(40,56)"><circle r="11"/><circle r="6"/><circle r="1.7" fill="currentColor" stroke="none"/></g>
+        <!-- ===== performance bars ===== -->
+        <g class="hero-pop" transform="translate(166,90)"><path d="M-12 11V5M-4 11V-3M4 11V1M12 11V-9"/></g>
+        <!-- ===== ROAS coin ===== -->
+        <g class="hero-pop" transform="translate(40,103)"><circle r="10"/><text x="0" y="4.6" text-anchor="middle" font-family="var(--font)" font-size="13" font-weight="800" fill="currentColor" stroke="none">$</text></g>
+        <!-- ===== sparkles (AI) ===== -->
+        <g class="hero-pop spk" transform="translate(112,16)"><path d="M0 -6C.5 -2 2 -.5 6 0 2 .5 .5 2 0 6 -.5 2 -2 .5 -6 0 -2 -.5 -.5 -2 0 -6Z" fill="currentColor" stroke="none"/></g>
+        <g class="hero-pop spk" transform="translate(60,30) scale(.8)"><path d="M0 -6C.5 -2 2 -.5 6 0 2 .5 .5 2 0 6 -.5 2 -2 .5 -6 0 -2 -.5 -.5 -2 0 -6Z" fill="currentColor" stroke="none"/></g>
+        <g class="hero-pop spk" transform="translate(176,62) scale(.7)"><path d="M0 -6C.5 -2 2 -.5 6 0 2 .5 .5 2 0 6 -.5 2 -2 .5 -6 0 -2 -.5 -.5 -2 0 -6Z" fill="currentColor" stroke="none"/></g>
+        <!-- ===== floating data dots ===== -->
+        <circle class="hero-p p1" cx="22" cy="84" r="2.6" fill="currentColor" stroke="none"/>
+        <circle class="hero-p p2" cx="188" cy="104" r="3" fill="currentColor" stroke="none"/>
+        <circle class="hero-p p3" cx="150" cy="40" r="2.3" fill="currentColor" stroke="none"/>
+        <circle class="hero-p p1" cx="146" cy="120" r="2.2" fill="currentColor" stroke="none"/>
+      </svg></div>
+      <h1 data-i18n="wel.h1">今天，预算该投向哪里？</h1>
+      <p class="sub" data-i18n="wel.sub">诊断 campaign、跨平台再分配、规划下一个测试 —— 每个决策都由规则给出、可审计，动钱之前先过你这关。</p>
+      <div class="wv-composer">
+        <textarea rows="3" placeholder="问 Drip，或描述你想做什么…" data-i18n-ph="comp.ph" id="welInput"></textarea>
+        <div class="bar" style="display:flex;align-items:center;gap:6px;margin-top:4px">
+          <button class="cbtn"><span class="ic">⇪</span> <span data-i18n="comp.upload">上传</span></button>
+          <button class="cbtn"><span class="ic">✦</span> AI Creatives</button>
+          <button class="cbtn"><span class="ic">◐</span> <span data-i18n="mode.copilot">Copilot</span></button>
+          <button class="send" style="margin-left:auto" id="welSend">↑</button>
+        </div>
+      </div>
+      <div class="scene-lab" data-i18n="wel.pick">选一个场景，直接开始</div>
+      <div class="scenes">
+        <div class="scene" data-go><div class="ic"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h3.4l2.6-7 4.5 14 2.6-7H21"/></svg></div><div class="t" data-i18n="s1.t">诊断投放表现</div><div class="d" data-i18n="s1.d">用 8 个信号给每条 campaign 打分</div><span class="tag" data-i18n="s1.tag">连账户 或用样本</span></div>
+        <div class="scene" data-go><div class="ic"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4l3 3-3 3"/><path d="M19 7H8"/><path d="M8 20l-3-3 3-3"/><path d="M5 17h11"/></svg></div><div class="t" data-i18n="s2.t">再分配预算</div><div class="d" data-i18n="s2.d">把钱挪向赢家，饿死输家</div><span class="tag" data-i18n="s2.tag">核心循环</span></div>
+        <div class="scene" data-view="strategy"><div class="ic"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6"/><path d="M10 3v6.4L4.8 18A1.4 1.4 0 0 0 6 20.2h12A1.4 1.4 0 0 0 19.2 18L14 9.4V3"/><path d="M7.6 14h8.8"/></svg></div><div class="t" data-i18n="s3.t">规划下一个测试</div><div class="d" data-i18n="s3.d">下一个创意角度该测什么</div><span class="tag" data-i18n="s3.tag">基于你的赢家</span></div>
+        <div class="scene" data-view="creative"><div class="ic"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.7 4.6L18 9.3l-4.3 1.7L12 16l-1.7-4.6L6 9.3l4.3-1.7z"/><path d="M18.5 14.5l.7 1.9 1.9.7-1.9.7-.7 1.9-.7-1.9-1.9-.7 1.9-.7z"/></svg></div><div class="t" data-i18n="s4.t">生成创意</div><div class="d" data-i18n="s4.d">为赢的方向产出变体</div><span class="tag" data-i18n="s4.tag">gpt-image / Seedance</span></div>
+        <div class="scene" data-go><div class="ic"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18"/><path d="M7 21h10"/><path d="M5 7h14"/><path d="M5 7l-2.4 5.4a2.8 2.8 0 0 0 4.8 0L5 7"/><path d="M19 7l-2.4 5.4a2.8 2.8 0 0 0 4.8 0L19 7"/></svg></div><div class="t" data-i18n="s5.t">归因对账</div><div class="d" data-i18n="s5.d">平台口径 vs MMP 真值</div><span class="tag" data-i18n="s5.tag">AppsFlyer / Adjust</span></div>
+        <div class="scene" data-go><div class="ic"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 3v6h-6"/></svg></div><div class="t" data-i18n="s6.t">跑完整循环</div><div class="d" data-i18n="s6.d">收集 → 诊断 → 分配 → 复盘</div><span class="tag" data-i18n="s6.tag">一条命令</span></div>
+      </div>
+    </div></div>
+
+    <div class="thread"><div class="thread-in">
+
+  <div class="msg user"><div class="bubble" data-i18n="l.q1">诊断我这 4 个账户，排出今天该扩 / 该停的，给一份预算分配方案，把要改的活动准备好让我批。</div></div>
+
+  <div class="msg bot"><div class="ava">D</div><div class="content">
+    <p class="intro" data-i18n="b.intro">扫了 <strong>4 个账户 32 条 campaign 今日花费 $3,240</strong>。8 信号逐条评估完，规则给出：<strong>2 条扩量、2 条换素材、2 条止损</strong>，其余保持。下面是诊断、决策卡、和一张可直接批的改动表。</p>
+    <div class="mantra">◆ <b data-i18n="l.mantra">规则决定 LLM 只解释 你批准</b></div>
+
+    <details class="cot" open>
+      <summary><span class="tw">▸</span><span data-i18n="l.cot">我是怎么定的 确定性、可回放</span><span class="seal" data-i18n="l.seal">可审计</span></summary>
+      <ol>
+        <li data-i18n="b.s1">从 4 个账户拉取 insights 32 条 campaign（Meta + TikTok），归一到统一 <span class="mono">AdMetrics</span> schema</li>
+        <li data-i18n="b.s2">对每条 campaign 用 <span class="mono">thresholds v2</span> 评估 8 个信号（CPP/ROAS/CVR/CTR/频次/花费/成交/余量）</li>
+        <li data-i18n="b.s3">跑规则引擎 → <span class="mono">2 SCALE 2 REFRESH 2 PAUSE 26 HOLD</span></li>
+        <li data-i18n="b.s4">样本薄的地方压低置信度（DTC：仅 11 单成交 → MEDIUM）</li>
+        <li data-i18n="b.s5">Allocator 把止损腾出的预算回流给赢家，且总额不超 <span class="mono">$3,500/天</span> 上限</li>
+      </ol>
+    </details>
+
+    <div class="block">
+      <div class="bhead"><span class="ic">◎</span><span class="h" data-i18n="l.diag">诊断 4 账户 / 32 campaign</span><span class="sub" data-i18n="l.diagsub">2026-05-29 09:14 抓取</span></div>
+      <div class="kpis">
+        <div class="kpi"><div class="k" data-i18n="l.kspend">日花费</div><div class="v mono">$3,240</div><div class="d flat" data-i18n="l.kdspend">上限 $3,500</div></div>
+        <div class="kpi"><div class="k" data-i18n="l.kroas">综合 ROAS</div><div class="v mono">3.6×</div><div class="d up" data-i18n="l.kdroas">↑ 0.4× vs 上周</div></div>
+        <div class="kpi"><div class="k">CVR</div><div class="v mono">2.8%</div><div class="d up">↑ 0.3%</div></div>
+        <div class="kpi"><div class="k">CPA</div><div class="v mono">$19.3</div><div class="d up">↓ $2.1</div></div>
+        <div class="kpi"><div class="k" data-i18n="l.kconv">转化</div><div class="v mono">168</div><div class="d up">↑ 12%</div></div>
+        <div class="kpi"><div class="k" data-i18n="l.kawait">待批准</div><div class="v mono">6</div><div class="d down" data-i18n="l.mix">2 扩 2 换 2 停</div></div>
+      </div>
+      <div class="chart-wrap">
+        <div class="clab"><span class="li"><span class="sw" style="background:var(--accent)"></span><span data-i18n="l.kroas">综合 ROAS</span></span><span class="li"><span class="sw" style="background:var(--accent-2)"></span><span data-i18n="l.kspend">日花费</span></span><span style="margin-left:auto" data-i18n="l.7d">近 7 天</span></div>
+        <svg class="chart" viewBox="0 0 820 104" preserveAspectRatio="none">
+          <line x1="30" y1="12" x2="800" y2="12" stroke="var(--border)" stroke-width="1"/>
+          <line x1="30" y1="49" x2="800" y2="49" stroke="var(--border)" stroke-width="1"/>
+          <line x1="30" y1="86" x2="800" y2="86" stroke="var(--border)" stroke-width="1"/>
+          <polyline fill="none" stroke="var(--accent-2)" stroke-width="2" stroke-dasharray="4 3" points="30,64.9 158,54.3 287,70.1 415,43.7 543,38.4 672,22.6 800,28.9"/>
+          <polyline fill="none" stroke="var(--accent)" stroke-width="2.5" points="30,71.2 158,63.8 287,78.6 415,49 543,41.6 672,34.2 800,26.8"/>
+          <circle cx="800" cy="26.8" r="3.5" fill="var(--accent)"/>
+        </svg>
+      </div>
+      <table class="dt">
+        <thead><tr><th>Campaign</th><th data-i18n="l.thplat">平台</th><th class="num" data-i18n="l.thspend">花费</th><th class="num">ROAS</th><th class="num">CPA</th><th class="num">CTR</th><th class="num" data-i18n="l.freq">频次</th><th data-i18n="l.thdec">决策</th></tr></thead>
+        <tbody>
+          <tr><td class="nm"><span class="thumb tg1"></span>AstralDrift Hina</td><td class="plat">TikTok JP</td><td class="num">¥12,000</td><td class="num g">3.6×</td><td class="num">¥820</td><td class="num">1.58%</td><td class="num">1.8</td><td><span class="bdg scale">SCALE</span></td></tr>
+          <tr><td class="nm"><span class="thumb tg2"></span>DTC_US_Prospecting_v3</td><td class="plat">Meta US</td><td class="num">$200</td><td class="num g">3.8×</td><td class="num">$18</td><td class="num">1.40%</td><td class="num">1.8</td><td><span class="bdg scale">SCALE</span></td></tr>
+          <tr><td class="nm"><span class="thumb tg7"></span>Retargeting_7d</td><td class="plat">Meta US</td><td class="num">$120</td><td class="num g">5.2×</td><td class="num">$11</td><td class="num">2.10%</td><td class="num r">3.1</td><td><span class="bdg refresh">REFRESH</span></td></tr>
+          <tr><td class="nm"><span class="thumb tg3"></span>IG_Reels_Hero</td><td class="plat">Meta US</td><td class="num">$300</td><td class="num g">3.2×</td><td class="num">$17</td><td class="num">1.10%</td><td class="num r">2.6</td><td><span class="bdg refresh">REFRESH</span></td></tr>
+          <tr><td class="nm"><span class="thumb tg5"></span>Lookalike_2pct_v2</td><td class="plat">Meta US</td><td class="num">$180</td><td class="num">3.1×</td><td class="num">$20</td><td class="num">1.30%</td><td class="num">1.9</td><td><span class="bdg hold">HOLD</span></td></tr>
+          <tr><td class="nm"><span class="thumb tg6"></span>Spark_Creator_Mix</td><td class="plat">TikTok JP</td><td class="num">¥8,000</td><td class="num">2.9×</td><td class="num">¥1,050</td><td class="num">1.20%</td><td class="num">2.1</td><td><span class="bdg hold">HOLD</span></td></tr>
+          <tr><td class="nm"><span class="thumb tg4"></span>Broad_Interest_v4</td><td class="plat">TikTok SEA</td><td class="num">$160</td><td class="num r">1.9×</td><td class="num">$33</td><td class="num">0.90%</td><td class="num">2.2</td><td><span class="bdg pause">PAUSE</span></td></tr>
+          <tr><td class="nm"><span class="thumb tg8"></span>Casual_Game_Broad_v1</td><td class="plat">TikTok SEA</td><td class="num">$240</td><td class="num r">1.4×</td><td class="num">$40</td><td class="num">0.80%</td><td class="num">2.4</td><td><span class="bdg pause">PAUSE</span></td></tr>
+        </tbody>
+      </table>
+      <div class="narr" data-i18n="b.narr"><strong>读法：</strong>赢家集中在 <strong>TikTok JP（Hina 素材，CTR 1.58% 是基线 2.1×）</strong> 和 <strong>Meta US 再营销（ROAS 5.2×）</strong>。两条 SEA broad 单位经济已崩（ROAS &lt; 2、CPA 翻倍），止损腾出 $400。两条 Meta 频次超 2.5 上限、CTR 衰减，该换素材而非硬扩。</div>
+    </div>
+
+    <div class="card sel" data-card="c1">
+      <div class="head"><span class="act scale">SCALE +20%</span><span class="title">AstralDrift Hina <span class="plat"> TikTok JP</span></span><span class="budget">¥12,000<span class="arrow">→</span><span class="up">¥18,000</span></span><span class="conf high">HIGH</span></div>
+      <div class="body">
+        <div class="why"><div class="lab" data-i18n="l.why">为什么</div><p data-i18n="c1why">8 信号全绿，样本充足。Hina 素材在 JP 核心人群 CTR 是基线 2.1×，且未饱和——明确的扩量空间。</p><div class="guard" data-i18n="c1guard">自动撤回：<span class="mono">CPP &gt; ¥1,500</span> 或 <span class="mono">CTR 跌 &gt; 15%</span></div></div>
+        <div class="vdiv"></div>
+        <div class="sigs"><div class="lab" data-i18n="l.sig8">8 信号 8/8</div>
+          <div class="sigrow"><span class="dd g"></span><span class="nm">CPP</span><span class="val">¥820</span></div>
+          <div class="sigrow"><span class="dd g"></span><span class="nm">ROAS</span><span class="val">3.6×</span></div>
+          <div class="sigrow"><span class="dd g"></span><span class="nm">CTR</span><span class="val">1.58%</span></div>
+          <div class="sigrow"><span class="dd g"></span><span class="nm" data-i18n="l.freq">频次</span><span class="val">1.8</span></div>
+          <div class="sigrow"><span class="dd g"></span><span class="nm" data-i18n="l.purch">成交</span><span class="val">1,247</span></div>
+        </div>
+      </div>
+      <div class="foot"><span class="next" data-i18n="l.next1">下次检查 48 小时</span><div class="btns"><button class="mini" data-i18n="l.bmodify">修改</button><button class="mini" data-i18n="l.bdismiss">忽略</button><button class="mini approve" data-i18n="l.bapprove">批准</button></div></div>
+    </div>
+
+    <div class="card" data-card="c2">
+      <div class="head"><span class="act scale">SCALE +10%</span><span class="title">DTC_US_Prospecting_v3 <span class="plat"> Meta US</span></span><span class="budget">$200<span class="arrow">→</span><span class="up">$240</span></span><span class="conf med">MEDIUM</span></div>
+      <div class="body">
+        <div class="why"><div class="lab" data-i18n="l.why">为什么</div><p data-i18n="c2why">信号良好，但日成交（11）刚过最小样本线。薄样本激进扩量会反噬 CPP——保守 +10%，而非 +20%。</p><div class="guard" data-i18n="c2guard">自动撤回：<span class="mono">CPP &gt; $22</span> 或 <span class="mono">CTR 跌 &gt; 15%</span></div></div>
+        <div class="vdiv"></div>
+        <div class="sigs"><div class="lab" data-i18n="l.sig7">8 信号 7/8</div>
+          <div class="sigrow"><span class="dd g"></span><span class="nm">CPP</span><span class="val">$18.00</span></div>
+          <div class="sigrow"><span class="dd g"></span><span class="nm">ROAS</span><span class="val">3.8×</span></div>
+          <div class="sigrow"><span class="dd y"></span><span class="nm" data-i18n="l.purch">成交</span><span class="val" data-i18n="l.thin">11 偏薄</span></div>
+          <div class="sigrow"><span class="dd g"></span><span class="nm">CTR</span><span class="val">1.4%</span></div>
+          <div class="sigrow"><span class="dd g"></span><span class="nm" data-i18n="l.freq">频次</span><span class="val">1.8</span></div>
+        </div>
+      </div>
+      <div class="foot"><span class="next" data-i18n="l.next1">下次检查 48 小时</span><div class="btns"><button class="mini" data-i18n="l.bmodify">修改</button><button class="mini" data-i18n="l.bdismiss">忽略</button><button class="mini approve" data-i18n="l.bapprove">批准</button></div></div>
+    </div>
+
+    <div class="card" data-card="c4">
+      <div class="head"><span class="act refresh">REFRESH</span><span class="title">IG_Reels_Hero <span class="plat"> Meta US</span></span><span class="budget" data-i18n="l.hold">保持 $300</span><span class="conf med">MEDIUM</span></div>
+      <div class="body">
+        <div class="why"><div class="lab" data-i18n="l.why">为什么</div><p data-i18n="c4why">核心经济仍绿（CPP $17、ROAS 3.2×），但频次到 2.6（超 2.5 上限）且 CTR 衰减——素材在饱和。别硬扩：先换。Strategist 已基于赢家钩子草拟 3 个变体。</p><div class="guard" data-i18n="c4guard">3 个变体就绪 在「创意」里复核</div></div>
+        <div class="vdiv"></div>
+        <div class="sigs"><div class="lab" data-i18n="l.sig5">8 信号 5/8</div>
+          <div class="sigrow"><span class="dd r"></span><span class="nm" data-i18n="l.freq">频次</span><span class="val">2.6</span></div>
+          <div class="sigrow"><span class="dd y"></span><span class="nm">CTR</span><span class="val">↓ 1.1%</span></div>
+          <div class="sigrow"><span class="dd g"></span><span class="nm">CPP</span><span class="val">$17.00</span></div>
+          <div class="sigrow"><span class="dd g"></span><span class="nm">ROAS</span><span class="val">3.2×</span></div>
+        </div>
+      </div>
+      <div class="foot"><span class="next" data-i18n="l.next4">变体 QA 中</span><div class="btns"><button class="mini" data-view="creative" data-i18n="l.bvariants">看变体</button><button class="mini approve" data-i18n="l.baprefresh">批准换素材</button></div></div>
+    </div>
+
+    <div class="card" data-card="c3">
+      <div class="head"><span class="act pause">PAUSE</span><span class="title">Casual_Game_Broad_v1 <span class="plat"> TikTok SEA</span></span><span class="budget">$240<span class="arrow">→</span><span class="zero">$0</span></span><span class="conf high">HIGH</span></div>
+      <div class="body">
+        <div class="why"><div class="lab" data-i18n="l.why">为什么</div><p data-i18n="c3why">CPP 和 ROAS 双红——单位经济已崩，且样本足够（38 单）确认不是噪声。每多花一块都在买更差的用户。止损，腾出的 $240 流向赢家。</p><div class="guard" data-i18n="c3guard">再分配交给 Allocator → 见下方分配卡</div></div>
+        <div class="vdiv"></div>
+        <div class="sigs"><div class="lab" data-i18n="l.sig2">8 信号 2/8</div>
+          <div class="sigrow"><span class="dd r"></span><span class="nm">CPP</span><span class="val">$40.00</span></div>
+          <div class="sigrow"><span class="dd r"></span><span class="nm">ROAS</span><span class="val">1.4×</span></div>
+          <div class="sigrow"><span class="dd r"></span><span class="nm">CVR</span><span class="val">1.1%</span></div>
+          <div class="sigrow"><span class="dd r"></span><span class="nm">CTR</span><span class="val">0.8%</span></div>
+          <div class="sigrow"><span class="dd y"></span><span class="nm" data-i18n="l.freq">频次</span><span class="val">2.4</span></div>
+        </div>
+      </div>
+      <div class="foot"><span class="next" data-i18n="l.next3">下次同步时停止</span><div class="btns"><button class="mini" data-i18n="l.bkeep">继续跑</button><button class="mini approve" data-i18n="l.bappause">批准暂停</button></div></div>
+    </div>
+    <div class="block editor">
+      <div class="bhead"><span class="ic">▣</span><span class="h" data-i18n="l.edh">应用这些改动 6 campaign</span><span class="sub" data-i18n="l.edsub">Copilot 等你批准后写入</span></div>
+      <table class="dt">
+        <thead><tr><th>Campaign</th><th data-i18n="l.thplat">平台</th><th class="num" data-i18n="l.edcur">当前/天</th><th data-i18n="l.ednew">新预算/天</th><th data-i18n="l.edtroas">目标 ROAS</th><th data-i18n="l.thdec">决策</th><th data-i18n="l.edstatus">状态</th></tr></thead>
+        <tbody>
+          <tr><td class="nm"><span class="thumb tg1"></span>AstralDrift Hina</td><td class="plat">TikTok JP</td><td class="num">¥12,000</td><td><input class="bnum" value="18000"></td><td><input class="bnum" value="3.0"></td><td><span class="bdg scale">SCALE</span></td><td><span class="tag" data-i18n="l.stready">就绪</span></td></tr>
+          <tr><td class="nm"><span class="thumb tg2"></span>DTC_US_Prospecting_v3</td><td class="plat">Meta US</td><td class="num">$200</td><td><input class="bnum" value="240"></td><td><input class="bnum" value="3.0"></td><td><span class="bdg scale">SCALE</span></td><td><span class="tag" data-i18n="l.stready">就绪</span></td></tr>
+          <tr><td class="nm"><span class="thumb tg7"></span>Retargeting_7d</td><td class="plat">Meta US</td><td class="num">$120</td><td><input class="bnum" value="120"></td><td><input class="bnum" value="4.0"></td><td><span class="bdg refresh">REFRESH</span></td><td><span class="tag" data-i18n="l.stneed">需素材</span></td></tr>
+          <tr><td class="nm"><span class="thumb tg3"></span>IG_Reels_Hero</td><td class="plat">Meta US</td><td class="num">$300</td><td><input class="bnum" value="300"></td><td><input class="bnum" value="3.0"></td><td><span class="bdg refresh">REFRESH</span></td><td><span class="tag" data-i18n="l.stvar">3 变体就绪</span></td></tr>
+          <tr><td class="nm"><span class="thumb tg4"></span>Broad_Interest_v4</td><td class="plat">TikTok SEA</td><td class="num">$160</td><td><input class="bnum" value="0"></td><td><input class="bnum" value="—" disabled></td><td><span class="bdg pause">PAUSE</span></td><td><span class="tag" data-i18n="l.stready">就绪</span></td></tr>
+          <tr><td class="nm"><span class="thumb tg8"></span>Casual_Game_Broad_v1</td><td class="plat">TikTok SEA</td><td class="num">$240</td><td><input class="bnum" value="0"></td><td><input class="bnum" value="—" disabled></td><td><span class="bdg pause">PAUSE</span></td><td><span class="tag" data-i18n="l.stready">就绪</span></td></tr>
+        </tbody>
+      </table>
+      <div class="bulk">
+        <span style="font-weight:600;font-size:12px" data-i18n="l.bulk">批量改：</span>
+        <span class="fld"><span data-i18n="l.bulkbud">全部预算</span> <input class="bnum" placeholder="—"></span>
+        <span class="fld"><span data-i18n="l.bulkroas">全部目标 ROAS</span> <input class="bnum" value="3.0"></span>
+        <button class="btn" data-i18n="l.bulkapply">应用到全部</button>
+        <span style="margin-left:auto;font-size:11px;color:var(--text-3)"><span data-i18n="l.tmpl">活动名模板</span> <span class="mono">Drip_{platform}_{campaign}_{date}</span></span>
+      </div>
+      <div class="efoot">
+        <div class="tags"><span class="tag" data-i18n="l.efready">6 就绪</span><span class="tag" data-i18n="l.mix">2 扩 2 换 2 停</span><span class="tag" data-i18n="l.efnet">净额 +$0/天 上限内</span></div>
+        <div style="display:flex;gap:8px"><button class="btn" data-i18n="l.bcancel">取消</button><button class="btn primary" id="applyBtn" data-i18n="l.bapply6">应用 6 项改动 →</button></div>
+      </div>
+    </div>
+    <div class="alloc">
+      <div class="h"><span class="ic">◑</span><span data-i18n="l.alh">跨平台预算分配 应用后</span></div>
+      <div class="grid">
+        <div class="donut"><div class="ctr"><div class="n mono">$3,500</div><div class="l" data-i18n="l.perday">/ 天</div></div></div>
+        <div class="legend">
+          <div class="li"><span class="sw" style="background:var(--accent)"></span><span class="nm">Meta</span><span class="mv">52% $1,820</span></div>
+          <div class="li"><span class="sw" style="background:var(--accent-2)"></span><span class="nm">TikTok</span><span class="mv">36% $1,260</span></div>
+          <div class="li"><span class="sw" style="background:#c7d9f7"></span><span class="nm">Google</span><span class="mv">12% $420</span></div>
+        </div>
+      </div>
+      <div class="note" data-i18n="l.alnote">止损腾出 <span class="mono">$400</span> + 上限内扩量：TikTok JP <span class="mono">+¥6,000</span>、Meta US <span class="mono">+$40</span>。两条 SEA 归零。总额仍 ≤ <span class="mono">$3,500/天</span> 上限，不需额外预算。</div>
+    </div>
+
+    <div class="block gate" id="gateCard">
+      <div class="bhead"><span class="ic">⛨</span><span class="h" data-i18n="g.h">护栏 批准前设定</span><span class="sub" data-i18n="g.sub">这些就是规则引擎的阈值 改这里，每条决策都会重新推导</span></div>
+      <div class="grows">
+        <div class="grow"><div class="gl"><span data-i18n="g.cpa">目标 CPA</span><div class="gh" data-i18n="g.cpah">超过即自动暂停</div></div><div class="gc"><input class="inp gnum" value="22"><span class="gu">USD</span></div></div>
+        <div class="grow"><div class="gl"><span data-i18n="g.cap">日预算上限</span><div class="gh" data-i18n="g.caph">放量永不越过</div></div><div class="gc"><input class="inp gnum" value="3,500"><span class="gu" data-i18n="g.perday">/ 天</span></div></div>
+        <div class="grow"><div class="gl"><span data-i18n="g.sample">最小成交样本</span><div class="gh" data-i18n="g.sampleh">低于此数置信度降级</div></div><div class="gc"><input class="inp gnum" value="30"><span class="gu" data-i18n="g.orders">单</span></div></div>
+        <div class="grow"><div class="gl"><span data-i18n="g.freq">频次上限</span><div class="gh" data-i18n="g.freqh">超过判素材饱和</div></div><div class="gc"><input class="inp gnum" value="2.5"></div></div>
+        <div class="grow"><div class="gl"><span data-i18n="g.revert">自动撤回</span><div class="gh" data-i18n="g.reverth">CPP 超标或 CTR 跌 &gt;15% 自动回滚</div></div><div class="gc"><div class="sw on" data-sw></div></div></div>
+        <div class="grow"><div class="gl"><span data-i18n="g.boost">大促自动加投</span><div class="gh" data-i18n="g.boosth">平台大促期上限内提量</div></div><div class="gc"><div class="sw" data-sw></div></div></div>
+      </div>
+      <div class="gfoot">
+        <span class="gnote" data-i18n="g.audit">⛨ 6 条决策都会带上这套护栏 全部写进<b>可回放审计</b></span>
+        <div style="display:flex;gap:8px"><button class="btn" data-i18n="g.cancel">取消</button><button class="btn primary" id="gatePublish" data-i18n="g.publish">确认护栏并发布 6 项 →</button></div>
+      </div>
+    </div>
+
+  </div></div>
+
+  <div class="msg user"><div class="bubble" data-i18n="l.q2">为什么 DTC 那条只 +10%，不跟 Hina 一样 +20%？</div></div>
+
+  <div class="msg bot"><div class="ava">D</div><div class="content">
+    <p class="intro" data-i18n="b.a2">因为它卡在「样本薄」这条规则上。它 8 个信号里 7 个绿，本来够格 +20%；但日成交只有 <strong>11 单</strong>（低于 30 的最小样本线），成交信号判黄。规则在薄样本上把置信度从 HIGH 压到 <strong>MEDIUM</strong>，扩量步长也随之从 +20% 收到 <strong>+10%</strong>——这正是资深操盘手在数据不足时会做的事：先小步加，等样本厚了再提速。右栏「为什么 审计」里规则链第 2、3 步就是这个判断，可点 DTC 那张卡查看完整链路。</p>
+  </div></div>
+
+  <div class="msg user"><div class="bubble" data-i18n="ph.q">上一轮批准的 6 项改动跑了 48 小时，复盘一下效果。</div></div>
+
+  <div class="msg bot"><div class="content">
+    <p class="intro" data-i18n="ph.intro">上一轮 6 项改动已跑满 <strong>48 小时</strong>，整体兑现了预测：综合 ROAS <strong>3.6× → 3.9×</strong>、CPA 降 <strong>$2.4</strong>，全程<strong>没有触发任何自动撤回护栏</strong>。下面是逐条「预测 vs 实际」，外加一条规则引擎新生成、待你批准的建议。</p>
+    <div class="block">
+      <div class="bhead"><span class="ic">◷</span><span class="h" data-i18n="ph.h">投后诊断 上一轮 6 项</span><span class="sub" data-i18n="ph.sub">预测 vs 实际 48h 窗口</span></div>
+      <div class="kpis kpis-4">
+        <div class="kpi"><div class="k" data-i18n="ph.k1">综合 ROAS</div><div class="v mono">3.9×</div><div class="d up" data-i18n="ph.k1d">↑ 预测 3.8×</div></div>
+        <div class="kpi"><div class="k" data-i18n="ph.k2">新增成交</div><div class="v mono">214</div><div class="d up">↑ 27%</div></div>
+        <div class="kpi"><div class="k">CPA</div><div class="v mono">$16.9</div><div class="d up">↓ $2.4</div></div>
+        <div class="kpi"><div class="k" data-i18n="ph.k4">护栏触发</div><div class="v mono">0</div><div class="d flat" data-i18n="ph.k4d">全程阈值内</div></div>
+      </div>
+      <table class="dt">
+        <thead><tr><th>Campaign</th><th data-i18n="ph.thact">上轮动作</th><th class="num" data-i18n="ph.thpred">预测</th><th class="num" data-i18n="ph.threal">实际</th><th data-i18n="ph.thv">判定</th></tr></thead>
+        <tbody>
+          <tr><td class="nm"><span class="thumb tg1"></span>AstralDrift Hina</td><td class="plat">SCALE +20%</td><td class="num">ROAS 3.5×</td><td class="num g">3.8×</td><td><span class="bdg scale" data-i18n="ph.win">兑现</span></td></tr>
+          <tr><td class="nm"><span class="thumb tg2"></span>DTC_US_Prospecting_v3</td><td class="plat">SCALE +10%</td><td class="num" data-i18n="ph.p2">11→稳住</td><td class="num g" data-i18n="ph.r2real">26 单</td><td><span class="bdg scale" data-i18n="ph.win">兑现</span></td></tr>
+          <tr><td class="nm"><span class="thumb tg3"></span>IG_Reels_Hero</td><td class="plat">REFRESH</td><td class="num" data-i18n="ph.p3">CTR 回升</td><td class="num g">1.1%→1.6%</td><td><span class="bdg scale" data-i18n="ph.win">兑现</span></td></tr>
+          <tr><td class="nm"><span class="thumb tg7"></span>Retargeting_7d</td><td class="plat">REFRESH</td><td class="num" data-i18n="ph.p4">频次降</td><td class="num y">3.1→2.7</td><td><span class="bdg refresh" data-i18n="ph.part">部分</span></td></tr>
+          <tr><td class="nm"><span class="thumb tg4"></span>Broad_Interest_v4</td><td class="plat">PAUSE</td><td class="num" data-i18n="ph.stop">止血</td><td class="num g" data-i18n="ph.s160">省 $160/天</td><td><span class="bdg scale" data-i18n="ph.win">兑现</span></td></tr>
+          <tr><td class="nm"><span class="thumb tg8"></span>Casual_Game_Broad_v1</td><td class="plat">PAUSE</td><td class="num" data-i18n="ph.stop">止血</td><td class="num g" data-i18n="ph.s240">省 $240/天</td><td><span class="bdg scale" data-i18n="ph.win">兑现</span></td></tr>
+        </tbody>
+      </table>
+      <div class="narr" data-i18n="ph.rc"><strong>根因 & 下一步：</strong>Retargeting_7d 换素材后频次回落但仍偏高（2.7），根因是<strong>受众过窄</strong>，不是素材问题。规则引擎据此生成 1 条新建议——<strong>扩 1% 相似受众</strong>，预计频次回到 2.3。已排进下一轮决策，等你下次批准。</div>
+    </div>
+  </div></div>
+
+  </div></div>
+
+    <div class="composer-wrap"><div class="composer-in">
+      <div class="composer">
+        <textarea rows="1" placeholder="问 Drip，或描述你想做什么…" data-i18n-ph="comp.ph"></textarea>
+        <div class="bar">
+          <button class="cbtn"><span class="ic">⇪</span></button>
+          <button class="cbtn"><span class="ic">✦</span> AI Creatives</button>
+          <button class="cbtn"><span class="ic">◐</span>
+            <select><option data-i18n="mode.shadow">Shadow 只规划</option><option selected data-i18n="mode.copilot">Copilot 逐条批准</option><option data-i18n="mode.auto">Autonomous 上限内</option></select>
+          </button>
+          <button class="cbtn"><span class="ic">✲</span><span class="mono" style="font-size:11.5px">claude-sonnet-4-6</span></button>
+          <button class="send" title="发送">↑</button>
+        </div>
+      </div>
+      <div class="disclaim" data-i18n="comp.note">规则决定 LLM 只负责解释 你批准后才写入平台</div>
+    </div></div>
+    <!-- 操作台 / 驾驶舱 -->
+    <div class="screen" id="view-cockpit"><div class="screen-in ck-in">
+      <div class="ck-sum">
+        <div class="ck-stat"><div class="k" data-i18n="ck.spend">今日花费</div><div class="v mono">$3,240<span class="cap"> / 3,500</span></div><div class="pace"><i style="width:92%"></i></div><div class="d amber" data-i18n="ck.pace">92% 略快于节奏</div></div>
+        <div class="ck-stat"><div class="k" data-i18n="ck.roas">综合 ROAS</div><div class="v mono">3.6×</div><div class="d up">↑ 0.4× <span data-i18n="ck.wk">vs 上周</span></div></div>
+        <div class="ck-stat"><div class="k">CPA</div><div class="v mono">$19.3</div><div class="d up">↓ $2.1</div></div>
+        <div class="ck-stat"><div class="k" data-i18n="ck.conv">转化</div><div class="v mono">168</div><div class="d up">↑ 12%</div></div>
+        <div class="ck-stat hot"><div class="k" data-i18n="ck.pending">待批决策</div><div class="v mono">6</div><div class="d" data-i18n="ck.alerts">3 条告警</div></div>
+      </div>
+      <div class="ck-grid">
+        <div class="ck-main">
+          <div class="ck-alloc">
+            <div class="ck-alloc-h"><span data-i18n="ck.alloch">跨平台预算分配</span><span class="dim mono">$3,500 / day</span></div>
+            <div class="ck-bar2"><i class="meta" style="width:52%"></i><i class="tt" style="width:36%"></i><i class="gg" style="width:12%"></i></div>
+            <div class="ck-leg"><span class="ck-leg-it"><svg class="plogo"><use href="#lg-meta"/></svg><b>Meta</b> $1,820 <i class="pct">40%</i></span><span class="ck-leg-it"><svg class="plogo"><use href="#lg-tt"/></svg><b>TikTok</b> $1,260 <i class="pct">28%</i></span><span class="ck-leg-it"><svg class="plogo"><use href="#lg-tencent"/></svg><b>腾讯</b> $620 <i class="pct">14%</i></span><span class="ck-leg-it"><svg class="plogo"><use href="#lg-ocean"/></svg><b>巨量</b> $440 <i class="pct">10%</i></span><span class="ck-leg-it"><svg class="plogo"><use href="#lg-gg"/></svg><b>Google</b> $360 <i class="pct">8%</i></span></div>
+          </div>
+          <div class="pb-bar"><div class="pb-filters"><button class="chipf on" data-pf="all" data-i18n="cr.d.all">全部</button><button class="chipf" data-pf="meta">Meta</button><button class="chipf" data-pf="tt">TikTok</button><button class="chipf" data-pf="gg">Google</button></div><div class="pb-right"><select class="inp pb-sort" id="ckSort"><option value="health" data-i18n="f.health">按健康度</option><option value="spend" data-i18n="f.spend">按花费</option><option value="roas" data-i18n="pj.sroas">按 ROAS</option></select></div></div>
+          <div class="acct-grid">
+            <div class="acct-card" data-pf="tt"><div class="ac-h"><span class="ac-nm">AstralDrift Hina</span><span class="stp ok" data-i18n="ck.ok">健康</span></div><div class="ac-m"><span class="pf tt">TikTok</span><span class="reg">JP</span></div><div class="ac-sp"><span class="big mono">¥12k</span><span class="cap mono">/ 18k</span><svg class="spk" width="60" height="20" viewBox="0 0 60 20"><polyline fill="none" stroke="var(--green)" stroke-width="1.6" points="2,15 14,13 26,14 38,9 50,6 58,3"/></svg></div><div class="ac-pace"><i style="width:67%"></i></div><div class="ac-k"><span>ROAS <b class="g">3.6×</b></span><span>CPA <b>¥820</b></span></div></div>
+            <div class="acct-card" data-pf="meta"><div class="ac-h"><span class="ac-nm">DTC Store</span><span class="stp ok" data-i18n="ck.ok">健康</span></div><div class="ac-m"><span class="pf meta">Meta</span><span class="reg">US</span></div><div class="ac-sp"><span class="big mono">$320</span><span class="cap mono">/ 360</span><svg class="spk" width="60" height="20" viewBox="0 0 60 20"><polyline fill="none" stroke="var(--green)" stroke-width="1.6" points="2,13 14,11 26,12 38,8 50,6 58,4"/></svg></div><div class="ac-pace"><i style="width:89%"></i></div><div class="ac-k"><span>ROAS <b class="g">4.1×</b></span><span>CPA <b>$15</b></span></div></div>
+            <div class="acct-card" data-pf="meta"><div class="ac-h"><span class="ac-nm">Retarget 7d</span><span class="stp watch" data-i18n="ck.watch">观察</span></div><div class="ac-m"><span class="pf meta">Meta</span><span class="reg">US</span></div><div class="ac-sp"><span class="big mono">$120</span><span class="cap mono">/ 120</span><svg class="spk" width="60" height="20" viewBox="0 0 60 20"><polyline fill="none" stroke="var(--amber)" stroke-width="1.6" points="2,9 14,8 26,10 38,9 50,11 58,12"/></svg></div><div class="ac-pace"><i style="width:100%;background:var(--amber)"></i></div><div class="ac-k"><span>ROAS <b class="g">5.2×</b></span><span data-i18n="ck.freq">频次 <b class="r">3.1</b></span></div></div>
+            <div class="acct-card" data-pf="meta"><div class="ac-h"><span class="ac-nm">OiOi Live</span><span class="stp watch" data-i18n="ck.watch">观察</span></div><div class="ac-m"><span class="pf meta">Meta</span><span class="reg">MY</span></div><div class="ac-sp"><span class="big mono">$150</span><span class="cap mono">/ 150</span><svg class="spk" width="60" height="20" viewBox="0 0 60 20"><polyline fill="none" stroke="var(--green)" stroke-width="1.6" points="2,16 14,14 26,11 38,10 50,6 58,5"/></svg></div><div class="ac-pace"><i style="width:100%"></i></div><div class="ac-k"><span>ROAS <b>2.8×</b></span><span>CPI <b>$0.85</b></span></div></div>
+            <div class="acct-card" data-pf="tt"><div class="ac-h"><span class="ac-nm">Casual Game</span><span class="stp risk" data-i18n="ck.risk">风险</span></div><div class="ac-m"><span class="pf tt">TikTok</span><span class="reg">SEA</span></div><div class="ac-sp"><span class="big mono">$0</span><span class="cap" data-i18n="ck.paused">已暂停</span><svg class="spk" width="60" height="20" viewBox="0 0 60 20"><polyline fill="none" stroke="var(--red)" stroke-width="1.6" points="2,5 14,7 26,9 38,12 50,14 58,16"/></svg></div><div class="ac-pace"><i style="width:100%;background:var(--red)"></i></div><div class="ac-k"><span>ROAS <b class="r">1.4×</b></span><span>CPA <b class="r">$40</b></span></div></div>
+          </div>
+        </div>
+        <div class="ck-side">
+          <div class="ck-panel">
+            <div class="ck-ph" data-i18n="ck.alertsh">告警</div>
+            <div class="ck-alert"><span class="dot" style="background:var(--red)"></span><span data-i18n="ck.a1">Casual Game SEA — ROAS 1.4×，单位经济已崩，建议止损</span></div>
+            <div class="ck-alert"><span class="dot" style="background:var(--amber)"></span><span data-i18n="ck.a2">Retarget US — 频次 3.1 超 2.5 上限，建议换素材</span></div>
+            <div class="ck-alert"><span class="dot" style="background:var(--amber)"></span><span data-i18n="ck.a3">今日 pacing 92%，午后或触顶，关注超投</span></div>
+          </div>
+          <div class="ck-panel">
+            <div class="ck-ph" data-i18n="ck.pendingh">待批决策 6</div>
+            <div class="ck-dec" data-view="console"><span class="bdg scale">SCALE</span><span class="nm">AstralDrift Hina</span><span class="mono dim">+20%</span></div>
+            <div class="ck-dec" data-view="console"><span class="bdg scale">SCALE</span><span class="nm">DTC_US_Prospecting</span><span class="mono dim">+10%</span></div>
+            <div class="ck-dec" data-view="console"><span class="bdg refresh">REFRESH</span><span class="nm">IG_Reels_Hero</span><span class="mono dim">—</span></div>
+            <div class="ck-dec" data-view="console"><span class="bdg refresh">REFRESH</span><span class="nm">Retargeting_7d</span><span class="mono dim">—</span></div>
+            <div class="ck-dec" data-view="console"><span class="bdg pause">PAUSE</span><span class="nm">Broad_Interest_v4</span><span class="mono dim">$0</span></div>
+            <button class="btn primary" data-view="console" style="width:100%;justify-content:center;display:flex;margin-top:9px" data-i18n="ck.review">逐条复核 →</button>
+          </div>
+        </div>
+      </div>
+    </div></div>
+    <!-- 创意 / 视频选择器 -->
+    <div class="screen" id="view-creative"><div class="screen-in">
+      <div class="cr-tabs">
+        <button class="crt on" data-crt="dir" data-i18n="cr.t.dir">创意方向</button>
+        <button class="crt" data-crt="gen" data-i18n="cr.t.gen">生成工作台</button>
+        <button class="crt" data-crt="lib" data-i18n="cr.t.lib">素材库</button>
+      </div>
+
+      <div class="cr-panel" data-crp="dir">
+        <div class="pb-bar"><div class="pb-filters"><button class="chipf on" data-f="all" data-i18n="cr.d.all">全部</button><button class="chipf" data-f="mine" data-i18n="cr.d.mine">我的赢家</button><button class="chipf" data-f="ind" data-i18n="cr.d.ind">竞品 行业</button></div><div class="pb-right"><span class="pb-count"><b id="crDirN">6</b> <span data-i18n="f.dirs">个方向</span></span></div></div>
+        <div class="dir-grid">
+          <div class="dir-card"><div class="dir-top"><span class="dir-nm" data-i18n="cr.d1">主播亲和力</span><span class="tag" data-i18n="cr.hook">Hook 型</span></div><div class="dir-ev" data-i18n="cr.d1e">Hina_hook_v3 CTR 1.58%（基线 2.1×） 你的赢家</div><div class="dir-foot"><span class="dir-src" data-i18n="cr.v3">3 条素材验证</span><button class="btn primary gen-from" data-dir="主播亲和力" data-i18n="cr.usegen">用此方向生成 →</button></div></div>
+          <div class="dir-card"><div class="dir-top"><span class="dir-nm" data-i18n="cr.d2">派对 FOMO</span><span class="tag" data-i18n="cr.act">Act 型</span></div><div class="dir-ev" data-i18n="cr.d2e">9 宫格「大家都在玩」 CVR +18% 你的赢家</div><div class="dir-foot"><span class="dir-src" data-i18n="cr.v2">2 条素材验证</span><button class="btn primary gen-from" data-dir="派对 FOMO" data-i18n="cr.usegen">用此方向生成 →</button></div></div>
+          <div class="dir-card"><div class="dir-top"><span class="dir-nm" data-i18n="cr.d3">问题-解决 3 秒开</span><span class="tag" data-i18n="cr.hook">Hook 型</span></div><div class="dir-ev" data-i18n="cr.d3e">前 3 秒抛痛点 完播 +22% 行业高频</div><div class="dir-foot"><span class="dir-src" data-i18n="cr.ind">竞品 行业发现</span><button class="btn primary gen-from" data-dir="问题-解决" data-i18n="cr.usegen">用此方向生成 →</button></div></div>
+          <div class="dir-card"><div class="dir-top"><span class="dir-nm" data-i18n="cr.d4">社会证明 测评</span><span class="tag" data-i18n="cr.proof">Proof 型</span></div><div class="dir-ev" data-i18n="cr.d4e">真实用户口播 + 数据 Bigo Live 在投 竞品</div><div class="dir-foot"><span class="dir-src" data-i18n="cr.ind">竞品 行业发现</span><button class="btn primary gen-from" data-dir="社会证明" data-i18n="cr.usegen">用此方向生成 →</button></div></div>
+          <div class="dir-card"><div class="dir-top"><span class="dir-nm" data-i18n="cr.d5">达人 GRWM</span><span class="tag" data-i18n="cr.ugc">UGC 型</span></div><div class="dir-ev" data-i18n="cr.d5e">达人第一人称日常 信任门槛低 你的赢家</div><div class="dir-foot"><span class="dir-src" data-i18n="cr.v2">2 条素材验证</span><button class="btn primary gen-from" data-dir="达人 GRWM" data-i18n="cr.usegen">用此方向生成 →</button></div></div>
+          <div class="dir-card"><div class="dir-top"><span class="dir-nm" data-i18n="cr.d6">功能演示 对比</span><span class="tag" data-i18n="cr.demo">Demo 型</span></div><div class="dir-ev" data-i18n="cr.d6e">界面录屏 + 前后对比 转化稳 行业高频</div><div class="dir-foot"><span class="dir-src" data-i18n="cr.ind">竞品 行业发现</span><button class="btn primary gen-from" data-dir="功能演示" data-i18n="cr.usegen">用此方向生成 →</button></div></div>
+        </div>
+      </div>
+
+      <div class="cr-panel" data-crp="gen" style="display:none">
+        <div class="gen-form fcard">
+          <div class="frow"><div class="fl" data-i18n="cr.g.dir">创意方向</div><div class="fc"><span class="pill" id="genDir" data-i18n="cr.d1">主播亲和力</span><span style="font-size:11px;color:var(--text-3)" data-i18n="cr.g.brief">brief 已自动带出：受众 / 信息点 / 合规声明 / 品牌调性 / 版式</span></div></div>
+          <div class="frow"><div class="fl" data-i18n="cr.g.prod">产品</div><div class="fc"><select class="inp"><option>OiOi Live</option><option>DTC Store</option><option>AstralDrift</option></select></div></div>
+          <div class="frow"><div class="fl" data-i18n="cr.g.fmt">格式</div><div class="fc"><div class="seg" data-seg><button class="on">9:16</button><button>4:5</button><button>1:1</button></div></div></div>
+          <div class="frow"><div class="fl" data-i18n="cr.g.model">AI 模型</div><div class="fc"><select class="inp" style="min-width:300px"><option>Runway Gen-4 品牌一致 / 英雄片</option><option>Kling 3.0 走量 / 高性价比</option><option>Veo 3.1 原生音频 / 4K</option><option>Seedance 2.0 音画同步</option><option>gpt-image 静态图</option></select></div></div>
+          <div class="frow"><div class="fl" data-i18n="cr.g.qty">数量</div><div class="fc"><div class="seg" data-seg><button>20</button><button class="on">50</button><button>100</button></div><span style="font-size:11px;color:var(--text-3)" data-i18n="cr.g.qtyhint">测 50 个变体而不是 5 个 —— 多出的测试面积才是赢家来源</span></div></div>
+        </div>
+        <div class="scrn-foot"><div class="info" data-i18n="cr.g.foot">规则引擎会按 8 信号筛出赢家方向，自动建议下一轮多生成</div><button class="btn primary" id="genRun" data-i18n="cr.g.run">生成 50 个变体 →</button></div>
+        <div class="gen-results" id="genResults" style="display:none">
+          <div class="sect" data-i18n="cr.g.done">已生成 待你挑选投放</div>
+          <div class="vgrid" id="genGrid"></div>
+        </div>
+      </div>
+
+      <div class="cr-panel" data-crp="lib" style="display:none">
+        <div class="pb-bar"><div class="pb-filters"><button class="chipf on" data-src="all" data-i18n="cr.d.all">全部</button><button class="chipf" data-src="gen" data-i18n="cr.l.gen">生成</button><button class="chipf" data-src="up" data-i18n="cr.l.up">上传</button><button class="chipf" data-src="comp" data-i18n="cr.l.comp">竞品</button></div><div class="pb-right"><span class="pb-count"><b id="crLibN">8</b> <span data-i18n="f.assets">条素材</span></span></div></div>
+        <div class="vgrid">
+          <div class="vcard sel" data-sel data-src="gen"><span class="chk">✓</span><div class="vthumb"><span class="play">▶</span><span class="dur">0:18</span></div><div class="vmeta"><div class="vn">Hina_hook_v3</div><div class="vs" data-i18n="cr.vs1">CTR 1.58% 赢家钩子</div></div></div>
+          <div class="vcard sel" data-sel data-src="gen"><span class="chk">✓</span><div class="vthumb"><span class="play">▶</span><span class="dur">0:22</span></div><div class="vmeta"><div class="vn">UGC_unbox_07</div><div class="vs">CTR 1.31% Kling 3.0</div></div></div>
+          <div class="vcard" data-sel data-src="comp"><span class="chk">✓</span><div class="vthumb"><span class="play">▶</span><span class="dur">0:15</span></div><div class="vmeta"><div class="vn">Bigo_派对_竞品</div><div class="vs" data-i18n="cr.comp">竞品 收藏自 Ad Library</div></div></div>
+          <div class="vcard" data-sel data-src="gen"><span class="chk">✓</span><div class="vthumb"><span class="play">▶</span><span class="dur">0:30</span></div><div class="vmeta"><div class="vn">问题解决_v2</div><div class="vs">Runway Gen-4</div></div></div>
+          <div class="vcard" data-sel data-src="up"><span class="chk">✓</span><div class="vthumb"><span class="play">▶</span><span class="dur">0:12</span></div><div class="vmeta"><div class="vn">品牌_图集_A</div><div class="vs" data-i18n="cr.set">上传 图集 6 张</div></div></div>
+          <div class="vcard" data-sel data-src="gen"><span class="chk">✓</span><div class="vthumb"><span class="play">▶</span><span class="dur">0:24</span></div><div class="vmeta"><div class="vn">测评_v3</div><div class="vs">Seedance 2.0</div></div></div>
+          <div class="vcard" data-sel data-src="comp"><span class="chk">✓</span><div class="vthumb"><span class="play">▶</span><span class="dur">0:19</span></div><div class="vmeta"><div class="vn">Mico_GRWM_竞品</div><div class="vs" data-i18n="cr.comp">竞品 收藏自 Ad Library</div></div></div>
+          <div class="vcard" data-sel data-src="up"><span class="chk">✓</span><div class="vthumb"><span class="play">▶</span><span class="dur">0:27</span></div><div class="vmeta"><div class="vn">功能演示_录屏</div><div class="vs" data-i18n="cr.wip">上传 待测</div></div></div>
+        </div>
+        <div class="scrn-foot"><div class="info" data-i18n="cr.foot">已选 <b>3</b> 个 可加入下一轮测试</div><div style="display:flex;gap:8px"><button class="btn" data-i18n="cr.upload">↑ 上传</button><button class="btn primary crt-jump" data-i18n="cr.gen">✦ 去生成新素材 →</button></div></div>
+      </div>
+    </div></div>
+
+    <!-- 发布表单 -->
+    <div class="screen" id="view-publish"><div class="screen-in">
+      <div class="scrn-head"><button class="bk" data-view="console">←</button><span class="ic">▣</span><h2 data-i18n="pb.h">发布 6 campaign</h2><span class="sub" data-i18n="pb.sub">Copilot 发布前最后确认</span></div>
+      <div class="sect" data-i18n="pb.sect1">预算与目标</div>
+      <div class="fcard">
+        <div class="frow"><div class="fl"><span data-i18n="pb.budget">全局日预算</span><div class="h" data-i18n="pb.budgeth">分摊到 6 个 campaign</div></div><div class="fc"><input class="inp" style="width:120px" value="$3,500"><span style="font-size:12px;color:var(--text-3)" data-i18n="pb.percap">/ 天 账户上限</span></div></div>
+        <div class="frow"><div class="fl" data-i18n="pb.troas">目标 ROAS</div><div class="fc"><input class="inp" style="width:90px" value="3.0"><div class="seg" data-seg style="margin-left:2px"><button class="on" data-i18n="pb.unified">统一</button><button data-i18n="pb.perrow">逐条</button></div></div></div>
+      </div>
+      <div class="sect" data-i18n="pb.sect2">高级设置</div>
+      <div class="fcard">
+        <div class="frow"><div class="fl" data-i18n="pb.tmpl">活动名模板</div><div class="fc"><input class="inp" style="flex:1;min-width:260px;font-family:var(--mono);font-size:12px" value="Drip_{platform}_{campaign}_{date}"></div></div>
+        <div class="frow"><div class="fl" data-i18n="pb.tz">时区</div><div class="fc"><select class="inp"><option>Asia/Tokyo (UTC+9)</option><option>America/Los_Angeles (UTC-8)</option><option>Asia/Bangkok (UTC+7)</option></select></div></div>
+        <div class="frow"><div class="fl" data-i18n="pb.sched">排期</div><div class="fc"><label class="rad"><input type="radio" name="sch" checked> <span data-i18n="pb.now">立即开始、不设结束</span></label><label class="rad"><input type="radio" name="sch"> <span data-i18n="pb.timed">定时投放</span></label></div></div>
+        <div class="frow"><div class="fl"><span data-i18n="pb.boost">大促自动加投</span><div class="h" data-i18n="pb.boosth">平台大促期间自动提量</div></div><div class="fc"><div class="sw on" data-sw></div></div></div>
+      </div>
+      <div class="scrn-foot"><div class="info" data-i18n="pb.foot"><b>6</b> 个 campaign 就绪 2 扩 2 换 2 停 净额 +$0/天</div><div style="display:flex;gap:8px"><button class="btn" data-view="console" data-i18n="pb.cancel">取消</button><button class="btn primary" data-i18n="pb.publish">发布 6 个 campaign →</button></div></div>
+    </div></div>
+
+    <!-- 麦肯锡式策略报告 -->
+    <div class="screen" id="view-strategy"><div class="screen-in">
+      <div class="proj-board" id="projBoard">
+        <div class="pb-bar">
+          <div class="pb-filters"><button class="chipf on" data-st="all" data-i18n="pj.all">全部</button><button class="chipf" data-st="live" data-i18n="pj.live">进行中</button><button class="chipf" data-st="plan" data-i18n="pj.plan">规划中</button><button class="chipf" data-st="draft" data-i18n="pj.draft">草稿</button></div>
+          <div class="pb-right"><select class="inp pb-sort" id="pbSort"><option value="upd" data-i18n="pj.supd">最近更新</option><option value="budget" data-i18n="pj.sbud">按预算</option><option value="roas" data-i18n="pj.sroas">按 ROAS</option></select><div class="seg pb-view"><button class="on" data-pv="card" title="卡片">▦</button><button data-pv="table" title="表格">≣</button></div></div>
+        </div>
+        <div class="pj-grouphd"><span class="pj-gh-t">全部策略项目</span><span class="pj-gh-n" id="pjGhN">7</span><span class="pj-gh-d">更新于今天</span></div>
+        <div class="pj-grid" id="pjGrid">
+          <div class="pj-card" data-st="live" data-budget="10000" data-roas="2.8" data-upd="2" data-open><div class="pj-top"><span class="pj-nm">OiOi Live</span><span class="ps live" data-i18n="pj.live">进行中</span></div><div class="pj-sub" data-i18n="pj.s1">马来西亚 直播社交</div><div class="pj-tags"><span class="pf meta">Meta</span><span class="pf tt">TikTok</span></div><div class="pj-k"><span data-i18n="pj.kbud">月预算</span> <b>$10k</b> ROAS <b class="g">2.8×</b></div><div class="pj-upd"><span>2d</span><span class="pj-open" data-i18n="pj.open">查看方案 →</span></div></div>
+          <div class="pj-card" data-st="live" data-budget="9600" data-roas="4.1" data-upd="0" data-open><div class="pj-top"><span class="pj-nm">DTC Store US</span><span class="ps live" data-i18n="pj.live">进行中</span></div><div class="pj-sub" data-i18n="pj.s2">北美 DTC 电商</div><div class="pj-tags"><span class="pf meta">Meta</span></div><div class="pj-k"><span data-i18n="pj.kbud">月预算</span> <b>$9.6k</b> ROAS <b class="g">4.1×</b></div><div class="pj-upd"><span data-i18n="pj.today">今天</span><span class="pj-open" data-i18n="pj.open">查看方案 →</span></div></div>
+          <div class="pj-card" data-st="live" data-budget="12000" data-roas="3.6" data-upd="0" data-open><div class="pj-top"><span class="pj-nm">AstralDrift JP</span><span class="ps live" data-i18n="pj.live">进行中</span></div><div class="pj-sub" data-i18n="pj.s3">日本 直播秀场</div><div class="pj-tags"><span class="pf tt">TikTok</span></div><div class="pj-k"><span data-i18n="pj.kbud">月预算</span> <b>$12k</b> ROAS <b class="g">3.6×</b></div><div class="pj-upd"><span data-i18n="pj.today">今天</span><span class="pj-open" data-i18n="pj.open">查看方案 →</span></div></div>
+          <div class="pj-card" data-st="live" data-budget="30000" data-roas="1.5" data-upd="3" data-open><div class="pj-top"><span class="pj-nm">Xingji 越南</span><span class="ps live" data-i18n="pj.live">进行中</span></div><div class="pj-sub" data-i18n="pj.s4">越南 TikTok Shop GMV</div><div class="pj-tags"><span class="pf tt">TikTok</span></div><div class="pj-k"><span data-i18n="pj.kbud">月预算</span> <b>$30k</b> ROAS <b class="r">1.5×</b></div><div class="pj-upd"><span>3d</span><span class="pj-open" data-i18n="pj.open">查看方案 →</span></div></div>
+          <div class="pj-card" data-st="plan" data-budget="3600" data-roas="5.2" data-upd="1" data-open><div class="pj-top"><span class="pj-nm">Retarget US</span><span class="ps" data-i18n="pj.plan">规划中</span></div><div class="pj-sub" data-i18n="pj.s5">北美 再营销扩量</div><div class="pj-tags"><span class="pf meta">Meta</span></div><div class="pj-k"><span data-i18n="pj.kbud">月预算</span> <b>$3.6k</b> ROAS <b class="g">5.2×</b></div><div class="pj-upd"><span data-i18n="pj.yst">昨天</span><span class="pj-open" data-i18n="pj.open">查看方案 →</span></div></div>
+          <div class="pj-card" data-st="draft" data-budget="0" data-roas="1.4" data-upd="7" data-open><div class="pj-top"><span class="pj-nm">Casual Game SEA</span><span class="ps draft" data-i18n="pj.draft">草稿</span></div><div class="pj-sub" data-i18n="pj.s6">东南亚 休闲手游（止损重启）</div><div class="pj-tags"><span class="pf tt">TikTok</span></div><div class="pj-k"><span data-i18n="pj.kbud">月预算</span> <b>—</b> ROAS <b class="r">1.4×</b></div><div class="pj-upd"><span>1w</span><span class="pj-open" data-i18n="pj.open">查看方案 →</span></div></div>
+          <div class="pj-card" data-st="draft" data-budget="0" data-roas="0" data-upd="5" data-open><div class="pj-top"><span class="pj-nm">Q3 品牌出海</span><span class="ps draft" data-i18n="pj.draft">草稿</span></div><div class="pj-sub" data-i18n="pj.s7">多市场 全平台规划</div><div class="pj-tags"><span class="pf gg">Google</span><span class="pf meta">Meta</span><span class="pf tt">TikTok</span></div><div class="pj-k"><span data-i18n="pj.kbud">月预算</span> <b>—</b> ROAS <b>—</b></div><div class="pj-upd"><span>5d</span><span class="pj-open" data-i18n="pj.open">查看方案 →</span></div></div>
+        </div>
+        <table class="rtable pj-table" id="pjTable" style="display:none"><thead><tr><th data-i18n="pj.tnm">项目</th><th data-i18n="pj.tmkt">市场</th><th data-i18n="pj.tpf">平台</th><th data-i18n="pj.tst">状态</th><th class="num" data-i18n="pj.kbud">月预算</th><th class="num">ROAS</th><th data-i18n="pj.tupd">更新</th></tr></thead><tbody>
+          <tr data-st="live" data-open><td class="k">OiOi Live</td><td data-i18n="pj.s1">马来西亚 直播社交</td><td>Meta TikTok</td><td><span class="ps live" data-i18n="pj.live">进行中</span></td><td class="num">$10k</td><td class="num g">2.8×</td><td>2d</td></tr>
+          <tr data-st="live" data-open><td class="k">DTC Store US</td><td data-i18n="pj.s2">北美 DTC 电商</td><td>Meta</td><td><span class="ps live" data-i18n="pj.live">进行中</span></td><td class="num">$9.6k</td><td class="num g">4.1×</td><td data-i18n="pj.today">今天</td></tr>
+          <tr data-st="live" data-open><td class="k">AstralDrift JP</td><td data-i18n="pj.s3">日本 直播秀场</td><td>TikTok</td><td><span class="ps live" data-i18n="pj.live">进行中</span></td><td class="num">$12k</td><td class="num g">3.6×</td><td data-i18n="pj.today">今天</td></tr>
+          <tr data-st="live" data-open><td class="k">Xingji 越南</td><td data-i18n="pj.s4">越南 TikTok Shop GMV</td><td>TikTok</td><td><span class="ps live" data-i18n="pj.live">进行中</span></td><td class="num">$30k</td><td class="num r">1.5×</td><td>3d</td></tr>
+          <tr data-st="plan" data-open><td class="k">Retarget US</td><td data-i18n="pj.s5">北美 再营销扩量</td><td>Meta</td><td><span class="ps" data-i18n="pj.plan">规划中</span></td><td class="num">$3.6k</td><td class="num g">5.2×</td><td data-i18n="pj.yst">昨天</td></tr>
+          <tr data-st="draft" data-open><td class="k">Casual Game SEA</td><td data-i18n="pj.s6">东南亚 休闲手游（止损重启）</td><td>TikTok</td><td><span class="ps draft" data-i18n="pj.draft">草稿</span></td><td class="num">—</td><td class="num r">1.4×</td><td>1w</td></tr>
+          <tr data-st="draft" data-open><td class="k">Q3 品牌出海</td><td data-i18n="pj.s7">多市场 全平台规划</td><td>多平台</td><td><span class="ps draft" data-i18n="pj.draft">草稿</span></td><td class="num">—</td><td class="num">—</td><td>5d</td></tr>
+        </tbody></table>
+      </div>
+      <div class="proj-detail" id="projDetail" style="display:none">
+        <button class="pd-back" id="pdBack">← <span data-i18n="pj.allstrat">全部策略</span></button>
+      <div class="sect" data-i18n="sg.s1">核心摘要</div>
+      <p class="lead" data-i18n="sg.lead">OiOi Live 是面向马来西亚华人的直播社交 App。下载量低、品牌认知近零，属于典型的「潜在需求」冷启动。建议以付费广告为主引擎、社媒 + KOL 为加速器，30 天内获取首批 1–3 万种子用户，打破「无内容 → 无用户」的循环。</p>
+      <div class="sect" data-i18n="sg.s2">核心用户画像</div>
+      <table class="rtable"><thead><tr><th data-i18n="sg.ph1">画像</th><th data-i18n="sg.ph2">特征</th><th data-i18n="sg.ph3">主要触达</th></tr></thead><tbody>
+        <tr><td class="k" data-i18n="sg.pa">A 主力用户</td><td data-i18n="sg.paf">18–28 岁，马来西亚华裔，城市地区，爱看直播、愿打赏</td><td data-i18n="sg.par">Meta 短视频、TikTok</td></tr>
+        <tr><td class="k" data-i18n="sg.pb">B 社交向</td><td data-i18n="sg.pbf">20–32 岁，寻找华人社交圈，语音 / 视频聊天需求强</td><td data-i18n="sg.pbr">Meta 兴趣定向</td></tr>
+        <tr><td class="k" data-i18n="sg.pc">C 内容消费</td><td data-i18n="sg.pcf">18–35 岁，碎片时间消费，可从 TikTok / Bigo 转化</td><td data-i18n="sg.pcr">TikTok、达人内容</td></tr>
+      </tbody></table>
+      <div class="sect" data-i18n="sg.s3">竞品对比</div>
+      <table class="rtable"><thead><tr><th data-i18n="sg.ch1">竞品</th><th data-i18n="sg.ch2">规模</th><th data-i18n="sg.ch3">优势</th><th data-i18n="sg.ch4">对 OiOi 的机会</th></tr></thead><tbody>
+        <tr><td class="k">Bigo Live</td><td data-i18n="sg.bigos">5 亿+ 注册</td><td data-i18n="sg.bigoa">品牌强、内容丰富</td><td data-i18n="sg.bigoo">泛全球化，华人社交被稀释</td></tr>
+        <tr><td class="k">Mico</td><td data-i18n="sg.micos">千万级</td><td data-i18n="sg.micoa">多人视频社交</td><td data-i18n="sg.micoo">非华语专属</td></tr>
+        <tr><td class="k">TikTok</td><td data-i18n="sg.tts">10 亿+</td><td data-i18n="sg.tta">时长最长</td><td data-i18n="sg.tto">非 1v1 社交匹配</td></tr>
+      </tbody></table>
+      <div class="sect" data-i18n="sg.s4">问题诊断</div>
+      <p data-i18n="sg.diag">当前核心问题是<strong>冷启动</strong>：品牌认知为零，需快速获取第一批种子用户，打破「无内容 → 无用户 → 无内容」的循环。产品功能已具备(直播 / PK / 连麦 / 匹配)，缺的是认知与首批内容供给。</p>
+      <div class="sect" data-i18n="sg.s5">渠道与预算分配</div>
+      <table class="rtable"><thead><tr><th data-i18n="sg.ct1">渠道</th><th data-i18n="sg.ct2">月预算</th><th data-i18n="sg.ct3">角色</th><th data-i18n="sg.ct4">理由</th></tr></thead><tbody>
+        <tr><td class="k">Meta Ads</td><td><span class="pill">50% $5,000</span></td><td data-i18n="sg.metar">主引擎</td><td data-i18n="sg.metare">马来西亚覆盖约 2,235 万，定向精准、起量快</td></tr>
+        <tr><td class="k">TikTok Ads</td><td><span class="pill">30% $3,000</span></td><td data-i18n="sg.ttr">规模放大</td><td data-i18n="sg.ttre">年轻华人聚集，达人内容带量</td></tr>
+        <tr><td class="k" data-i18n="sg.kol">KOL / 达人</td><td><span class="pill">20% $2,000</span></td><td data-i18n="sg.kolr">信任加速</td><td data-i18n="sg.kolre">华人 KOL 背书，降低社交产品的信任门槛</td></tr>
+      </tbody></table>
+      <div class="scrn-foot"><div class="info" data-i18n="sg.foot">基于公开数据与行业基准 可一键转成 campaign 草稿</div><div style="display:flex;gap:8px"><button class="btn" id="pdBack2" data-i18n="sg.back">返回看板</button><button class="btn primary" data-i18n="sg.draft">转成 campaign 草稿 →</button></div></div>
+      </div>
+    </div></div>
+
+    <!-- 决策队列 -->
+    <div class="screen" id="view-decisions"><div class="screen-in">
+      <div class="scrn-head"><span class="ic">▤</span><h2 data-i18n="d.h">决策队列</h2><span class="sub" data-i18n="d.sub">规则决定 LLM 解释 你批准 6 项待批</span></div>
+      <div class="dq">
+        <div class="dqrow"><span class="act scale">SCALE +20%</span><div class="dqm"><div class="nm">AstralDrift Hina <span class="plat"> TikTok JP</span></div><div class="rs" data-i18n="d.r1">8 信号全绿、未饱和 —— 明确扩量空间</div></div><span class="budget">¥12,000 → <span class="up">¥18,000</span></span><span class="conf high">HIGH</span><button class="mini approve" data-i18n="l.bapprove">批准</button></div>
+        <div class="dqrow"><span class="act scale">SCALE +10%</span><div class="dqm"><div class="nm">DTC_US_Prospecting_v3 <span class="plat"> Meta US</span></div><div class="rs" data-i18n="d.r2">信号好但样本薄（11 单）—— 保守加</div></div><span class="budget">$200 → <span class="up">$240</span></span><span class="conf med">MEDIUM</span><button class="mini approve" data-i18n="l.bapprove">批准</button></div>
+        <div class="dqrow"><span class="act refresh">REFRESH</span><div class="dqm"><div class="nm">IG_Reels_Hero <span class="plat"> Meta US</span></div><div class="rs" data-i18n="d.r3">频次 2.6 超上限、CTR 衰减 —— 先换素材</div></div><span class="budget" data-i18n="l.hold">保持 $300</span><span class="conf med">MEDIUM</span><button class="mini approve" data-i18n="l.baprefresh">批准换素材</button></div>
+        <div class="dqrow"><span class="act refresh">REFRESH</span><div class="dqm"><div class="nm">Retargeting_7d <span class="plat"> Meta US</span></div><div class="rs" data-i18n="d.r4">ROAS 5.2× 但频次 3.1 过高 —— 扩受众 + 换素材</div></div><span class="budget" data-i18n="l.hold120">保持 $120</span><span class="conf med">MEDIUM</span><button class="mini approve" data-i18n="l.bapprove">批准</button></div>
+        <div class="dqrow"><span class="act pause">PAUSE</span><div class="dqm"><div class="nm">Broad_Interest_v4 <span class="plat"> TikTok SEA</span></div><div class="rs" data-i18n="d.r5">ROAS 1.9×、CPA 翻倍 —— 止损</div></div><span class="budget">$160 → <span class="zero">$0</span></span><span class="conf high">HIGH</span><button class="mini approve" data-i18n="l.bappause">批准暂停</button></div>
+        <div class="dqrow"><span class="act pause">PAUSE</span><div class="dqm"><div class="nm">Casual_Game_Broad_v1 <span class="plat"> TikTok SEA</span></div><div class="rs" data-i18n="d.r6">CPP/ROAS 双红、样本足 —— 止损</div></div><span class="budget">$240 → <span class="zero">$0</span></span><span class="conf high">HIGH</span><button class="mini approve" data-i18n="l.bappause">批准暂停</button></div>
+      </div>
+      <div class="scrn-foot"><div class="info" data-i18n="d.foot">点任一条 → 右栏看完整 8 信号 + 规则链 + 可回放</div><div style="display:flex;gap:8px"><button class="btn" data-i18n="d.dismissall">全部忽略</button><button class="btn primary" data-view="publish" data-i18n="d.approveall">批准全部 6 项 →</button></div></div>
+    </div></div>
+
+    <!-- 预算分配 -->
+    <div class="screen" id="view-allocation"><div class="screen-in">
+      <div class="scrn-head"><span class="ic">◑</span><h2 data-i18n="a.h">预算分配</h2><span class="sub" data-i18n="a.sub">应用后 仍 ≤ $3,500/天 上限</span></div>
+      <div class="sect" data-i18n="a.byplat">按平台</div>
+      <div class="fcard" style="padding:18px"><div class="alloc" style="border:none;margin:0;padding:0">
+        <div class="grid">
+          <div class="donut"><div class="ctr"><div class="n mono">$3,500</div><div class="l" data-i18n="l.perday">/ 天</div></div></div>
+          <div class="legend">
+            <div class="li"><span class="sw" style="background:var(--accent)"></span><span class="nm">Meta</span><span class="mv">52% $1,820</span></div>
+            <div class="li"><span class="sw" style="background:var(--accent-2)"></span><span class="nm">TikTok</span><span class="mv">36% $1,260</span></div>
+            <div class="li"><span class="sw" style="background:#c7d9f7"></span><span class="nm">Google</span><span class="mv">12% $420</span></div>
+          </div>
+        </div>
+      </div></div>
+      <div class="sect" data-i18n="a.bycamp">按 campaign（应用后）</div>
+      <table class="rtable"><thead><tr><th>Campaign</th><th data-i18n="l.thplat">平台</th><th data-i18n="a.thcur">当前/天</th><th data-i18n="a.thnew">新预算/天</th><th>Δ</th></tr></thead><tbody>
+        <tr><td class="k">AstralDrift Hina</td><td>TikTok JP</td><td>¥12,000</td><td>¥18,000</td><td><span class="pill">+¥6,000</span></td></tr>
+        <tr><td class="k">DTC_US_Prospecting_v3</td><td>Meta US</td><td>$200</td><td>$240</td><td><span class="pill">+$40</span></td></tr>
+        <tr><td class="k">Broad_Interest_v4</td><td>TikTok SEA</td><td>$160</td><td>$0</td><td><span style="color:var(--red);font-weight:600;font-size:11px">−$160</span></td></tr>
+        <tr><td class="k">Casual_Game_Broad_v1</td><td>TikTok SEA</td><td>$240</td><td>$0</td><td><span style="color:var(--red);font-weight:600;font-size:11px">−$240</span></td></tr>
+      </tbody></table>
+      <div class="alloc" style="border:none;padding:0;margin-top:12px"><div class="note" style="border:none;padding:0" data-i18n="a.note">止损腾出 <span class="mono">$400</span>，在上限内回流给两条赢家；总额不变，无需追加预算。</div></div>
+    </div></div>
+
+    <!-- Drip-Bench 榜单 -->
+    <div class="screen" id="view-bench"><div class="screen-in">
+      <p class="rpt" style="margin-bottom:14px" data-i18n="bn.intro">首个<strong>开放、可复现</strong>的 UA agent 决策基准。任何 agent 都能跑同一套用例并 PR 结果——赢输都收。下面是当前榜单。</p>
+      <table class="rtable"><thead><tr><th>#</th><th>Agent</th><th data-i18n="bn.score">总分</th><th data-i18n="bn.act">行动</th><th data-i18n="bn.dir">方向</th><th data-i18n="bn.reason">推理</th><th data-i18n="bn.date">日期</th></tr></thead><tbody>
+        <tr><td><span class="rk g1">1</span></td><td class="k">drip:claude-sonnet-4-6</td><td><span class="scorebar"><i style="width:91%"></i></span>91</td><td>38/40</td><td>18/20</td><td>35/40</td><td>05-28</td></tr>
+        <tr><td><span class="rk">2</span></td><td class="k">drip:gpt-4o</td><td><span class="scorebar"><i style="width:86%"></i></span>86</td><td>36/40</td><td>17/20</td><td>33/40</td><td>05-28</td></tr>
+        <tr><td><span class="rk">3</span></td><td class="k">drip:gemini-2.5-pro</td><td><span class="scorebar"><i style="width:83%"></i></span>83</td><td>35/40</td><td>16/20</td><td>32/40</td><td>05-27</td></tr>
+        <tr><td><span class="rk">4</span></td><td class="k">drip:deepseek-v3</td><td><span class="scorebar"><i style="width:79%"></i></span>79</td><td>33/40</td><td>16/20</td><td>30/40</td><td>05-27</td></tr>
+        <tr><td><span class="rk">5</span></td><td class="k" data-i18n="bn.raw1">raw claude（无引擎）</td><td><span class="scorebar"><i style="width:64%"></i></span>64</td><td>26/40</td><td>13/20</td><td>25/40</td><td>05-26</td></tr>
+        <tr><td><span class="rk">6</span></td><td class="k" data-i18n="bn.raw2">raw gpt-4o（无引擎）</td><td><span class="scorebar"><i style="width:61%"></i></span>61</td><td>25/40</td><td>12/20</td><td>24/40</td><td>05-26</td></tr>
+      </tbody></table>
+      <div class="scrn-foot"><div class="info" data-i18n="bn.foot">规则引擎把同一个模型的分数显著抬高 —— 这就是「规则决定、LLM 解释」的价值</div><div style="display:flex;gap:8px"><button class="btn" data-i18n="bn.cases">查看用例</button><button class="btn primary" data-i18n="bn.runmine">跑我的 agent →</button></div></div>
+    </div></div>
+
+    <!-- 设置 -->
+  </main>
+
+  <div class="set-mask" id="setMask">
+    <div class="set-modal" role="dialog" aria-modal="true">
+      <button class="set-close" id="setClose" aria-label="关闭">✕</button>
+      <div class="set-side">
+        <div class="set-acct"><span class="av">M</span><div><div class="nm">Operator</div><div class="pl">个人 · 自托管</div></div></div>
+        <div class="set-sec">账户</div>
+        <button class="set-link on" data-spane="general"><span class="ai"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1l2-1.5-2-3.4-2.3 1a7 7 0 0 0-1.7-1l-.3-2.5H10l-.3 2.5a7 7 0 0 0-1.7 1l-2.3-1-2 3.4L3.6 11a7 7 0 0 0 0 2l-2 1.5 2 3.4 2.3-1a7 7 0 0 0 1.7 1l.3 2.5h4l.3-2.5a7 7 0 0 0 1.7-1l2.3 1 2-3.4-2-1.5a7 7 0 0 0 .1-1z"/></svg></span>通用</button>
+        <button class="set-link" data-spane="account"><span class="ai"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></span>账户</button>
+        <button class="set-link" data-spane="usage"><span class="ai"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l3-4 3 2 5-7"/></svg></span>用量与计费</button>
+        <div class="set-sec">功能</div>
+        <button class="set-link" data-spane="connect"><span class="ai"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M9 12h6"/><path d="M9 8H6a4 4 0 0 0 0 8h3"/><path d="M15 8h3a4 4 0 0 1 0 8h-3"/></svg></span>广告账户</button>
+        <button class="set-link" data-spane="llm"><span class="ai"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="7" width="10" height="10" rx="2"/><path d="M12 3v4M12 17v4M3 12h4M17 12h4"/></svg></span>LLM 接口</button>
+        <button class="set-link" data-spane="run"><span class="ai"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18"/></svg></span>运行设置</button>
+        <a class="set-link" id="setHelp" href="https://github.com/YunyueLi/Drip" target="_blank" rel="noopener"><span class="ai"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.8.4-1 .8-1 1.7" stroke-linecap="round"/><path d="M12 17h.01" stroke-linecap="round"/></svg></span>获取帮助 ↗</a>
+      </div>
+      <div class="set-main">
+        <div class="set-pane on" data-spane="general">
+          <h2>通用</h2>
+          <div class="set-grp">外观</div>
+          <div class="set-row"><div><div class="rl">语言</div></div><select class="inp" id="setLangSel" style="width:190px"></select></div>
+          <div class="set-row" style="border:none;padding-bottom:6px"><div><div class="rl">主题</div></div></div>
+          <div class="theme-opts">
+            <div class="theme-opt" data-theme-opt="light"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5L19 19M19 5l-1.5 1.5M6.5 17.5L5 19" stroke-linecap="round"/></svg>浅色</div>
+            <div class="theme-opt" data-theme-opt="dark"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M21 12.8A8 8 0 1 1 11.2 3a6.2 6.2 0 0 0 9.8 9.8z"/></svg>深色</div>
+            <div class="theme-opt" data-theme-opt="auto"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="9"/><path d="M12 3v18" /><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor" stroke="none"/></svg>跟随系统</div>
+          </div>
+          <div class="set-grp">通讯偏好</div>
+          <div class="set-row"><div><div class="rl">浏览器通知</div><div class="rh">有新进展或决策待批时，浏览器会收到通知。</div></div><div class="sw" data-sw></div></div>
+          <div class="set-row"><div><div class="rl">接收产品更新</div><div class="rh">抢先体验新功能发布与最佳实践。</div></div><div class="sw on" data-sw></div></div>
+        </div>
+        <div class="set-pane" data-spane="account">
+          <h2>账户</h2>
+          <div class="set-row"><div><div class="rl">未登录</div><div class="rh">点右上角账号 → 登录</div></div></div>
+          <div class="set-grp">同步</div>
+          <div class="fcard">
+            <div class="frow"><div class="fl"><span>状态</span><div class="h">登录即开启，换设备登录即恢复</div></div><div class="fc"><span data-sync-status style="font-size:12px;color:var(--text-3)">○ 仅本机</span></div></div>
+            <div class="frow"><div class="fl"><span>随账户同步</span><div class="h">LLM 接口 · 目标与预算 · 广告账户授权</div></div><div class="fc"></div></div>
+          </div>
+          <div style="margin-top:20px"><button class="btn" id="setSignOut" style="color:var(--red);border-color:var(--red-subtle)">退出登录</button></div>
+        </div>
+        <div class="set-pane" data-spane="usage">
+          <h2>用量与计费</h2>
+          <div class="kpis kpis-4" style="border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:18px">
+            <div class="kpi"><div class="k">本月决策</div><div class="v mono">1,284</div><div class="d up">↑ 12%</div></div>
+            <div class="kpi"><div class="k">运行次数</div><div class="v mono">342</div><div class="d flat">—</div></div>
+            <div class="kpi"><div class="k">连接账户</div><div class="v mono">3</div><div class="d flat">/ 6</div></div>
+            <div class="kpi"><div class="k">方案</div><div class="v mono">自托管</div><div class="d up">无限制</div></div>
+          </div>
+          <div class="set-row"><div><div class="rl">自托管 · Apache-2.0</div><div class="rh">开源免费，用你自己的算力与模型额度，无平台计费。</div></div></div>
+        </div>
+        <div class="set-pane" data-spane="connect">
+          <h2>广告账户</h2>
+          <div class="set-grp">授权存在云端账户名下 · 随账户同步</div>
+          <div class="fcard" id="realConns"></div>
+          <div style="font-size:12px;color:var(--text-3);padding:8px 2px 14px;line-height:1.6">连接后：控制台输入「诊断我的真实账户」→ 拉真实数据 → 规则决策 → 你批准后写回预算（受运行模式与上限保护）。</div>
+          <div class="set-grp">更多连接器（未接入）</div>
+          <div class="conn-grid">
+            <div class="conn-card"><span class="conn-tile" style="background:#1b9df0">AF</span><div class="conn-info"><div class="conn-nm">AppsFlyer</div><div class="conn-d">MMP 归因真值，校正平台口径</div></div><button class="conn-add" title="连接">+</button></div>
+            <div class="conn-card"><span class="conn-tile" style="background:#0b1b34">aj</span><div class="conn-info"><div class="conn-nm">Adjust</div><div class="conn-d">归因与防作弊，事件回传</div></div><button class="conn-add" title="连接">+</button></div>
+            <div class="conn-card"><span class="conn-tile" style="background:#e8710a">GA</span><div class="conn-info"><div class="conn-nm">GA4</div><div class="conn-d">站内行为与转化路径分析</div></div><button class="conn-add" title="连接">+</button></div>
+            <div class="conn-card"><span class="conn-tile" style="background:#4a154b">#</span><div class="conn-info"><div class="conn-nm">Slack</div><div class="conn-d">告警与待批决策推送到频道</div></div><button class="conn-add" title="连接">+</button></div>
+            <div class="conn-card"><span class="conn-tile" style="background:#000">N</span><div class="conn-info"><div class="conn-nm">Notion</div><div class="conn-d">把复盘报告自动写进知识库</div></div><button class="conn-add" title="连接">+</button></div>
+            <div class="conn-card"><span class="conn-tile" style="background:#0a66c2">in</span><div class="conn-info"><div class="conn-nm">飞书 / Lark</div><div class="conn-d">多维表格同步与团队审批</div></div><button class="conn-add" title="连接">+</button></div>
+          </div>
+        </div>
+        <div class="set-pane" data-spane="llm">
+          <h2>LLM 接口</h2>
+          <div class="set-grp">随账户同步 · 浏览器直连提供方，key 不经过任何中转</div>
+          <div class="fcard llm-card">
+            <div class="auth-f"><span>提供方</span><div class="auth-chips" id="llmProv" style="margin:0"></div></div>
+            <div class="auth-f"><span>API Key<a id="llmKeyUrl" class="llm-keyurl" target="_blank" rel="noopener">去拿 key ↗</a></span><span class="auth-pw"><input id="setLlmKey" type="password" placeholder="sk-..." autocomplete="off"><button type="button" class="auth-show" id="llmShow">显示</button></span></div>
+            <div class="auth-f"><span>模型</span><div class="llm-modelrow"><select id="llmModelSel" class="llm-sel"></select><button class="btn sm" id="llmFetch" title="用上面的 key 从 API 拉取真实模型列表">↻ 拉取列表</button></div><input id="setLlmModel" placeholder="填模型 id，如 deepseek-v4-pro" style="display:none;margin-top:8px"></div>
+            <div class="auth-f"><span>Base URL</span><input id="setLlmBase" placeholder="https://api.deepseek.com"></div>
+            <div class="llm-foot"><span class="llm-status" data-llm-status>未配置 LLM</span><span style="display:flex;gap:8px"><button class="btn" id="llmTest" style="height:34px;padding:0 14px">测试连接</button><button class="btn primary" id="setLlmSave" style="height:34px;padding:0 18px">保存</button></span></div>
+          </div>
+          <div style="font-size:12px;color:var(--text-3);padding:8px 2px 0;line-height:1.6">用于控制台里「你的模型」写解释与对话。换设备登录同一账户，这里的配置自动跟过去。</div>
+        </div>
+        <div class="set-pane" data-spane="run">
+          <h2>运行设置</h2>
+          <div class="set-grp">运行模式(DRIP_MODE)</div>
+          <div class="fcard">
+            <div class="frow"><div class="fl"><span data-i18n="st.mode">模式</span><div class="h" data-i18n="st.modeh">写入平台的权限级别</div></div><div class="fc"><label class="rad"><input type="radio" name="mode"> <span data-i18n="mode.shadow">Shadow 只规划</span></label><label class="rad"><input type="radio" name="mode" checked> <span data-i18n="mode.copilot">Copilot 逐条批准</span></label><label class="rad"><input type="radio" name="mode"> <span data-i18n="mode.auto">Autonomous 上限内自动</span></label></div></div>
+            <div class="frow"><div class="fl" data-i18n="st.cap">预算上限</div><div class="fc"><input id="setBudgetCap" class="inp" style="width:110px" value="$3,500"><span style="font-size:12px;color:var(--text-3)" data-i18n="st.caph">/ 天 自动模式下的硬上限</span></div></div>
+          </div>
+          <div class="set-grp">目标与预算</div>
+          <div class="fcard">
+            <div class="frow"><div class="fl"><span>CPP 目标</span><div class="h">每次购买成本(USD)· 驱动 CPP 信号判定</div></div><div class="fc"><input id="setTgCpp" class="inp" style="width:110px" type="number" min="0" step="0.5" placeholder="25"><span style="font-size:12px;color:var(--text-3)">留空用默认 $25</span></div></div>
+            <div class="frow"><div class="fl"><span>ROAS 目标</span><div class="h">广告支出回报倍数 · 驱动 ROAS 信号判定</div></div><div class="fc"><input id="setTgRoas" class="inp" style="width:110px" type="number" min="0" step="0.1" placeholder="3.0"><span style="font-size:12px;color:var(--text-3)">留空用默认 3.0x</span></div></div>
+            <div class="frow"><div class="fl"><span>演示总预算</span><div class="h">样本/演示分配的盘子(USD)· 实盘按真实花费</div></div><div class="fc"><input id="setTgBudget" class="inp" style="width:110px" type="number" min="0" step="100" placeholder="1400"><span style="font-size:12px;color:var(--text-3)">留空用默认 $1,400</span></div></div>
+            <div class="frow"><div class="fl"><span>状态</span><div class="h"><span data-targets-status>使用默认目标</span></div></div><div class="fc"><button class="btn primary" id="setTgSave" style="height:34px;padding:0 18px">保存</button></div></div>
+          </div>
+          <div class="set-grp">归因</div>
+          <div class="fcard">
+            <div class="frow"><div class="fl" data-i18n="st.attr">归因来源</div><div class="fc"><select class="inp"><option>AppsFlyer</option><option>Adjust</option><option data-i18n="st.attrlast">平台口径（打折）</option></select></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
+
+  <aside class="rrail"><div class="rr-grip" id="rrGrip"></div>
+    <details class="rp" open>
+      <summary><span class="tw">▸</span><span data-i18n="r.progress">运行进度</span><span class="ct" data-i18n="r.steps">5 步</span></summary>
+      <div class="pbody">
+        <div class="pstep done"><span class="n">✓</span><span class="tx" data-i18n="r.s1">拉取 4 账户 insights 32 campaign</span></div>
+        <div class="pstep done"><span class="n">✓</span><span class="tx" data-i18n="r.s2">评估 8 信号 / campaign（thresholds v2）</span></div>
+        <div class="pstep done"><span class="n">✓</span><span class="tx" data-i18n="r.s3">跑规则引擎 → 6 项决策</span></div>
+        <div class="pstep done"><span class="n">✓</span><span class="tx" data-i18n="r.s4">Allocator 计算跨平台分配</span></div>
+        <div class="pstep now"><span class="n">5</span><span class="tx" data-i18n="r.s5">等你批准 6 项改动后写入</span></div>
+      </div>
+    </details>
+
+    <details class="rp rp-audit" open>
+      <summary><span class="tw">▸</span><span data-i18n="r.audit">为什么 审计</span><span class="ct" id="wpTag">点卡片切换</span><button class="rp-collapse" id="auditCollapse" title="收起" aria-label="收起">⟩</button></summary>
+      <div class="pbody">
+        <div class="whead"><div class="nm" id="wpName">AstralDrift Hina</div><div class="plat" id="wpPlat">TikTok JP</div><div class="vd"><span class="act scale" id="wpAct">SCALE +20%</span><span class="conf high" id="wpConf">HIGH</span></div></div>
+        <div class="wsec"><span data-i18n="r.sigvec">8 信号向量</span><span class="ct" id="wpCount">8/8</span></div>
+        <div id="wpSigs"></div>
+        <div class="dvr"></div>
+        <div class="wsec" data-i18n="r.rules">规则链</div>
+        <div id="wpRules"></div>
+        <div class="dvr"></div>
+        <div class="wsec" data-i18n="r.replay">可回放 / 审计</div>
+        <div class="replay">
+          <div class="row"><span class="k" data-i18n="r.inputs">输入</span><span class="v" id="wpHash">sha 7f3a91c4</span></div>
+          <div class="row"><span class="k" data-i18n="r.thresholds">阈值</span><span class="v">thresholds v2</span></div>
+          <div class="row"><span class="k" data-i18n="r.engine">引擎</span><span class="v">engine 0.4.0</span></div>
+          <button data-i18n="r.replaybtn">重放这次决策 →</button>
+        </div>
+      </div>
+    </details>
+
+    <details class="rp">
+      <summary><span class="tw">▸</span><span data-i18n="r.lib">素材库</span><span class="ct">12</span></summary>
+      <div class="pbody">
+        <div class="litem"><span class="thumb tg1"></span><span class="nm">Hina_hook_v3.mp4</span><span class="meta">CTR 1.58%</span></div>
+        <div class="litem"><span class="thumb tg3"></span><span class="nm">IG_Reels_variant_A</span><span class="meta" data-i18n="li.qa">QA 中</span></div>
+        <div class="litem"><span class="thumb tg7"></span><span class="nm">Retarget_UGC_07.mp4</span><span class="meta">ROAS 5.2×</span></div>
+        <div class="litem"><span class="thumb tg2"></span><span class="nm">DTC_static_set.zip</span><span class="meta" data-i18n="li.files">6 张</span></div>
+      </div>
+    </details>
+
+    <details class="rp">
+      <summary><span class="tw">▸</span>Campaign<span class="ct">32</span></summary>
+      <div class="pbody">
+        <div class="crow"><span class="sd" style="background:var(--green)"></span><span class="nm">AstralDrift Hina</span><span class="sp">¥18k</span></div>
+        <div class="crow"><span class="sd" style="background:var(--green)"></span><span class="nm">DTC_US_Prospecting_v3</span><span class="sp">$240</span></div>
+        <div class="crow"><span class="sd" style="background:var(--amber)"></span><span class="nm">IG_Reels_Hero</span><span class="sp">$300</span></div>
+        <div class="crow"><span class="sd" style="background:var(--amber)"></span><span class="nm">Retargeting_7d</span><span class="sp">$120</span></div>
+        <div class="crow"><span class="sd" style="background:var(--text-3)"></span><span class="nm">Lookalike_2pct_v2</span><span class="sp">$180</span></div>
+        <div class="crow"><span class="sd" style="background:var(--red)"></span><span class="nm">Casual_Game_Broad_v1</span><span class="sp">$0</span></div>
+        <div class="crow"><span class="sd" style="background:var(--red)"></span><span class="nm">Broad_Interest_v4</span><span class="sp">$0</span></div>
+      </div>
+    </details>
+  </aside>
 </div>
-
-<!-- FEATURES -->
-<section id="features">
-  <div class="wrap">
-    <div class="sec-head reveal">
-      <span class="eyebrow" data-i18n="feat.eyebrow">Why Drip</span>
-      <h2 data-i18n="feat.h2">Human strategy. Agent execution.<br>Nothing hidden in between.</h2>
-      <p data-i18n="feat.sub">The closed UA agents say “trust us.” Drip shows the work — every scale, pause, and budget move opens its full reasoning.</p>
-    </div>
-    <div class="trio">
-      <div class="feat reveal">
-        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3 8-8"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
-        <h3 data-i18n="feat1.t">Rules decide, not vibes</h3>
-        <p data-i18n="feat1.d">Eight signals → red/amber/green → a deterministic rule chain produces the action, confidence, and guardrails. The LLM only writes the human “why”. Replayable, byte-for-byte.</p>
-      </div>
-      <div class="feat reveal" style="transition-delay:.06s">
-        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17l6-6 4 4 6-7"/><path d="M4 21h16"/></svg></div>
-        <h3 data-i18n="feat2.t">The whole loop, one command</h3>
-        <p data-i18n="feat2.d">collect → diagnose → strategize → create → allocate → learn. <code>drip run</code> walks the entire cycle, cross-platform, and reallocates budget from losers to winners within your cap.</p>
-      </div>
-      <div class="feat reveal" style="transition-delay:.12s">
-        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 4v5c0 5-3.5 7.5-8 9-4.5-1.5-8-4-8-9V7z"/><path d="M9 12l2 2 4-4"/></svg></div>
-        <h3 data-i18n="feat3.t">Safe by default</h3>
-        <p data-i18n="feat3.d">A ladder, not a switch: <b>shadow</b> (plan only) → <b>copilot</b> (human approves each write) → <b>autonomous</b> (within a hard budget cap). A person signs off before money moves.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- HOW / MODULES -->
-<section id="how" style="background:var(--bg-soft);border-block:1px solid var(--line-2)">
-  <div class="wrap">
-    <div class="sec-head reveal">
-      <span class="eyebrow" data-i18n="how.eyebrow">How it works</span>
-      <h2 data-i18n="how.h2">See it. Decide it. Prove it.</h2>
-      <p data-i18n="how.sub">Platform AI won the bidding auction. The new battleground is the <em>decision</em> layer — and that's exactly what Drip opens up.</p>
-    </div>
-
-    <div class="module reveal">
-      <div class="m-text">
-        <div class="m-num" data-i18n="m1.num">01 — DIAGNOSE</div>
-        <h3 data-i18n="m1.t">Every campaign, scored on 8 signals</h3>
-        <p data-i18n="m1.d">CPP, ROAS, CVR, CTR, frequency, spend, purchases, headroom. Each goes red/amber/green, the rules fire, and you get a decision card with the full vector + rule chain + confidence.</p>
-        <ul class="mlist"><li data-i18n="m1.l1">Thin sample → it scales conservatively and caps confidence</li><li data-i18n="m1.l2">Open the rule chain to see exactly why</li></ul>
-      </div>
-      <div class="m-vis">
-        <div class="mock-body">
-          <div class="card-head"><div class="card-camp">TikTok_Broad_v1<span class="sub">unit economics broken</span></div><div class="verdict" style="background:var(--red)">PAUSE<small>$240 → $0</small></div></div>
-          <div class="sig-grid">
-            <div class="sig r"><div class="n">CPP</div><div class="v">$41</div></div>
-            <div class="sig r"><div class="n">ROAS</div><div class="v">1.4×</div></div>
-            <div class="sig r"><div class="n">CVR</div><div class="v">1.2%</div></div>
-            <div class="sig a"><div class="n">CTR</div><div class="v">0.8%</div></div>
-          </div>
-          <div class="rule"><b>rule chain:</b> CPP &amp; ROAS both red — unit economics broken → <b>stop the bleed</b>. Confidence capped LOW (sample below minimum).</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="module flip reveal">
-      <div class="m-text">
-        <div class="m-num" data-i18n="m2.num">02 — ALLOCATE</div>
-        <h3 data-i18n="m2.t">Budget flows to winners, across platforms</h3>
-        <p data-i18n="m2.d">Nobody optimises <em>across</em> walled gardens — that's the open, neutral gap Drip fills. Freed budget from pauses flows to the scalers in proportion to value, inside your daily cap.</p>
-        <ul class="mlist"><li data-i18n="m2.l1">Cross-platform, vendor-neutral</li><li data-i18n="m2.l2">Value-weighted (ROAS by default, plug your LTV model)</li></ul>
-      </div>
-      <div class="m-vis">
-        <div class="alloc">
-          <div class="alloc-row"><span class="nm">meta · Prospect_v3</span><span class="bar"><i style="width:84%"></i></span><span class="amt">$500</span><span class="tag up">SCALE</span></div>
-          <div class="alloc-row"><span class="nm">tiktok · Prospect_v3</span><span class="bar"><i style="width:84%"></i></span><span class="amt">$500</span><span class="tag up">SCALE</span></div>
-          <div class="alloc-row"><span class="nm">meta · Broad_v1</span><span class="bar cut"><i style="width:3%"></i></span><span class="amt">$0</span><span class="tag dn">PAUSE</span></div>
-          <div class="alloc-row"><span class="nm">tiktok · Broad_v1</span><span class="bar cut"><i style="width:3%"></i></span><span class="amt">$0</span><span class="tag dn">PAUSE</span></div>
-        </div>
-      </div>
-    </div>
-
-    <div class="module reveal">
-      <div class="m-text">
-        <div class="m-num" data-i18n="m3.num">03 — PROVE</div>
-        <h3 data-i18n="m3.t">The first reproducible UA-agent benchmark</h3>
-        <p data-i18n="m3.d">10 hand-curated decision cases, a three-part rubric, a pluggable agent interface. Score any model — yours, ours, a competitor's — and every run writes a bundle anyone can re-run and diff.</p>
-        <ul class="mlist"><li data-i18n="m3.l1">No more unverifiable “70% lower CPA”</li><li data-i18n="m3.l2">Open leaderboard — win or lose, we publish ours</li></ul>
-      </div>
-      <div class="m-vis">
-        <div class="bench"><span class="hl">$ drip bench run --agent claude</span><br>drip-bench v0 · 10 cases<br><br>▸ 001 sample on the edge&nbsp;&nbsp;<span class="ok">92/100</span><br>▸ 002 slow bleed&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="ok">88/100</span><br>▸ 003 budget reallocation&nbsp;<span class="ok">81/100</span><br>▸ 004 creative fatigue&nbsp;&nbsp;&nbsp;&nbsp;<span class="ok">95/100</span><br>…<br><br>&nbsp;&nbsp;total <span class="hl">851 / 1000</span><br>&nbsp;&nbsp;bundle → benchmarks/runs/…</div>
-      </div>
-    </div>
-
-    <div class="module flip reveal">
-      <div class="m-text">
-        <div class="m-num" data-i18n="m4.num">04 — EXECUTE</div>
-        <h3 data-i18n="m4.t">It writes — to Meta and China, gated</h3>
-        <p data-i18n="m4.d"><code>drip apply</code> pushes scale / pause to Meta · 腾讯 · 巨量 · 快手 (auto-routed); <code>drip watch</code> guards pacing intraday; <code>drip autopilot</code> runs the whole loop, signal-routed behind a circuit breaker. shadow → copilot → autonomous, every write capped + audited.</p>
-        <ul class="mlist"><li data-i18n="m4.l1">Cross-border: Meta · TikTok · 腾讯 · 巨量 · 快手</li><li data-i18n="m4.l2">Autonomous — but it halts on anomalies or write failures</li></ul>
-      </div>
-      <div class="m-vis">
-        <div class="bench"><span class="hl">$ drip autopilot --mode autonomous</span><br>situation: <span class="ok">scaling</span> → scale-winners → allocate<br><br>&nbsp;&nbsp;meta&nbsp;&nbsp;Prospect_v3&nbsp;&nbsp;SCALE&nbsp;&nbsp;<span class="ok">applied ✓</span><br>&nbsp;&nbsp;腾讯&nbsp;&nbsp;Prospect_v3&nbsp;&nbsp;SCALE&nbsp;&nbsp;<span class="ok">applied ✓</span><br>&nbsp;&nbsp;巨量&nbsp;&nbsp;Broad_v1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;PAUSE&nbsp;&nbsp;<span class="ok">applied ✓</span><br><br>&nbsp;&nbsp;⛔ breaker ok · audit → <span class="hl">writes.jsonl</span></div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- COMPARE -->
-<section id="compare">
-  <div class="wrap">
-    <div class="sec-head reveal">
-      <span class="eyebrow" data-i18n="cmp.eyebrow">Open vs closed</span>
-      <h2 data-i18n="cmp.h2">Why a transparent agent wins</h2>
-      <p data-i18n="cmp.sub">We're not claiming Drip beats them on raw performance today. We're claiming it's the only one you can audit, fork, and run in your own environment.</p>
-    </div>
-    <div class="cmp reveal">
-      <div class="cmp-row h"><div>&nbsp;</div><div class="c">Sett · Kohort · GrowthGPT</div><div class="d">Drip</div></div>
-      <div class="cmp-row"><div class="lbl" data-i18n="cmp.r1">Code</div><div class="c" data-i18n="cmp.r1a">Closed</div><div class="d">Apache-2.0</div></div>
-      <div class="cmp-row"><div class="lbl" data-i18n="cmp.r2">Why a decision happened</div><div class="c">“Trust us”</div><div class="d" data-i18n="cmp.r2b">Signal vector + rule chain + replay</div></div>
-      <div class="cmp-row"><div class="lbl">LLM</div><div class="c" data-i18n="cmp.r3a">Vendor-locked</div><div class="d" data-i18n="cmp.r3b">Any of 12 + local</div></div>
-      <div class="cmp-row"><div class="lbl" data-i18n="cmp.r4">Cross-platform</div><div class="c" data-i18n="cmp.r4a">Per walled garden</div><div class="d" data-i18n="cmp.r4b">Neutral, optimises across</div></div>
-      <div class="cmp-row"><div class="lbl" data-i18n="cmp.r5">Your data</div><div class="c" data-i18n="cmp.r5a">On their servers</div><div class="d" data-i18n="cmp.r5b">On yours, self-hosted</div></div>
-      <div class="cmp-row"><div class="lbl" data-i18n="cmp.r6">Evaluation</div><div class="c" data-i18n="cmp.r6a">Marketing claims</div><div class="d" data-i18n="cmp.r6b">Drip-Bench, reproducible</div></div>
-      <div class="cmp-row"><div class="lbl" data-i18n="cmp.r7">Price</div><div class="c">$99–$999+/mo</div><div class="d" data-i18n="cmp.r7b">Free</div></div>
-    </div>
-  </div>
-</section>
-
-<!-- CLOSING CTA -->
-<section class="cta-sec">
-  <div class="wrap">
-    <div class="cta reveal">
-      <svg class="drop" viewBox="0 0 200 192" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <g stroke="#0052d9" stroke-width="3"><ellipse cx="100" cy="123" rx="29" ry="5" opacity=".5"/><ellipse cx="100" cy="130" rx="49" ry="8" opacity=".3"/><ellipse cx="100" cy="137" rx="71" ry="11" opacity=".15"/></g>
-        <path stroke="#0052d9" stroke-width="3" d="M100 30C100 30 72 70 72 92A28 28 0 1 0 128 92C128 70 100 30 100 30Z"/>
-        <path stroke="#0052d9" stroke-width="3.4" d="M84 96 93 83 101 89 116 66"/><circle cx="116" cy="66" r="3.6" fill="#0052d9"/>
-        <path stroke="#0052d9" stroke-width="3" d="M132 66 150 46 160 55 184 28"/><path stroke="#0052d9" stroke-width="3" d="M173 27 185 27 184 39"/>
-      </svg>
-      <h2 data-i18n="cta.h2">See every decision before you trust it with a dollar.</h2>
-      <p data-i18n="cta.p">Open the live console — no install, no signup.</p>
-      <div class="hero-cta">
-        <a class="btn btn-primary" href="https://yunyueli.github.io/Drip/app.html">▶&nbsp; <span data-i18n="cta.b1">Try the live console</span></a>
-        <a class="btn btn-ghost" href="https://github.com/YunyueLi/Drip">★&nbsp; <span data-i18n="cta.b2">Star on GitHub</span></a>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- FOOTER -->
-<footer>
-  <div class="wrap foot-in">
-    <a class="logo" href="/" style="font-size:17px"><svg viewBox="0 0 100 100" fill="none"><path d="M50 14C42 34 26 48 26 64a24 24 0 0 0 48 0C74 48 58 34 50 14Z" fill="#0052d9"/></svg>Drip</a>
-    <div class="foot-links">
-      <a href="https://github.com/YunyueLi/Drip">GitHub</a>
-      <a href="https://yunyueli.github.io/Drip/app.html" data-i18n="foot.demo">Live demo</a>
-      <a href="https://github.com/YunyueLi/Drip/blob/main/docs/intraday-research.md" data-i18n="foot.research">Research</a>
-      <a href="https://x.com/drip_agent">@drip_agent</a>
-    </div>
-    <span data-i18n="foot.tagline">Apache-2.0 · built in the open</span>
-  </div>
-</footer>
-
-<script>
-const I18N={
- en:{}, // English is the source-of-truth in the markup
- zh:{
-  "nav.how":"运作原理","nav.why":"为什么是 Drip","nav.compare":"开源 vs 闭源","nav.demo":"▶ 在线体验",
-  "hero.pill":"开源 · Apache-2.0 · <b>v0.0.7</b>",
-  "hero.h1a":"增长，自动驾驶。","hero.h1b":"决策摊在明面上。",
-  "hero.lede":"Drip 用一队 agent 跑完整条买量闭环——诊断、决策、分配、创意。决策内核是<b>确定性、可审计</b>的；LLM 只负责解释。可自托管、可 fork，动钱之前看清每一个<em>为什么</em>。",
-  "hero.cta1":"体验在线控制台","hero.cta2":"去 GitHub Star",
-  "hero.t1":"12 种 LLM 任选","hero.t2":"Meta · TikTok · 腾讯 · 巨量 · 快手","hero.t3":"数据自托管",
-  "strip.1":"规则做决策，LLM 只解释","strip.2":"<b>8 信号</b>决策引擎","strip.3":"<b>Drip-Bench</b> · 可复现","strip.4":"shadow → copilot → autonomous",
-  "feat.eyebrow":"为什么是 Drip","feat.h2":"人定策略，agent 执行，<br>中间不藏黑箱。",
-  "feat.sub":"闭源买量 agent 说“信我就好”。Drip 把过程摊开——每一次放量、暂停、调预算，都能展开完整推理。",
-  "feat1.t":"靠规则，不靠感觉","feat1.d":"八个信号 → 红黄绿 → 确定性规则链给出动作、置信度和护栏。LLM 只写给人看的“为什么”。逐字节可回放。",
-  "feat2.t":"一条命令，跑完闭环","feat2.d":"采集 → 诊断 → 策略 → 创意 → 分配 → 学习。<code>drip run</code> 跨平台走完整圈，在你的预算上限内把钱从输家挪给赢家。",
-  "feat3.t":"默认安全","feat3.d":"是阶梯，不是开关：<b>shadow</b>（只规划）→ <b>copilot</b>（每次写人工批准）→ <b>autonomous</b>（硬预算上限内）。动钱之前，有人签字。",
-  "how.eyebrow":"运作原理","how.h2":"看见它。决策它。证明它。",
-  "how.sub":"平台 AI 赢下了竞价。新战场是<em>决策</em>层——而这正是 Drip 开源的地方。",
-  "m1.num":"01 — 诊断","m1.t":"每条 campaign，8 信号打分",
-  "m1.d":"CPP、ROAS、CVR、CTR、频次、消耗、转化数、预算余量——逐项红黄绿，规则触发，产出带完整信号向量 + 规则链 + 置信度的决策卡。",
-  "m1.l1":"样本薄 → 自动保守放量并封顶置信度","m1.l2":"展开规则链，看清每一个为什么",
-  "m2.num":"02 — 分配","m2.t":"预算跨平台流向赢家",
-  "m2.d":"没人做<em>跨</em>平台优化——这正是 Drip 这个开放、中立的位置要补的。暂停释放的预算，按价值比例流向放量项，都在你的日预算上限内。",
-  "m2.l1":"跨平台、厂商中立","m2.l2":"按价值加权（默认 ROAS，可插你自己的 LTV 模型）",
-  "m3.num":"03 — 证明","m3.t":"首个可复现的买量 agent 基准",
-  "m3.d":"10 个精选决策案例、三段式评分、可插拔 agent 接口。给任何模型打分——你的、我们的、对手的——每次运行都产出可复现、可 diff 的 bundle。",
-  "m3.l1":"不再有无法验证的“CPA 降 70%”","m3.l2":"公开排行榜——赢输都 publish，我们也公开自己的",
-  "m4.num":"04 — 执行","m4.t":"它真会写——投到 Meta 和国内，带闸",
-  "m4.d":"<code>drip apply</code> 把放量 / 暂停写到 Meta · 腾讯 · 巨量 · 快手（自动路由）；<code>drip watch</code> 盘中守 pacing；<code>drip autopilot</code> 跑完整闭环，信号路由 + 熔断。shadow → copilot → autonomous，每次写都封顶 + 审计。",
-  "m4.l1":"跨国内外：Meta · TikTok · 腾讯 · 巨量 · 快手","m4.l2":"自主，但异常或写失败会自动熔断",
-  "cmp.eyebrow":"开源 vs 闭源","cmp.h2":"为什么透明的 agent 会赢",
-  "cmp.sub":"我们不声称 Drip 今天就在纯效果上赢过它们。我们声称：它是唯一一个你能审计、fork、并在自己环境里运行的。",
-  "cmp.r1":"代码","cmp.r1a":"闭源","cmp.r2":"决策为何发生","cmp.r2b":"信号向量 + 规则链 + 回放",
-  "cmp.r3a":"绑定厂商","cmp.r3b":"12 种任选 + 本地","cmp.r4":"跨平台","cmp.r4a":"各自为政","cmp.r4b":"中立，跨平台优化",
-  "cmp.r5":"你的数据","cmp.r5a":"在它们服务器","cmp.r5b":"在你这，自托管","cmp.r6":"评测","cmp.r6a":"营销话术","cmp.r6b":"Drip-Bench，可复现",
-  "cmp.r7":"价格","cmp.r7b":"免费",
-  "cta.h2":"在把一块钱交给它之前，看清每一个决策。","cta.p":"打开在线控制台——免安装、免注册。",
-  "cta.b1":"体验在线控制台","cta.b2":"去 GitHub Star",
-  "foot.demo":"在线体验","foot.research":"调研","foot.tagline":"Apache-2.0 · 全程开源开发"
- }
-};
-const EN={};
-document.querySelectorAll('[data-i18n]').forEach(el=>{EN[el.getAttribute('data-i18n')]=el.innerHTML;});
-function setLang(l){
-  const dict=l==='zh'?I18N.zh:EN;
-  document.querySelectorAll('[data-i18n]').forEach(el=>{
-    const k=el.getAttribute('data-i18n');
-    const v=(l==='zh'?I18N.zh[k]:EN[k]);
-    if(v!=null) el.innerHTML=v;
-  });
-  document.documentElement.lang=(l==='zh'?'zh-CN':'en');
-  document.querySelectorAll('.lang button').forEach(b=>b.classList.toggle('on',b.dataset.lang===l));
-  try{localStorage.setItem('drip_lang',l);}catch(e){}
-}
-document.querySelectorAll('.lang button').forEach(b=>b.addEventListener('click',()=>setLang(b.dataset.lang)));
-(function(){let l;try{l=localStorage.getItem('drip_lang');}catch(e){} if(!l)l=(navigator.language||'').toLowerCase().startsWith('zh')?'zh':'en'; if(l==='zh')setLang('zh');})();
-const io=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}})},{threshold:.12});
-document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
-</script>
+<!-- Supabase JS is lazy-loaded by auth.js ONLY when web/config.js is filled
+     (see ensureSupabase), via China-reachable mirrors with fallback — so no
+     3rd-party CDN ever blocks the app from loading/responding. -->
+<script src="config.js"></script>
+<script src="real-cases.js"></script>
+<script src="engine.js"></script>
+<script src="llm.js"></script>
+<script src="app.js"></script>
+<script src="auth.js"></script>
+<script src="live.js"></script>
+<script src="run.js"></script>
 </body>
 </html>
